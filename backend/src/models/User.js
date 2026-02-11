@@ -2,9 +2,17 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const userSchema = new mongoose.Schema(
   {
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: [true, "Le nom est requis"],
+    },
+    firstname: {
+      type: String,
     },
     email: {
       type: String,
@@ -13,18 +21,33 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Email invalide"],
     },
+    phone: {
+      type: String,
+    },
+    entreprise: {
+      type: String,
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
+    },
     password: {
       type: String,
       required: [true, "Le mot de passe est requis"],
       minlength: 6,
       select: false,
     },
+    role: {
+      type: String,
+      enum: ["client", "admin"],
+      default: "client",
+    },
   },
   { timestamps: true },
 );
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -32,7 +55,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Méthode pour comparer les mots de passe
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

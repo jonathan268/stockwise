@@ -20,16 +20,6 @@ exports.getUser = async(req, res) =>{
 
  };
 
- // Créer un utilisateur
-
- exports.createUser = async(req, res) =>{
-    const user = new User(req.body);
-    const saveUser = await  user.save();
-
-    res.status(201).json({message: "Utilisateur créer avec succès"});
-
-    res.json(saveUser);
- };
 
  // Mise à jour d'un utilisateur
 

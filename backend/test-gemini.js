@@ -71,10 +71,10 @@ async function testGeminiService() {
         wastePercentage: 15
       }
     );
-    console.log('✅ Réponse personnalisée:');
+    console.log(' Réponse personnalisée:');
     console.log(customResponse);
   } catch (error) {
-    console.error('❌ Erreur:', error.message);
+    console.error(' Erreur:', error.message);
   }
 }
 

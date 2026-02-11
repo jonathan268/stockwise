@@ -1,38 +1,51 @@
 const mongoose = require("mongoose");
 const produitSchema = new mongoose.Schema(
-    {
-
-        minstock:{
-            type:Number,
-
-        },
-
-        fournisseur:{
-            type:String,
-
-
-        },
-
-        name:{
-            type:String,
-            required:true,
-        },
-        montant:{
-            type:Number,
-            required:true,
-        },
-        stock:{
-            type:Number,
-            default:0,
-        },
-
-        category:{
-            type:String,
-
-        },
-
+  {
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true, // Index pour performance
     },
-    {timestamps:true}
+
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+
+    fournisseur: {
+      type: String,
+    },
+
+    name: {
+      type: String,
+      required: true,
+    },
+    sku: {
+      type: String,
+      required: true,
+    },
+    montant: {
+      type: Number,
+      required: true,
+    },
+    stock: {
+      type: Number,
+      default: 0,
+    },
+
+    category: String,
+    lowStockThreshold: {
+      type: Number,
+      default: 10,
+    },
+  },
+  { timestamps: true },
 );
+
+produitSchema.index({ tenantId: 1, sku: 1 }, { unique: true });
 
 module.exports = mongoose.model("Produit", produitSchema);
