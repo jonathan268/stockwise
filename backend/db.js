@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const uri = "mongodb+srv://darrenjonathan97_stockwise:<db_password>@cluster0.esnbapp.mongodb.net/?appName=Cluster0";
 require("dotenv").config();
 
 const connectDB = async () => {

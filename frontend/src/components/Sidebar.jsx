@@ -24,6 +24,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
     { path: '/commande', icon: ShoppingCart, label: 'Commandes' },
     { path: '/alerts', icon: AlertTriangle, label: 'Alertes' },
     { path: '/analytics', icon: Activity, label: 'Analytiques IA' },
+    { path: '/suppliers', icon: TrendingUp, label: 'Fournisseurs' },
   ];
 
   const isActive = (path) => location.pathname === path;

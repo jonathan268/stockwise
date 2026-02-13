@@ -5,7 +5,7 @@ const Header = ({ onMenuClick }) => {
   const [theme, setTheme] = useState('winter');
 
   const toggleTheme = () => {
-    const newTheme = theme === 'winter' ? 'synthwave' : 'winter';
+    const newTheme = theme === 'light' ? 'synthwave' : 'light';
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
@@ -15,18 +15,7 @@ const Header = ({ onMenuClick }) => {
       <div className="flex items-center justify-between h-full px-6">
         {/* Search Bar */}
         <div className="flex items-center gap-4 flex-1 max-w-2xl">
-          <div className="form-control flex-1">
-            <div className="input-group">
-              <span className="bg-base-200">
-                <Search size={20} />
-              </span>
-              <input 
-                type="text" 
-                placeholder="Rechercher un produit, commande..." 
-                className="input input-bordered w-full"
-              />
-            </div>
-          </div>
+         
         </div>
 
         {/* Right Section */}
@@ -37,7 +26,7 @@ const Header = ({ onMenuClick }) => {
             className="btn btn-ghost btn-circle"
             title="Changer de thème"
           >
-            {theme === 'winter' ? (
+            {theme === 'light' ? (
               <Moon size={20} />
             ) : (
               <Sun size={20} />

@@ -69,10 +69,10 @@ const Dashboard = () => {
 
   // Produits les plus actifs
   const topProducts = [
-    { name: 'iPhone 14 Pro', stock: 120, value: '95,000 €', movement: 85 },
-    { name: 'MacBook Air M2', stock: 65, value: '78,000 €', movement: 72 },
-    { name: 'Samsung Galaxy S23', stock: 90, value: '67,500 €', movement: 68 },
-    { name: 'iPad Pro 12.9', stock: 45, value: '54,000 €', movement: 55 },
+    { name: 'iPhone 14 Pro', stock: 120, value: '95,000 FCFA', movement: 85 },
+    { name: 'MacBook Air M2', stock: 65, value: '78,000 FCFA', movement: 72 },
+    { name: 'Samsung Galaxy S23', stock: 90, value: '67,500 FCFA', movement: 68 },
+    { name: 'iPad Pro 12.9', stock: 45, value: '54,000 FCFA', movement: 55 },
   ];
 
   return (
