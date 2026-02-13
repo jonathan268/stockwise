@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Produit = require("../models/Produit");
-const { authenticate } = require("../middlewares/auth");
+const { protect: authenticate } = require("../middlewares/auth");
 const tenantIsolation = require("../middlewares/tenantIsolation.js");
 const {
   checkActiveSubscription,

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Subscription = require("../models/Subscription");
 const Plan = require("../models/Plan");
-const { authenticate } = require("../middlewares/auth");
+const { protect: authenticate } = require("../middlewares/auth");
 
 // Obtenir l'abonnement actuel de l'utilisateur
 router.get("/my-subscription", authenticate, async (req, res) => {
