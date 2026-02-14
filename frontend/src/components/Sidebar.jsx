@@ -1,38 +1,37 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  BarChart3, 
-  Package, 
-  ShoppingCart, 
-  AlertTriangle, 
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  BarChart3,
+  Package,
+  ShoppingCart,
+  AlertTriangle,
   Activity,
   Settings,
   LogOut,
   Menu,
   TrendingUp,
   Sparkles,
-  Sparkle
-} from 'lucide-react';
-
+  Sparkle,
+} from "lucide-react";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
 
   const menuItems = [
-    { path: 'Dashboard', icon: BarChart3, label: 'Tableau de bord' },
-    { path: '/inventaire', icon: Package, label: 'Inventaire' },
-    { path: '/commande', icon: ShoppingCart, label: 'Commandes' },
-    { path: '/alerts', icon: AlertTriangle, label: 'Alertes' },
-    { path: '/analytics', icon: Activity, label: 'Analytiques IA' },
-    { path: '/suppliers', icon: TrendingUp, label: 'Fournisseurs' },
+    { path: "/app/dashboard", icon: BarChart3, label: "Tableau de bord" },
+    { path: "/app/inventaire", icon: Package, label: "Inventaire" },
+    { path: "/app/commande", icon: ShoppingCart, label: "Commandes" },
+    { path: "/app/alerts", icon: AlertTriangle, label: "Alertes" },
+    { path: "/app/analytics", icon: Activity, label: "Analytiques IA" },
+    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
   ];
 
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside 
+    <aside
       className={`${
-        isOpen ? 'w-64' : 'w-20'
+        isOpen ? "w-64" : "w-20"
       } bg-base-100 transition-all duration-300 shadow-xl flex flex-col`}
     >
       {/* Header */}
@@ -50,10 +49,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
             <Sparkles size={20} className="text-primary-content" />
           </div>
         )}
-        <button 
+        <button
           onClick={onToggle}
           className="btn btn-ghost btn-sm btn-circle"
-          title={isOpen ? 'Réduire' : 'Agrandir'}
+          title={isOpen ? "Réduire" : "Agrandir"}
         >
           <Menu size={20} />
         </button>
@@ -64,20 +63,21 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-                ${active 
-                  ? 'bg-primary text-primary-content shadow-lg' 
-                  : 'hover:bg-base-200 text-base-content'
+                ${
+                  active
+                    ? "bg-primary text-primary-content shadow-lg"
+                    : "hover:bg-base-200 text-base-content"
                 }
-                ${!isOpen && 'justify-center'}
+                ${!isOpen && "justify-center"}
               `}
-              title={!isOpen ? item.label : ''}
+              title={!isOpen ? item.label : ""}
             >
               <Icon size={20} />
               {isOpen && <span className="font-medium">{item.label}</span>}
@@ -92,28 +92,29 @@ const Sidebar = ({ isOpen, onToggle }) => {
       {/* Footer */}
       <div className="p-4 border-t border-base-300 space-y-2">
         <Link
-          to="/settings"
+          to="/app/settings"
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-            ${isActive('/settings')
-              ? 'bg-primary text-primary-content shadow-lg'
-              : 'hover:bg-base-200 text-base-content'
+            ${
+              isActive("/app/settings")
+                ? "bg-primary text-primary-content shadow-lg"
+                : "hover:bg-base-200 text-base-content"
             }
-            ${!isOpen && 'justify-center'}
+            ${!isOpen && "justify-center"}
           `}
-          title={!isOpen ? 'Paramètres' : ''}
+          title={!isOpen ? "Paramètres" : ""}
         >
           <Settings size={20} />
           {isOpen && <span className="font-medium">Paramètres</span>}
         </Link>
-        
-        <button 
+
+        <button
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full
             text-error hover:bg-error/10
-            ${!isOpen && 'justify-center'}
+            ${!isOpen && "justify-center"}
           `}
-          title={!isOpen ? 'Déconnexion' : ''}
+          title={!isOpen ? "Déconnexion" : ""}
         >
           <LogOut size={20} />
           {isOpen && <span className="font-medium">Déconnexion</span>}

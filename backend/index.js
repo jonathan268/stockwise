@@ -16,13 +16,15 @@ const analyticsRoutes = require("./src/routes/analyticsRoutes");
 const aiRoutes = require("./src/routes/aiRoutes");
 const organizationRoutes = require("./src/routes/organizationRoutes");
 
-
 const app = express();
 app.use(express.json());
 // Configuration CORS
 app.use(
   cors({
-    origin: "https://stockwise-eight.vercel.app",
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://stockwise-eight.vercel.app"
+        : ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
   }),
 );
@@ -41,7 +43,6 @@ app.use("/api/v1/alerts", alertRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
-
 
 app.get("/", (req, res) => {
   res.json({ message: "API StockWise fonctionne !" });

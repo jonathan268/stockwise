@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./src/pages/Landing";
 import Layout from "./src/components/Layout";
 import Dashboard from "./src/pages/Dashboard";
 import Login from "./src/pages/Login";
@@ -26,14 +27,17 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Route de connexion (publique) */}
+        {/* Landing page (publique) - Page d'accueil */}
+        <Route path="/" element={<Landing />} />
+
+        {/* Routes de connexion (publiques) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         {/* Routes de l'application (avec Layout) */}
-        <Route path="/" element={<Layout />}>
-          {/* Redirection de la racine vers dashboard */}
-          <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="/app" element={<Layout />}>
+          {/* Racine de l'app redirige vers dashboard */}
+          <Route index element={<Navigate to="/app/dashboard" replace />} />
 
           {/* Pages de l'application */}
           <Route path="dashboard" element={<Dashboard />} />
@@ -44,14 +48,15 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="suppliers" element={<Suppliers />} />
         </Route>
-     
-        
 
         {/* Route 404 - Page non trouvée */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+      
+
+
