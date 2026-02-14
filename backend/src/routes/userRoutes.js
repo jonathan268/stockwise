@@ -1,16 +1,32 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-
+const userController = require("../controllers/userController");
+const { protect } = require("../middlewares/auth");
 const {
-    getUser,
-    getUserById,
-    updateUser,
-    deleteUser,
-} = require ("../controllers/userController");
+  validateUpdateProfile,
+  validateChangePassword,
+  validateChangeEmail,
+} = require("../utils/authValidation");
 
-router.get("/", getUser);
-router.get("/:id", getUserById);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
+// Toutes les routes nécessitent authentification
+router.use(protect);
+
+// Profil
+router.get("/me", userController.getCurrentUser);
+router.put("/me", validateUpdateProfile, userController.updateProfile);
+router.delete("/me", userController.deleteAccount);
+
+// Mot de passe
+router.put(
+  "/me/password",
+  validateChangePassword,
+  userController.changePassword,
+);
+
+// Email
+router.put("/me/email", validateChangeEmail, userController.changeEmail);
+
+// Avatar
+router.put("/me/avatar", userController.uploadAvatar);
 
 module.exports = router;

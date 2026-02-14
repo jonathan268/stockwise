@@ -1,24 +1,47 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./db");
+const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
-const fournisseurRoutes = require("./src/routes/fournisseurRoutes");
-const stockRoutes = require("./src/routes/stockRoutes");
 const userRoutes = require("./src/routes/userRoutes");
-const produitRoutes = require("./src/routes/produitRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
+
+const categoryRoutes = require("./src/routes/CategoryRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+const stockRoutes = require("./src/routes/stockRoutes");
+const orderRoutes = require("./src/routes/orderRoutes");
+const supplierRoutes = require("./src/routes/supplierRoutes");
+const alertRoutes = require("./src/routes/alertRoutes");
+const analyticsRoutes = require("./src/routes/analyticsRoutes");
+const aiRoutes = require("./src/routes/aiRoutes");
+const organizationRoutes = require("./src/routes/organizationRoutes");
+
 
 const app = express();
 app.use(express.json());
+// Configuration CORS
+app.use(
+  cors({
+    origin: "https://stockwise-eight.vercel.app",
+    credentials: true,
+  }),
+);
 
 connectDB();
 
-app.use("/api/auth", authRoutes);
-app.use("/api/subscriptions", subscriptionRoutes);
-app.use("/api/produits", produitRoutes);
-app.use("/api/stocks", stockRoutes);
-app.use("/api/fournisseurs", fournisseurRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/subscriptions", subscriptionRoutes);
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/stock", stockRoutes);
+app.use("/api/v1/orders", orderRoutes);
+app.use("/api/v1/suppliers", supplierRoutes);
+app.use("/api/v1/alerts", alertRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/organizations", organizationRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({ message: "API StockWise fonctionne !" });
