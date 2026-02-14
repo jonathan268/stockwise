@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Brain,
@@ -20,10 +20,22 @@ import {
   Twitter,
   Facebook,
   Linkedin,
+  Moon,
+  Sun,
+  X,
+  ArrowRight,
+  Lightbulb,
+  Target,
+  Rocket,
+  BarChart3,
+  Cpu,
+  Users,
 } from "lucide-react";
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [theme, setTheme] = useState("light");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleGetStarted = () => {
     navigate("/register");
@@ -33,588 +45,530 @@ export default function Landing() {
     navigate("/login");
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "synthwave" : "light");
+  };
+
   return (
-    <div className="min-h-screen bg-base-100">
+    <div
+      data-theme={theme === "synthwave" ? "synthwave" : "light"}
+      className="min-h-screen bg-base-100 transition-colors duration-300"
+    >
       {/* Navbar */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4">
-        <div className="navbar glass rounded-full shadow-2xl px-6">
-          <div className="navbar-start">
-            <div className="dropdown">
-              <label
-                tabIndex="0"
-                className="btn btn-ghost btn-circle lg:hidden"
+      <nav className="navbar sticky top-0 z-40 bg-base-100/80 backdrop-blur-lg border-b border-base-300 shadow-lg">
+        <div className="flex-1">
+          <a className="btn btn-ghost text-xl md:text-2xl font-bold normal-case gap-3">
+            <div className="p-2 rounded-lg bg-primary">
+              <BrainCircuit className="w-6 h-6 text-base-100" />
+            </div>
+            <span className="hidden sm:inline text-primary font-bold">
+              StockWise
+            </span>
+          </a>
+        </div>
+
+        {/* Desktop Menu */}
+        <div className="navbar-center hidden lg:flex">
+          <ul className="menu menu-horizontal gap-1">
+            <li>
+              <a
+                href="#features"
+                className="hover:bg-primary/10 rounded-lg transition-colors"
               >
+                Fonctionnalités
+              </a>
+            </li>
+            <li>
+              <a
+                href="#pricing"
+                className="hover:bg-primary/10 rounded-lg transition-colors"
+              >
+                Tarifs
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Actions */}
+        <div className="navbar-end gap-2 md:gap-4">
+          <button
+            onClick={toggleTheme}
+            className="btn btn-ghost btn-circle transition-all hover:bg-primary/20"
+            title={`Thème ${theme === "light" ? "Synthwave" : "Light"}`}
+          >
+            {theme === "light" ? (
+              <Moon className="w-5 h-5" />
+            ) : (
+              <Sun className="w-5 h-5" />
+            )}
+          </button>
+
+          <button
+            onClick={handleSignIn}
+            className="btn btn-ghost rounded-lg hidden sm:inline-flex"
+          >
+            Connexion
+          </button>
+          <button
+            onClick={handleGetStarted}
+            className="btn btn-primary gap-2 rounded-lg"
+          >
+            <Rocket className="w-4 h-4" />
+            <span className="hidden sm:inline">Essai gratuit</span>
+            <span className="sm:hidden">Essai</span>
+          </button>
+
+          {/* Mobile Menu Button */}
+          <div className="dropdown dropdown-end lg:hidden">
+            <button
+              tabIndex="0"
+              className="btn btn-ghost btn-circle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
                 <Menu className="w-5 h-5" />
-              </label>
+              )}
+            </button>
+            {mobileMenuOpen && (
               <ul
                 tabIndex="0"
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-4 shadow glass rounded-2xl w-52"
+                className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 border border-base-300"
               >
                 <li>
-                  <a href="#features" className="rounded-lg">
+                  <a href="#features" onClick={() => setMobileMenuOpen(false)}>
                     Fonctionnalités
                   </a>
                 </li>
                 <li>
-                  <a href="#pricing" className="rounded-lg">
+                  <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>
                     Tarifs
                   </a>
                 </li>
-                <li>
-                  <a href="#contact" className="rounded-lg">
-                    Contact
-                  </a>
-                </li>
               </ul>
-            </div>
-            <a className="btn btn-ghost text-xl font-bold normal-case">
-              <BrainCircuit className="w-6 h-6 text-primary" />
-              <span className="hidden sm:inline">StockWise</span>
-            </a>
-          </div>
-          <div className="navbar-center hidden lg:flex">
-            <ul className="menu menu-horizontal px-1 gap-2">
-              <li>
-                <a
-                  href="#features"
-                  className="rounded-full hover:bg-primary/10"
-                >
-                  Fonctionnalités
-                </a>
-              </li>
-              <li>
-                <a href="#pricing" className="rounded-full hover:bg-primary/10">
-                  Tarifs
-                </a>
-              </li>
-              <li>
-                <a href="#contact" className="rounded-full hover:bg-primary/10">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="navbar-end gap-2">
-            <button
-              onClick={handleSignIn}
-              className="btn btn-ghost rounded-full hidden sm:inline-flex"
-            >
-              Connexion
-            </button>
-            <button
-              onClick={handleGetStarted}
-              className="btn btn-primary rounded-full"
-            >
-              Essai gratuit
-            </button>
+            )}
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Hero Section */}
-      <div className="hero min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 pt-32 relative overflow-hidden">
-        {/* Floating shapes */}
-        <div className="absolute top-[10%] left-[5%] w-80 h-80 bg-indigo-500 rounded-full opacity-10 animate-float"></div>
-        <div
-          className="absolute top-[60%] left-[15%] w-64 h-64 bg-purple-600 rounded-full opacity-10 animate-float"
-          style={{ animationDelay: "5s" }}
-        ></div>
-        <div
-          className="absolute top-[30%] right-[10%] w-72 h-72 bg-indigo-500 rounded-full opacity-10 animate-float"
-          style={{ animationDelay: "10s" }}
-        ></div>
-
-        <div className="hero-content flex-col lg:flex-row-reverse max-w-7xl w-full px-4 gap-12 relative z-10">
+      <section className="hero min-h-screen bg-base-100 relative overflow-hidden pt-20">
+        <div className="hero-content flex-col max-w-4xl gap-12 relative z-10 text-center">
           {/* Content */}
-          <div className="flex-1 text-left">
-            <div className="badge badge-lg glass mb-4 border border-primary/30">
-              <Sparkles className="w-4 h-4 mr-2 text-primary" />
-              Propulsé par l'Intelligence Artificielle
+          <div className="flex-1">
+            <div className="badge badge-lg badge-ghost gap-2 mb-6 border-2 border-primary/30 mx-auto">
+              <Sparkles className="w-4 h-4" />
+              Alimenté par l'Intelligence Artificielle 
             </div>
-            <h1 className="text-5xl md:text-6xl lg:text-6xl font-bold mb-6 text-gray-800">
-              Gérez votre stock avec <span className="text-primary">l'IA</span>
+
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+              <span className="block">Transformez votre</span>
+              <span className="">gestion de stock</span>
+              <span className="block">avec <span className="text-primary animate-bounce">l'IA</span></span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-600">
-              Une solution intelligente pour optimiser votre inventaire, prédire
-              les tendances et automatiser vos commandes.
+
+            <p className="text-lg md:text-xl text-base-content/70 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Prédictions intelligentes, alertes automatisées et rapports en
+              temps réel. Optimisez votre inventaire et augmentez votre
+              efficacité operationnelle.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <button
                 onClick={handleGetStarted}
-                className="btn btn-lg btn-primary shadow-xl hover:shadow-2xl"
+                className="btn btn-lg btn-primary gap-2 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
               >
-                <RocketIcon className="w-5 h-5 mr-2" />
-                Commencer gratuitement
+                <Rocket className="w-5 h-5" />
+                Commencer Gratuitement
               </button>
-              <button className="btn btn-lg glass hover:bg-white/80 border border-white/40">
-                <PlayCircle className="w-5 h-5 mr-2" />
+              <button className="btn btn-lg btn-outline gap-2 hover:bg-base-200">
+                <PlayCircle className="w-5 h-5" />
                 Voir la démo
               </button>
             </div>
-            <div className="mt-12 flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2 text-gray-700">
-                <CheckCircle className="w-5 h-5 text-success" />
-                <span>Sans carte bancaire</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <CheckCircle className="w-5 h-5 text-success" />
-                <span>14 jours d'essai</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <CheckCircle className="w-5 h-5 text-success" />
-                <span>Support 24/7</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Illustration */}
-          <div className="flex-1">
-            <div className="w-full max-w-lg mx-auto drop-shadow-2xl">
-              <svg
-                viewBox="0 0 500 500"
-                className="w-full"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle
-                  cx="250"
-                  cy="250"
-                  r="200"
-                  fill="#667eea"
-                  opacity="0.1"
-                />
-                <rect
-                  x="100"
-                  y="150"
-                  width="300"
-                  height="200"
-                  rx="10"
-                  fill="#f8fafc"
-                  stroke="#667eea"
-                  strokeWidth="3"
-                />
-                <rect
-                  x="100"
-                  y="150"
-                  width="300"
-                  height="30"
-                  rx="10"
-                  fill="#667eea"
-                />
-                <circle cx="120" cy="165" r="5" fill="#fff" />
-                <circle cx="140" cy="165" r="5" fill="#fff" />
-                <circle cx="160" cy="165" r="5" fill="#fff" />
-                <rect
-                  x="120"
-                  y="200"
-                  width="80"
-                  height="60"
-                  rx="5"
-                  fill="#e0f2fe"
-                  stroke="#667eea"
-                  strokeWidth="2"
-                />
-                <rect
-                  x="210"
-                  y="200"
-                  width="80"
-                  height="60"
-                  rx="5"
-                  fill="#fef3c7"
-                  stroke="#f59e0b"
-                  strokeWidth="2"
-                />
-                <rect
-                  x="300"
-                  y="200"
-                  width="80"
-                  height="60"
-                  rx="5"
-                  fill="#dcfce7"
-                  stroke="#10b981"
-                  strokeWidth="2"
-                />
-                <rect
-                  x="130"
-                  y="280"
-                  width="15"
-                  height="40"
-                  rx="3"
-                  fill="#667eea"
-                />
-                <rect
-                  x="155"
-                  y="290"
-                  width="15"
-                  height="30"
-                  rx="3"
-                  fill="#667eea"
-                  opacity="0.7"
-                />
-                <rect
-                  x="180"
-                  y="275"
-                  width="15"
-                  height="45"
-                  rx="3"
-                  fill="#667eea"
-                  opacity="0.5"
-                />
-              </svg>
+            <div className="flex flex-col sm:flex-row gap-6 text-sm sm:text-base justify-center">
+              <div className="flex items-center gap-2 justify-center">
+                <div className="badge badge-success gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  14 jours gratuit
+                </div>
+              </div>
+              <div className="flex items-center gap-2 justify-center">
+                <div className="badge badge-success gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Aucune carte bancaire requise
+                </div>
+              </div>
+              <div className="flex items-center gap-2 justify-center">
+                <div className="badge badge-success gap-1">
+                  <CheckCircle className="w-4 h-4" />
+                  Support 24/7
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 md:py-24 bg-base-200">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                500+
+              </div>
+              <p className="text-base-content/70 font-medium">
+                Entreprises actives
+              </p>
+            </div>
+            <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
+              <div className="text-4xl md:text-5xl font-bold text-secondary mb-2">
+                99.9%
+              </div>
+              <p className="text-base-content/70 font-medium">Uptime garanti</p>
+            </div>
+            <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
+              <div className="text-4xl md:text-5xl font-bold text-accent mb-2">
+                40%
+              </div>
+              <p className="text-base-content/70 font-medium">
+                Gain d'efficacité
+              </p>
+            </div>
+            <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
+              <div className="text-4xl md:text-5xl font-bold text-warning mb-2">
+                $2M
+              </div>
+              <p className="text-base-content/70 font-medium">Stocks gérés</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <div id="features" className="py-20 bg-base-100">
+      <section id="features" className="py-16 md:py-24 bg-base-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Des fonctionnalités{" "}
-              <span className="text-primary">puissantes</span>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Des features <span className="text-primary">magiques</span>
             </h2>
-            <p className="text-xl text-base-content/70 max-w-2xl mx-auto">
-              Tout ce dont vous avez besoin pour gérer votre stock efficacement
+            <p className="text-lg text-base-content/60 max-w-2xl mx-auto">
+              Tout ce dont vous avez besoin pour gérer votre stock
+              intelligemment
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Brain className="w-7 h-7 text-primary" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Brain,
+                title: "Prédictions IA",
+                desc: "Anticipez les tendances et optimisez automatiquement vos commandes",
+                color: "primary",
+              },
+              {
+                icon: BarChart3,
+                title: "Analyses en temps réel",
+                desc: "Tableaux de bord dynamiques qui vous montrent ce qui se passe maintenant",
+                color: "secondary",
+              },
+              {
+                icon: Bell,
+                title: "Alertes intelligentes",
+                desc: "Recevez des notifications avant les problèmes, pas après",
+                color: "accent",
+              },
+              {
+                icon: Zap,
+                title: "Automatisation complète",
+                desc: "Économisez des heures avec des workflows automatisés",
+                color: "warning",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Sécurité maximum",
+                desc: "Vos données sont encryptées et sauvegardées en toute sécurité",
+                color: "success",
+              },
+              {
+                icon: Users,
+                title: "Collaboration d'équipe",
+                desc: "Travaillez ensemble en temps réel avec votre équipe",
+                color: "info",
+              },
+            ].map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={idx}
+                  className="card bg-base-200 hover:shadow-2xl transition-all hover:scale-105 group cursor-pointer"
+                >
+                  <div className="card-body">
+                    <div
+                      className={`w-14 h-14 rounded-xl bg-${feature.color}/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className={`w-7 h-7 text-${feature.color}`} />
+                    </div>
+                    <h3 className="card-title text-xl">{feature.title}</h3>
+                    <p className="text-base-content/70">{feature.desc}</p>
+                  </div>
                 </div>
-                <h3 className="card-title text-2xl">Prédictions IA</h3>
-                <p className="text-base-content/70">
-                  Anticipez vos besoins en stock grâce à des prédictions
-                  précises basées sur l'IA et l'historique de vos ventes.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-success/10 flex items-center justify-center mb-4">
-                  <Package className="w-7 h-7 text-success" />
-                </div>
-                <h3 className="card-title text-2xl">Gestion en temps réel</h3>
-                <p className="text-base-content/70">
-                  Suivez votre inventaire en direct avec des mises à jour
-                  instantanées et des alertes intelligentes.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-warning/10 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-7 h-7 text-warning" />
-                </div>
-                <h3 className="card-title text-2xl">Analyses avancées</h3>
-                <p className="text-base-content/70">
-                  Visualisez vos données avec des tableaux de bord interactifs
-                  et des rapports détaillés.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-error/10 flex items-center justify-center mb-4">
-                  <Bell className="w-7 h-7 text-error" />
-                </div>
-                <h3 className="card-title text-2xl">Alertes automatiques</h3>
-                <p className="text-base-content/70">
-                  Recevez des notifications pour les stocks faibles, les
-                  ruptures et les opportunités de réapprovisionnement.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-info/10 flex items-center justify-center mb-4">
-                  <Zap className="w-7 h-7 text-info" />
-                </div>
-                <h3 className="card-title text-2xl">Automatisation</h3>
-                <p className="text-base-content/70">
-                  Automatisez vos commandes et optimisez vos processus de
-                  réapprovisionnement.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center mb-4">
-                  <ShieldCheck className="w-7 h-7 text-secondary" />
-                </div>
-                <h3 className="card-title text-2xl">Sécurité maximale</h3>
-                <p className="text-base-content/70">
-                  Vos données sont cryptées et sauvegardées en toute sécurité
-                  avec une disponibilité de 99,9%.
-                </p>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Pricing Section */}
-      <div id="pricing" className="py-20 bg-base-200">
+      <section id="pricing" className="py-16 md:py-24 bg-base-200">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Choisissez votre <span className="text-primary">plan</span>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Tarifs <span className="text-primary">simples</span> et{" "}
+              <span className="text-secondary">transparents</span>
             </h2>
-            <p className="text-xl text-base-content/70 max-w-2xl mx-auto">
-              Des tarifs transparents adaptés à toutes les tailles d'entreprise
+            <p className="text-lg text-base-content/60 max-w-2xl mx-auto">
+              Tous les plans incluent 14 jours gratuits. Aucune surprise.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Basic Plan */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="flex items-center gap-2 mb-4">
-                  <Package className="w-6 h-6 text-primary" />
-                  <h3 className="card-title text-2xl">Basic</h3>
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {[
+              {
+                name: "Starter",
+                price: "3,000",
+                desc: "Parfait pour démarrer",
+                features: [
+                  "Jusqu'à 100 produits",
+                  "Alertes basiques",
+                  "1 utilisateur",
+                  "Rapports mensuels",
+                  "Support par email",
+                ],
+              },
+              {
+                name: "Professionnel",
+                price: "5,000",
+                desc: "Pour les entreprises",
+                popular: true,
+                features: [
+                  "Jusqu'à 500 produits",
+                  "Prédictions IA avancées",
+                  "5 utilisateurs",
+                  "Rapports en temps réel",
+                  "Support prioritaire 24/7",
+                  "Intégrations API",
+                ],
+              },
+              {
+                name: "Enterprise",
+                price: "15,000",
+                desc: "Solution complète",
+                features: [
+                  "Produits illimités",
+                  "IA personnalisée",
+                  "Utilisateurs illimités",
+                  "Gestionnaire dedié",
+                  "Intégrations avancées",
+                  "Formation personnalisée",
+                ],
+              },
+            ].map((plan, idx) => (
+              <div
+                key={idx}
+                className={`card transition-all ${
+                  plan.popular
+                    ? "ring-2 ring-primary shadow-2xl scale-105"
+                    : "shadow-lg"
+                } bg-base-100`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <div className="badge badge-primary gap-1 text-base p-3">
+                      <Star className="w-4 h-4" />
+                      Plus populaire
+                    </div>
+                  </div>
+                )}
+                <div className="card-body">
+                  <h3 className="card-title text-2xl">{plan.name}</h3>
+                  <p className="text-base-content/60 text-sm">{plan.desc}</p>
+                  <div className="my-4">
+                    <span className="text-5xl font-black text-primary">
+                      {plan.price}
+                    </span>
+                    <span className="text-base-content/60"> FCFA/mois</span>
+                  </div>
+                  <ul className="space-y-2 mb-6">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-success flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={handleGetStarted}
+                    className={`btn gap-2 ${
+                      plan.popular ? "btn-primary" : "btn-outline"
+                    } w-full`}
+                  >
+                    Essayer
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="mb-6">
-                  <span className="text-5xl font-bold">3 000</span>
-                  <span className="text-2xl text-base-content/70"> FCFA</span>
-                  <p className="text-base-content/60 mt-2">par mois</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Jusqu'à 100 produits</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Alertes de stock basiques</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Rapports mensuels</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Support par email</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>1 utilisateur</span>
-                  </li>
-                </ul>
-                <button className="btn btn-outline btn-primary w-full">
-                  Commencer
-                </button>
               </div>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="card bg-primary text-primary-content shadow-2xl scale-105 border-4 border-primary relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <div className="badge badge-accent badge-lg">Populaire</div>
-              </div>
-              <div className="card-body">
-                <div className="flex items-center gap-2 mb-4">
-                  <Star className="w-6 h-6" />
-                  <h3 className="card-title text-2xl">Pro</h3>
-                </div>
-                <div className="mb-6">
-                  <span className="text-5xl font-bold">5 000</span>
-                  <span className="text-2xl opacity-80"> FCFA</span>
-                  <p className="opacity-70 mt-2">par mois</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Jusqu'à 500 produits</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Prédictions IA avancées</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Rapports en temps réel</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Support prioritaire 24/7</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Jusqu'à 5 utilisateurs</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>Intégrations API</span>
-                  </li>
-                </ul>
-                <button
-                  onClick={handleGetStarted}
-                  className="btn btn-outline btn-accent w-full"
-                >
-                  Essayer Pro
-                </button>
-              </div>
-            </div>
-
-            {/* Business Plan */}
-            <div className="card glass shadow-xl hover:shadow-2xl transition-all border border-white/20">
-              <div className="card-body">
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="w-6 h-6 text-primary" />
-                  <h3 className="card-title text-2xl">Business</h3>
-                </div>
-                <div className="mb-6">
-                  <span className="text-5xl font-bold">15 000</span>
-                  <span className="text-2xl text-base-content/70"> FCFA</span>
-                  <p className="text-base-content/60 mt-2">par mois</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Produits illimités</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>IA personnalisée</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Tableaux de bord avancés</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Gestionnaire de compte dédié</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Utilisateurs illimités</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Intégrations avancées</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span>Formation personnalisée</span>
-                  </li>
-                </ul>
-                <button className="btn btn-outline btn-primary w-full">
-                  Contacter les ventes
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-base-content/70">
-              <Info className="w-4 h-4 inline mr-1" />
-              Tous les plans incluent 14 jours d'essai gratuit. Aucune carte
-              bancaire requise.
-            </p>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="py-20 bg-primary/5">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto glass p-12 rounded-3xl border border-white/20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
-              Prêt à transformer votre gestion de stock ?
+      <section className="py-16 md:py-24 bg-base-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto bg-primary rounded-2xl shadow-2xl p-8 md:p-16 text-center text-primary-content">
+            <h2 className="text-4xl md:text-5xl font-black mb-6">
+              Prêt à transformer votre gestion ?
             </h2>
-            <p className="text-xl mb-8 text-gray-600">
+            <p className="text-lg md:text-xl mb-8 opacity-90">
               Rejoignez des centaines d'entreprises qui font confiance à
-              StockWise pour optimiser leur inventaire
+              StockWise
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleGetStarted}
-                className="btn btn-lg btn-primary shadow-xl hover:shadow-2xl"
+                className="btn btn-lg btn-ghost gap-2 hover:bg-white/20"
               >
-                <RocketIcon className="w-5 h-5 mr-2" />
-                Démarrer gratuitement
+                <Rocket className="w-5 h-5" />
+                Commencer maintenant
               </button>
-              <button className="btn btn-lg glass hover:bg-white/80 border border-white/40">
-                <PlayCircle className="w-5 h-5 mr-2" />
-                Voir une démo
+              <button className="btn btn-lg btn-ghost gap-2 hover:bg-white/20">
+                <PlayCircle className="w-5 h-5" />
+                Voir la démo
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="footer p-10 bg-base-300 text-base-content">
-        <nav>
-          <h6 className="footer-title">Produit</h6>
-          <a className="link link-hover">Fonctionnalités</a>
-          <a className="link link-hover">Tarifs</a>
-          <a className="link link-hover">Sécurité</a>
-          <a className="link link-hover">Intégrations</a>
-        </nav>
-        <nav>
-          <h6 className="footer-title">Entreprise</h6>
-          <a className="link link-hover">À propos</a>
-        </nav>
-        <nav>
-          <h6 className="footer-title">Support</h6>
-          <a className="link link-hover">Centre d'aide</a>
-          <a className="link link-hover">Contact</a>
-          <a className="link link-hover">Documentation</a>
-        </nav>
-        <nav>
-          <h6 className="footer-title">Légal</h6>
-          <a className="link link-hover">Conditions d'utilisation</a>
-          <a className="link link-hover">Politique de confidentialité</a>
-        </nav>
-      </footer>
-      <footer className="footer px-10 py-4 border-t bg-base-300 text-base-content border-base-300">
-        <aside className="items-center grid-flow-col">
-          <BrainCircuit className="w-6 h-6 text-primary" />
-          <p>StockWise © 2026 - Tous droits réservés</p>
-        </aside>
-        <nav className="md:place-self-center md:justify-self-end">
-          <div className="grid grid-flow-col gap-4">
-            <a>
-              <Twitter className="w-6 h-6 cursor-pointer hover:text-primary transition-colors" />
-            </a>
-            <a>
-              <Facebook className="w-6 h-6 cursor-pointer hover:text-primary transition-colors" />
-            </a>
-            <a>
-              <Linkedin className="w-6 h-6 cursor-pointer hover:text-primary transition-colors" />
-            </a>
+      <footer className="bg-base-300 text-base-content">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-5 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 rounded-lg bg-primary">
+                  <BrainCircuit className="w-5 h-5 text-base-100" />
+                </div>
+                <span className="font-bold text-lg">StockWise</span>
+              </div>
+              <p className="text-sm text-base-content/60">
+                L'IA au service de votre stock
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Produit</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a className="link link-hover">Fonctionnalités</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Tarifs</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Sécurité</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Entreprise</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a className="link link-hover">À propos</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Blog</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Carrières</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a className="link link-hover">Aide</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Contact</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Docs</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Légal</h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <a className="link link-hover">Conditions</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Confidentialité</a>
+                </li>
+                <li>
+                  <a className="link link-hover">Cookies</a>
+                </li>
+              </ul>
+            </div>
           </div>
-        </nav>
+
+          <div className="divider"></div>
+
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-base-content/60">
+              © 2026 StockWise. Tous droits réservés.
+            </p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+              <button className="btn btn-ghost btn-circle btn-sm">
+                <Twitter className="w-5 h-5" />
+              </button>
+              <button className="btn btn-ghost btn-circle btn-sm">
+                <Facebook className="w-5 h-5" />
+              </button>
+              <button className="btn btn-ghost btn-circle btn-sm">
+                <Linkedin className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
       </footer>
 
       <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
           }
-          33% {
-            transform: translateY(-30px) translateX(30px);
-          }
-          66% {
-            transform: translateY(30px) translateX(-30px);
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
-        .animate-float {
-          animation: float 20s infinite ease-in-out;
+
+        .animate-in {
+          animation: slideInUp 0.6s ease-out;
+        }
+
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(0deg, transparent 24%, rgba(255,255,255, 0.05) 25%, rgba(255,255,255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255, 0.05) 75%, rgba(255,255,255, 0.05) 76%, transparent 77%, transparent),
+            linear-gradient(90deg, transparent 24%, rgba(255,255,255, 0.05) 25%, rgba(255,255,255, 0.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255, 0.05) 75%, rgba(255,255,255, 0.05) 76%, transparent 77%, transparent);
+          background-size: 50px 50px;
         }
       `}</style>
     </div>
