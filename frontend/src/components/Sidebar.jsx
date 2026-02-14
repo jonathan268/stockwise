@@ -30,29 +30,24 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
   return (
     <aside
-      className={`${
-        isOpen ? "w-64" : "w-20"
-      } bg-base-100 transition-all duration-300 shadow-xl flex flex-col`}
+      className={`
+        fixed left-0 top-16 w-64 h-[calc(100vh-64px)] bg-base-100 shadow-xl 
+        flex flex-col z-40 transition-transform duration-300
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-base-300 h-16">
-        {isOpen && (
-          <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-lg p-1.5">
-              <Sparkles size={20} className="text-primary-content" />
-            </div>
-            <h1 className="text-xl font-bold text-primary">StockWise</h1>
-          </div>
-        )}
-        {!isOpen && (
-          <div className="bg-primary rounded-lg p-1.5 mx-auto">
+      <div className="flex items-center justify-between p-4 border-b border-base-300">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary rounded-lg p-1.5">
             <Sparkles size={20} className="text-primary-content" />
           </div>
-        )}
+          <h1 className="text-xl font-bold text-primary">StockWise</h1>
+        </div>
         <button
           onClick={onToggle}
           className="btn btn-ghost btn-sm btn-circle"
-          title={isOpen ? "Réduire" : "Agrandir"}
+          title="Fermer"
         >
           <Menu size={20} />
         </button>
@@ -75,13 +70,11 @@ const Sidebar = ({ isOpen, onToggle }) => {
                     ? "bg-primary text-primary-content shadow-lg"
                     : "hover:bg-base-200 text-base-content"
                 }
-                ${!isOpen && "justify-center"}
               `}
-              title={!isOpen ? item.label : ""}
             >
               <Icon size={20} />
-              {isOpen && <span className="font-medium">{item.label}</span>}
-              {active && isOpen && (
+              <span className="font-medium">{item.label}</span>
+              {active && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-content"></div>
               )}
             </Link>
@@ -100,24 +93,21 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 ? "bg-primary text-primary-content shadow-lg"
                 : "hover:bg-base-200 text-base-content"
             }
-            ${!isOpen && "justify-center"}
           `}
-          title={!isOpen ? "Paramètres" : ""}
         >
           <Settings size={20} />
-          {isOpen && <span className="font-medium">Paramètres</span>}
+          <span className="font-medium">Paramètres</span>
         </Link>
 
         <button
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full
             text-error hover:bg-error/10
-            ${!isOpen && "justify-center"}
           `}
-          title={!isOpen ? "Déconnexion" : ""}
+          title="Déconnexion"
         >
           <LogOut size={20} />
-          {isOpen && <span className="font-medium">Déconnexion</span>}
+          <span className="font-medium">Déconnexion</span>
         </button>
       </div>
     </aside>

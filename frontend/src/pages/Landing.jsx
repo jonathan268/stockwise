@@ -46,12 +46,12 @@ export default function Landing() {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "synthwave" : "light");
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   return (
     <div
-      data-theme={theme === "synthwave" ? "synthwave" : "light"}
+      data-theme={theme === "dark" ? "dark" : "light"}
       className="min-h-screen bg-base-100 transition-colors duration-300"
     >
       {/* Navbar */}
@@ -440,12 +440,12 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleGetStarted}
-                className="btn btn-lg btn-ghost gap-2 hover:bg-white/20"
+                className="btn btn-lg btn-info gap-2 hover:bg-white/20"
               >
                 <Rocket className="w-5 h-5" />
                 Commencer maintenant
               </button>
-              <button className="btn btn-lg btn-ghost gap-2 hover:bg-white/20">
+              <button className="btn btn-lg btn-accent gap-2 hover:bg-white/20">
                 <PlayCircle className="w-5 h-5" />
                 Voir la démo
               </button>
