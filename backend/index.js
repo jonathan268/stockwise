@@ -19,7 +19,7 @@ const organizationRoutes = require("./src/routes/organizationRoutes");
 const app = express();
 app.use(express.json());
 // Configuration CORS
-app.use(
+ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
@@ -45,7 +45,7 @@ app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 
 app.get("/", (req, res) => {
-  res.json({ message: "API StockWise fonctionne !" });
+  res.json({ message: "API StockWise fonctionnelle !" });
 });
 
 const PORT = process.env.PORT || 3000;

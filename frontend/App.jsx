@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./src/pages/Landing";
 import Layout from "./src/components/Layout";
+import { ProtectedRoute } from "./src/components/ProtectedRoute";
 import Dashboard from "./src/pages/Dashboard";
 import Login from "./src/pages/Login";
 import Register from "./src/pages/Register";
@@ -34,8 +35,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Routes de l'application (avec Layout) */}
-        <Route path="/app" element={<Layout />}>
+        {/* Routes de l'application (protégées avec Layout) */}
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           {/* Racine de l'app redirige vers dashboard */}
           <Route index element={<Navigate to="/app/dashboard" replace />} />
 
@@ -57,6 +65,3 @@ function App() {
 }
 
 export default App;
-      
-
-

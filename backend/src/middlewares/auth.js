@@ -50,17 +50,16 @@ const protect = catchAsync(async (req, res, next) => {
     return next(new AppError("Compte verrouillé. Réessayez plus tard", 423));
   }
 
-  // 6. Vérifier organisation active
-  const organization = await Organization.findById(
-    user.activeOrganization || user.ownedOrganization,
-  );
+  // 6. Vérifier organisation active (optionnel - user peut ne pas en avoir)
+  let organization = null;
+  if (user.organization || user.ownedOrganization) {
+    organization = await Organization.findById(
+      user.organization || user.ownedOrganization,
+    );
 
-  if (!organization) {
-    return next(new AppError("Organisation introuvable", 404));
-  }
-
-  if (organization.status !== "active") {
-    return next(new AppError("Organisation suspendue", 403));
+    if (organization && organization.status !== "active") {
+      return next(new AppError("Organisation suspendue", 403));
+    }
   }
 
   // 7. Attacher user et organization à la requête

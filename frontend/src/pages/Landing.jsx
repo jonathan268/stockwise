@@ -30,11 +30,15 @@ import {
   BarChart3,
   Cpu,
   Users,
+  Home,
+  CircuitBoard,
+  DollarSign,
+  Building,
 } from "lucide-react";
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("forest");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleGetStarted = () => {
@@ -46,18 +50,18 @@ export default function Landing() {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+    setTheme(theme === "forest" ? "light" : "forest");
   };
 
   return (
     <div
-      data-theme={theme === "dark" ? "dark" : "light"}
+      data-theme={theme === "light" ? "light" : "forest"}
       className="min-h-screen bg-base-100 transition-colors duration-300"
     >
       {/* Navbar */}
       <nav className="navbar sticky top-0 z-40 bg-base-100/80 backdrop-blur-lg border-b border-base-300 shadow-lg">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl md:text-2xl font-bold normal-case gap-3">
+          <a className="btn btn-ghost text-xl md:text-2xl font-bold normal-case gap-3" href="#">
             <div className="p-2 rounded-lg bg-primary">
               <BrainCircuit className="w-6 h-6 text-base-100" />
             </div>
@@ -72,18 +76,29 @@ export default function Landing() {
           <ul className="menu menu-horizontal gap-1">
             <li>
               <a
-                href="#features"
+                href="#home"
                 className="hover:bg-primary/10 rounded-lg transition-colors"
               >
-                Fonctionnalités
+                <Home size={20}/>
+                Acceuil
               </a>
             </li>
             <li>
               <a
+                href="#features"
+                className="hover:bg-primary/10 rounded-lg transition-colors"
+              >
+                <CircuitBoard size={20}/>
+                Fonctionnalités
+              </a>
+            </li>
+             <li>
+              <a
                 href="#pricing"
                 className="hover:bg-primary/10 rounded-lg transition-colors"
               >
-                Tarifs
+                <Building size={20}/>
+                Abonnements
               </a>
             </li>
           </ul>
@@ -153,7 +168,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="hero min-h-screen bg-base-100 relative overflow-hidden pt-20">
+      <section id="home" className="hero min-h-screen bg-base-100 relative overflow-hidden pt-20">
         <div className="hero-content flex-col max-w-4xl gap-12 relative z-10 text-center">
           {/* Content */}
           <div className="flex-1">
@@ -413,7 +428,7 @@ export default function Landing() {
                   <button
                     onClick={handleGetStarted}
                     className={`btn gap-2 ${
-                      plan.popular ? "btn-primary" : "btn-outline"
+                      plan.popular ? "btn-primary" : "btn-secondary"
                     } w-full`}
                   >
                     Essayer
@@ -440,12 +455,12 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleGetStarted}
-                className="btn btn-lg btn-info gap-2 hover:bg-white/20"
+                className="btn btn-lg btn-white gap-2 hover:bg-primary"
               >
                 <Rocket className="w-5 h-5" />
                 Commencer maintenant
               </button>
-              <button className="btn btn-lg btn-accent gap-2 hover:bg-white/20">
+              <button className="btn btn-lg btn-secondary gap-2 hover:bg-white/20">
                 <PlayCircle className="w-5 h-5" />
                 Voir la démo
               </button>

@@ -8,6 +8,20 @@ const { successResponse } = require("../utils/apiResponse");
 const { sendEmail } = require("../services/emailService");
 
 class AuthController {
+  constructor() {
+    // Binding methods to preserve 'this' context in Express routes
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.refreshToken = this.refreshToken.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
+    this.resendVerification = this.resendVerification.bind(this);
+    this.logout = this.logout.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this);
+    this.setupOrganization = this.setupOrganization.bind(this);
+  }
+
   /**
    * Générer JWT Access Token
    */
@@ -31,19 +45,20 @@ class AuthController {
   /**
    * Envoyer tokens en réponse
    */
-  sendTokenResponse(
+  async sendTokenResponse(
     user,
     statusCode,
     res,
+    req,
     message = "Authentification réussie",
   ) {
     const accessToken = this.generateAccessToken(user._id);
     const refreshToken = this.generateRefreshToken(user._id);
 
-    // Stocker refresh token (async, pas besoin d'attendre)
-    user.addRefreshToken(refreshToken, {
-      userAgent: res.req.headers["user-agent"],
-      ip: res.req.ip,
+    // Stocker refresh token
+    await user.addRefreshToken(refreshToken, {
+      userAgent: req.headers["user-agent"],
+      ip: req.ip,
     });
 
     return successResponse(
@@ -64,8 +79,7 @@ class AuthController {
   // POST /api/v1/auth/register
   async register(req, res, next) {
     try {
-      const { firstName, lastName, email, password, phone, organizationName } =
-        req.body;
+      const { firstName, lastName, email, password, phone } = req.body;
 
       // 1. Vérifier si email existe
       const existingUser = await User.findOne({ email });
@@ -73,47 +87,20 @@ class AuthController {
         throw new AppError("Email déjà utilisé", 400);
       }
 
-      // 2. Créer organisation
-      const organization = await Organization.create({
-        name: organizationName || `${firstName} ${lastName}'s Business`,
-        email,
-        phone,
-        status: "active",
-      });
-
-      // 3. Créer utilisateur
+      // 2. Créer utilisateur (sans organisation pour le moment)
       const user = await User.create({
         firstName,
         lastName,
         email,
         password,
         phone,
-        organization: organization._id,
-        ownedOrganization: organization._id,
-        role: "owner",
       });
 
-      // 4. Mettre à jour organisation avec owner
-      organization.owner = user._id;
-      organization.members.push({
-        user: user._id,
-        role: "owner",
-        addedAt: new Date(),
-      });
-      await organization.save();
-
-      // 5. Créer abonnement FREE par défaut
-      await Subscription.create({
-        organization: organization._id,
-        plan: "free",
-        status: "active",
-      });
-
-      // 6. Générer token vérification email
+      // 3. Générer token vérification email
       const verificationToken = user.createEmailVerificationToken();
       await user.save({ validateBeforeSave: false });
 
-      // 7. Envoyer email de vérification (async)
+      // 4. Envoyer email de vérification (async - ne pas bloquer)
       const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
       try {
@@ -131,11 +118,12 @@ class AuthController {
         // Ne pas bloquer l'inscription si email échoue
       }
 
-      // 8. Retourner tokens
+      // 5. Retourner tokens
       return this.sendTokenResponse(
         user,
         201,
         res,
+        req,
         "Inscription réussie. Vérifiez votre email",
       );
     } catch (error) {
@@ -198,8 +186,8 @@ class AuthController {
         throw new AppError("Compte inactif ou suspendu", 403);
       }
 
-      // 6. Vérifier statut organisation
-      if (user.organization.status !== "active") {
+      // 6. Vérifier statut organisation (optionnel - user peut ne pas avoir d'organisation)
+      if (user.organization && user.organization.status !== "active") {
         throw new AppError("Organisation suspendue. Contactez le support", 403);
       }
 
@@ -217,7 +205,7 @@ class AuthController {
       await user.cleanExpiredTokens();
 
       // 10. Retourner tokens
-      return this.sendTokenResponse(user, 200, res, "Connexion réussie");
+      return this.sendTokenResponse(user, 200, res, req, "Connexion réussie");
     } catch (error) {
       next(error);
     }
@@ -404,6 +392,7 @@ class AuthController {
         user,
         200,
         res,
+        req,
         "Mot de passe réinitialisé avec succès",
       );
     } catch (error) {
@@ -499,6 +488,63 @@ class AuthController {
         .populate("ownedOrganization");
 
       return successResponse(res, user, "Profil récupéré avec succès");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // POST /api/v1/auth/setup-organization
+  // Créer l'organisation après l'inscription
+  async setupOrganization(req, res, next) {
+    try {
+      const userId = req.user._id;
+      const { organizationName, phone } = req.body;
+
+      // 1. Vérifier si user a déjà une organisation
+      const user = await User.findById(userId);
+      if (user.organization) {
+        throw new AppError("Vous avez déjà une organisation", 400);
+      }
+
+      // 2. Valider données
+      if (!organizationName || organizationName.trim().length < 2) {
+        throw new AppError(
+          "Le nom de l'organisation doit contenir au moins 2 caractères",
+          400,
+        );
+      }
+
+      // 3. Créer organisation
+      const organization = await Organization.create({
+        name: organizationName.trim(),
+        email: user.email,
+        phone: phone || user.phone,
+        owner: userId,
+        status: "active",
+      });
+
+      // 4. Mettre à jour user
+      user.organization = organization._id;
+      user.ownedOrganization = organization._id;
+      user.role = "owner";
+      await user.save({ validateBeforeSave: false });
+
+      // 5. Créer abonnement FREE par défaut
+      await Subscription.create({
+        organization: organization._id,
+        plan: "free",
+        status: "active",
+      });
+
+      return successResponse(
+        res,
+        {
+          organization,
+          user,
+        },
+        "Organisation créée avec succès",
+        201,
+      );
     } catch (error) {
       next(error);
     }

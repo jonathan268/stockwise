@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema(
     organization: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
-      required: true,
+      default: null,
       index: true,
     },
 
@@ -189,22 +189,16 @@ userSchema.virtual("initials").get(function () {
 });
 
 // Hook: Hash password avant sauvegarde
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   // Only hash si password modifié
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
 
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 
-    // Mettre à jour passwordChangedAt (sauf si nouveau user)
-    if (!this.isNew) {
-      this.passwordChangedAt = Date.now() - 1000; // 1s avant pour éviter problèmes JWT
-    }
-
-    next();
-  } catch (error) {
-    next(error);
+  // Mettre à jour passwordChangedAt (sauf si nouveau user)
+  if (!this.isNew) {
+    this.passwordChangedAt = Date.now() - 1000; // 1s avant pour éviter problèmes JWT
   }
 });
 

@@ -1,45 +1,49 @@
-const { AppError } = require('../utils/appError');
+const { AppError } = require("../utils/appError");
 
 /**
  * Middleware d'isolation multi-tenant
  * S'assure que les requêtes ne peuvent accéder qu'aux données de leur organisation
+ * Permet les utilisateurs sans organisation (lors de la création de compte)
  */
 const tenantIsolation = (req, res, next) => {
-  // Vérifier que l'utilisateur a une organisation
-  if (!req.user || !req.user.organization) {
-    return next(new AppError('Organisation non définie', 400));
+  // Vérifier que l'utilisateur existe
+  if (!req.user) {
+    return next(new AppError("Utilisateur non authentifié", 401));
   }
-  
-  // Ajouter automatiquement organization filter aux queries
-  const organizationId = req.user.organization;
-  
-  // Stocker pour utilisation dans les controllers
-  req.organizationId = organizationId;
-  
+
+  // Si user n'a pas d'organisation, c'est OK (utilisateur nouvellement inscrit)
+  // Ajouter automatiquement l'organization filter aux queries si existe
+  if (req.user.organization) {
+    const organizationId = req.user.organization;
+    req.organizationId = organizationId;
+  }
+
   next();
 };
 
 /**
  * Vérifier que la ressource appartient à l'organisation
  */
-const checkResourceOwnership = (Model, resourceIdParam = 'id') => {
+const checkResourceOwnership = (Model, resourceIdParam = "id") => {
   return async (req, res, next) => {
     try {
       const resourceId = req.params[resourceIdParam];
       const organizationId = req.user.organization;
-      
+
       const resource = await Model.findOne({
         _id: resourceId,
-        organization: organizationId
+        organization: organizationId,
       });
-      
+
       if (!resource) {
-        return next(new AppError('Ressource introuvable ou accès non autorisé', 404));
+        return next(
+          new AppError("Ressource introuvable ou accès non autorisé", 404),
+        );
       }
-      
+
       // Attacher ressource à la requête si besoin
       req.resource = resource;
-      
+
       next();
     } catch (error) {
       next(error);
@@ -49,5 +53,5 @@ const checkResourceOwnership = (Model, resourceIdParam = 'id') => {
 
 module.exports = {
   tenantIsolation,
-  checkResourceOwnership
+  checkResourceOwnership,
 };

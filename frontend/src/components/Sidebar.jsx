@@ -33,7 +33,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
       className={`
         fixed left-0 top-16 w-64 h-[calc(100vh-64px)] bg-base-100 shadow-xl 
         flex flex-col z-40 transition-transform duration-300
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:static lg:relative lg:h-[calc(100vh-64px)] lg:shadow-none
+        ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
       `}
     >
       {/* Header */}

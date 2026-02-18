@@ -48,5 +48,6 @@ router.use(protect); // Toutes les routes ci-dessous nécessitent auth
 
 router.post("/logout", authController.logout);
 router.get("/me", authController.getCurrentUser);
+router.post("/setup-organization", authController.setupOrganization);
 
 module.exports = router;

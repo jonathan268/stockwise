@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import { Mail, Lock, Eye, EyeOff, LogIn, PackageCheck } from "lucide-react";
 
 const Login = () => {
@@ -14,16 +14,18 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      const response = await axios.post("localhost:3000/api/v1/auth/login", {
+      const response = await api.post("/api/v1/auth/login", {
         email,
         password,
       });
-      const token = response.data.token;
-      localStorage.setItem("token", token);
+      const { accessToken, refreshToken } = response.data.data.tokens;
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       navigate("/app/dashboard");
     } catch (error) {
-      setError(error.response.data.message);
+      setError(error.response?.data?.message || "Erreur de connexion");
     } finally {
       setLoading(false);
     }

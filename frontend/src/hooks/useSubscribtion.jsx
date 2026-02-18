@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import api from "../api/axios";
 
 export const useSubscription = () => {
   const [subscription, setSubscription] = useState(null);
@@ -12,10 +12,10 @@ export const useSubscription = () => {
 
   const fetchSubscription = async () => {
     try {
-      const response = await axios.get('/api/subscriptions/my-subscription');
-      setSubscription(response.data);
+      const response = await api.get("/api/v1/subscriptions/my-subscription");
+      setSubscription(response.data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur de chargement');
+      setError(err.response?.data?.message || "Erreur de chargement");
     } finally {
       setLoading(false);
     }
@@ -26,8 +26,15 @@ export const useSubscription = () => {
   };
 
   const isActive = () => {
-    return subscription?.status === 'active';
+    return subscription?.status === "active";
   };
 
-  return { subscription, loading, error, hasFeature, isActive, refetch: fetchSubscription };
+  return {
+    subscription,
+    loading,
+    error,
+    hasFeature,
+    isActive,
+    refetch: fetchSubscription,
+  };
 };
