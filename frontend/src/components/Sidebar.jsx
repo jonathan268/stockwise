@@ -1,18 +1,17 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  BarChart3,
-  Package,
-  ShoppingCart,
-  AlertTriangle,
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  BarChart3, 
+  Package, 
+  ShoppingCart, 
+  AlertTriangle, 
   Activity,
   Settings,
   LogOut,
   Menu,
   TrendingUp,
-  Sparkles,
-  Sparkle,
-} from "lucide-react";
+  Clock
+} from 'lucide-react';
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
@@ -24,31 +23,35 @@ const Sidebar = ({ isOpen, onToggle }) => {
     { path: "/app/alerts", icon: AlertTriangle, label: "Alertes" },
     { path: "/app/analytics", icon: Activity, label: "Analytiques IA" },
     { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
+    { path: "/app/history", icon: Clock, label: "Historique" },
   ];
-
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside
-      className={`
-        fixed left-0 top-16 w-64 h-[calc(100vh-64px)] bg-base-100 shadow-xl 
-        flex flex-col z-40 transition-transform duration-300
-        lg:static lg:relative lg:h-[calc(100vh-64px)] lg:shadow-none
-        ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
+    <aside 
+      className={`${
+        isOpen ? 'w-64' : 'w-20'
+      } bg-base-100 transition-all duration-300 shadow-xl flex flex-col`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-base-300">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary rounded-lg p-1.5">
-            <Sparkles size={20} className="text-primary-content" />
+      <div className="flex items-center justify-between p-4 border-b border-base-300 h-16">
+        {isOpen && (
+          <div className="flex items-center gap-2">
+            <div className="bg-primary rounded-lg p-1.5">
+              <TrendingUp size={20} className="text-primary-content" />
+            </div>
+            <h1 className="text-xl font-bold text-primary">StockWise</h1>
           </div>
-          <h1 className="text-xl font-bold text-primary">StockWise</h1>
-        </div>
-        <button
+        )}
+        {!isOpen && (
+          <div className="bg-primary rounded-lg p-1.5 mx-auto">
+            <TrendingUp size={20} className="text-primary-content" />
+          </div>
+        )}
+        <button 
           onClick={onToggle}
           className="btn btn-ghost btn-sm btn-circle"
-          title="Fermer"
+          title={isOpen ? 'Réduire' : 'Agrandir'}
         >
           <Menu size={20} />
         </button>
@@ -59,23 +62,24 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
-
+          
           return (
             <Link
               key={item.path}
               to={item.path}
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-                ${
-                  active
-                    ? "bg-primary text-primary-content shadow-lg"
-                    : "hover:bg-base-200 text-base-content"
+                ${active 
+                  ? 'bg-primary text-primary-content shadow-lg' 
+                  : 'hover:bg-base-200 text-base-content'
                 }
+                ${!isOpen && 'justify-center'}
               `}
+              title={!isOpen ? item.label : ''}
             >
               <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
-              {active && (
+              {isOpen && <span className="font-medium">{item.label}</span>}
+              {active && isOpen && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-content"></div>
               )}
             </Link>
@@ -86,29 +90,31 @@ const Sidebar = ({ isOpen, onToggle }) => {
       {/* Footer */}
       <div className="p-4 border-t border-base-300 space-y-2">
         <Link
-          to="/app/settings"
+          to="/settings"
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-            ${
-              isActive("/app/settings")
-                ? "bg-primary text-primary-content shadow-lg"
-                : "hover:bg-base-200 text-base-content"
+            ${isActive('/settings')
+              ? 'bg-primary text-primary-content shadow-lg'
+              : 'hover:bg-base-200 text-base-content'
             }
+            ${!isOpen && 'justify-center'}
           `}
+          title={!isOpen ? 'Paramètres' : ''}
         >
           <Settings size={20} />
-          <span className="font-medium">Paramètres</span>
+          {isOpen && <span className="font-medium">Paramètres</span>}
         </Link>
-
-        <button
+        
+        <button 
           className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full
             text-error hover:bg-error/10
+            ${!isOpen && 'justify-center'}
           `}
-          title="Déconnexion"
+          title={!isOpen ? 'Déconnexion' : ''}
         >
           <LogOut size={20} />
-          <span className="font-medium">Déconnexion</span>
+          {isOpen && <span className="font-medium">Déconnexion</span>}
         </button>
       </div>
     </aside>
