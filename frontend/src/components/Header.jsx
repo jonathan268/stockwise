@@ -46,17 +46,21 @@ const Header = ({ onMenuClick }) => {
                 </span>
               </div>
             </label>
+
             <div
               tabIndex={0}
               className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow-2xl"
             >
               <div className="card-body">
                 <h3 className="font-bold text-lg mb-3">Notifications</h3>
+
                 <div className="space-y-3">
+                  {/* Notification 1 */}
                   <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
                     <div className="bg-warning/20 p-2 rounded-lg">
                       <Bell size={16} className="text-warning" />
                     </div>
+
                     <div className="flex-1">
                       <p className="text-sm font-medium">Stock bas détecté</p>
                       <p className="text-xs text-base-content/60">
@@ -64,14 +68,16 @@ const Header = ({ onMenuClick }) => {
                       </p>
                       <div className="text-xs text-base-content/50 mt-1">
                         Il y a 2h
-                     
+                      </div>
                     </div>
                   </div>
 
+                  {/* Notification 2 */}
                   <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
                     <div className="bg-success/20 p-2 rounded-lg">
                       <Bell size={16} className="text-success" />
                     </div>
+
                     <div className="flex-1">
                       <p className="text-sm font-medium">Commande livrée</p>
                       <p className="text-xs text-base-content/60">
@@ -83,10 +89,12 @@ const Header = ({ onMenuClick }) => {
                     </div>
                   </div>
 
+                  {/* Notification 3 */}
                   <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
                     <div className="bg-info/20 p-2 rounded-lg">
                       <Bell size={16} className="text-info" />
                     </div>
+
                     <div className="flex-1">
                       <p className="text-sm font-medium">Prédiction IA</p>
                       <p className="text-xs text-base-content/60">
@@ -98,7 +106,9 @@ const Header = ({ onMenuClick }) => {
                     </div>
                   </div>
                 </div>
+
                 <div className="divider my-2"></div>
+
                 <button className="btn btn-sm btn-ghost w-full">
                   Voir toutes les notifications
                 </button>
@@ -113,6 +123,7 @@ const Header = ({ onMenuClick }) => {
                 <User size={20} className="text-primary-content" />
               </div>
             </label>
+
             <ul
               tabIndex={0}
               className="mt-3 p-2 shadow-2xl menu menu-compact dropdown-content bg-base-100 rounded-box w-52"
@@ -120,25 +131,30 @@ const Header = ({ onMenuClick }) => {
               <li className="menu-title">
                 <span>John Doe</span>
               </li>
+
               <li>
                 <a>
                   <User size={16} />
                   Mon Profil
                 </a>
               </li>
+
               <li>
                 <a>
                   <Search size={16} />
                   Paramètres
                 </a>
               </li>
+
               <li>
                 <a>
                   <Bell size={16} />
                   Notifications
                 </a>
               </li>
+
               <div className="divider my-0"></div>
+
               <li>
                 <a className="text-error">Déconnexion</a>
               </li>
@@ -148,6 +164,6 @@ const Header = ({ onMenuClick }) => {
       </div>
     </header>
   );
-}
+};
 
 export default Header;
