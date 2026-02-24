@@ -1,147 +1,270 @@
-import React, { useState } from 'react';
-import {
-  ShoppingCart,
-  Plus,
-  Search,
-  Filter,
-  Eye,
-  Download,
+import React, { useState, useEffect } from 'react';
+import { 
+  ShoppingCart, 
+  Plus, 
+  Eye, 
+  Edit, 
+  Trash2,
   CheckCircle,
-  Clock,
   XCircle,
-  Truck,
-  Package,
-  X,
-  User,
-  Calendar,
-  DollarSign
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  Filter,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Package
 } from 'lucide-react';
+import { OrderService } from '../services/orderService';
+import OrderModal from '../components/common/Orders/orderModal';
+import OrderDetailsModal from '../components/common/Orders/orderDetailsModal';
+import toast from 'react-hot-toast';
 
-const Orders = () => {
+const Commandes = () => {
+  // ==================== STATE ====================
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Modals
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Filters
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
 
-  // Données des commandes
-  const orders = [
-    {
-      id: 'CMD-001',
-      supplier: 'TechDistrib SA',
-      date: '2024-02-13',
-      deliveryDate: '2024-02-20',
-      products: 5,
-      quantity: 150,
-      total: 45750,
-      status: 'pending',
-      priority: 'high'
-    },
-    {
-      id: 'CMD-002',
-      supplier: 'ElectroWorld',
-      date: '2024-02-12',
-      deliveryDate: '2024-02-18',
-      products: 3,
-      quantity: 80,
-      total: 23400,
-      status: 'confirmed',
-      priority: 'medium'
-    },
-    {
-      id: 'CMD-003',
-      supplier: 'MegaTech Distribution',
-      date: '2024-02-11',
-      deliveryDate: '2024-02-15',
-      products: 8,
-      quantity: 200,
-      total: 67890,
-      status: 'shipped',
-      priority: 'high'
-    },
-    {
-      id: 'CMD-004',
-      supplier: 'TechDistrib SA',
-      date: '2024-02-10',
-      deliveryDate: '2024-02-14',
-      products: 2,
-      quantity: 50,
-      total: 12500,
-      status: 'delivered',
-      priority: 'low'
-    },
-    {
-      id: 'CMD-005',
-      supplier: 'Global Electronics',
-      date: '2024-02-09',
-      deliveryDate: '2024-02-16',
-      products: 4,
-      quantity: 120,
-      total: 34200,
-      status: 'cancelled',
-      priority: 'medium'
-    },
-  ];
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const getStatusInfo = (status) => {
-    const statuses = {
-      pending: { 
-        icon: Clock, 
-        class: 'badge-warning', 
-        text: 'En attente',
-        bgClass: 'bg-warning/10'
-      },
-      confirmed: { 
-        icon: CheckCircle, 
-        class: 'badge-info', 
-        text: 'Confirmée',
-        bgClass: 'bg-info/10'
-      },
-      shipped: { 
-        icon: Truck, 
-        class: 'badge-primary', 
-        text: 'Expédiée',
-        bgClass: 'bg-primary/10'
-      },
-      delivered: { 
-        icon: Package, 
-        class: 'badge-success', 
-        text: 'Livrée',
-        bgClass: 'bg-success/10'
-      },
-      cancelled: { 
-        icon: XCircle, 
-        class: 'badge-error', 
-        text: 'Annulée',
-        bgClass: 'bg-error/10'
+  // ==================== FETCH ORDERS ====================
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await OrderService.getAllOrders();
+
+      if (response.success && response.data) {
+        setOrders(response.data);
+      } else {
+        setOrders([]);
       }
-    };
-    return statuses[status] || statuses.pending;
+    } catch (err) {
+      console.error('Erreur chargement commandes:', err);
+      setError(err.message || 'Erreur lors du chargement des commandes');
+      toast.error('Erreur lors du chargement des commandes');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getPriorityBadge = (priority) => {
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // ==================== REFRESH ====================
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders();
+    setRefreshing(false);
+    toast.success('Commandes actualisées');
+  };
+
+  // ==================== MODAL HANDLERS ====================
+  const handleAddOrder = () => {
+    setSelectedOrder(null);
+    setShowOrderModal(true);
+  };
+
+  const handleEditOrder = (order) => {
+    if (!order.canBeModified && order.status !== 'draft' && order.status !== 'pending') {
+      toast.error('Cette commande ne peut plus être modifiée');
+      return;
+    }
+    setSelectedOrder(order);
+    setShowOrderModal(true);
+  };
+
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
+    setShowDetailsModal(true);
+  };
+
+  const handleOrderSaved = () => {
+    fetchOrders();
+  };
+
+  // ==================== STATUS ACTIONS ====================
+  const handleConfirmOrder = async (orderId) => {
+    try {
+      await OrderService.confirmOrder(orderId);
+      toast.success('Commande confirmée');
+      fetchOrders();
+    } catch (err) {
+      console.error('Erreur confirmation:', err);
+      toast.error('Erreur lors de la confirmation');
+    }
+  };
+
+  const handleCompleteOrder = async (orderId) => {
+    if (!window.confirm('Marquer cette commande comme terminée ?')) {
+      return;
+    }
+
+    try {
+      await OrderService.completeOrder(orderId);
+      toast.success('Commande complétée');
+      fetchOrders();
+    } catch (err) {
+      console.error('Erreur complétion:', err);
+      toast.error('Erreur lors de la complétion');
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    const reason = prompt('Raison de l\'annulation:');
+    if (!reason) return;
+
+    try {
+      await OrderService.cancelOrder(orderId, reason);
+      toast.success('Commande annulée');
+      fetchOrders();
+    } catch (err) {
+      console.error('Erreur annulation:', err);
+      toast.error('Erreur lors de l\'annulation');
+    }
+  };
+
+  // ==================== DELETE ====================
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) {
+      return;
+    }
+
+    try {
+      await OrderService.deleteOrder(orderId);
+      setOrders(orders.filter(o => o._id !== orderId));
+      toast.success('Commande supprimée');
+    } catch (err) {
+      console.error('Erreur suppression:', err);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  // ==================== STATUS BADGE ====================
+  const getStatusBadge = (status) => {
     const badges = {
-      high: { class: 'badge-error', text: 'Haute' },
-      medium: { class: 'badge-warning', text: 'Moyenne' },
-      low: { class: 'badge-ghost', text: 'Basse' }
+      draft: { class: 'badge-ghost', text: 'Brouillon' },
+      pending: { class: 'badge-warning', text: 'En attente' },
+      confirmed: { class: 'badge-info', text: 'Confirmée' },
+      processing: { class: 'badge-primary', text: 'En traitement' },
+      completed: { class: 'badge-success', text: 'Complétée' },
+      cancelled: { class: 'badge-error', text: 'Annulée' }
     };
-    return badges[priority] || badges.low;
+    return badges[status] || badges.draft;
   };
 
+  const getPaymentStatusBadge = (status) => {
+    const badges = {
+      pending: { class: 'badge-warning', text: 'En attente' },
+      partial: { class: 'badge-info', text: 'Partiel' },
+      paid: { class: 'badge-success', text: 'Payé' },
+      refunded: { class: 'badge-error', text: 'Remboursé' }
+    };
+    return badges[status] || badges.pending;
+  };
+
+  // ==================== FILTERING ====================
   const filteredOrders = orders.filter(order => {
-    const matchSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       order.supplier.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = selectedStatus === 'all' || order.status === selectedStatus;
-    return matchSearch && matchStatus;
+    const matchType = filterType === 'all' || order.type === filterType;
+    const matchStatus = filterStatus === 'all' || order.status === filterStatus;
+    const matchSearch = 
+      order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.supplier?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchType && matchStatus && matchSearch;
   });
 
-  const statusCounts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
+  // ==================== STATS ====================
+  const calculateStats = () => {
+    const totalOrders = orders.length;
+    const totalRevenue = orders
+      .filter(o => o.type === 'sale' && o.status === 'completed')
+      .reduce((sum, o) => sum + o.totals.total, 0);
+    const totalPurchases = orders
+      .filter(o => o.type === 'purchase' && o.status === 'completed')
+      .reduce((sum, o) => sum + o.totals.total, 0);
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalPurchases,
+      pendingOrders
+    };
   };
 
+  const stats = calculateStats();
+
+  // ==================== PAGINATION ====================
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredOrders.length, currentPage, totalPages]);
+
+  // ==================== RENDER LOADING ====================
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-lg text-base-content/60">Chargement des commandes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== RENDER ERROR ====================
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="card bg-base-100 shadow-xl w-full max-w-md">
+          <div className="card-body text-center">
+            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
+            <h2 className="card-title justify-center">Erreur de chargement</h2>
+            <p className="text-base-content/60">{error}</p>
+            <div className="card-actions justify-center mt-4">
+              <button className="btn btn-primary" onClick={fetchOrders}>
+                <RefreshCw size={20} />
+                Réessayer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -150,15 +273,19 @@ const Orders = () => {
             Commandes
           </h1>
           <p className="text-base-content/60 mt-1">
-            Gérez vos commandes et réapprovisionnements
+            Gérez vos commandes d'achat et de vente
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn btn-outline gap-2">
-            <Download size={20} />
-            Exporter
+          <button
+            className="btn btn-ghost gap-2"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            Actualiser
           </button>
-          <button className="btn btn-primary gap-2">
+          <button className="btn btn-primary gap-2" onClick={handleAddOrder}>
             <Plus size={20} />
             Nouvelle commande
           </button>
@@ -172,37 +299,39 @@ const Orders = () => {
             <ShoppingCart size={32} />
           </div>
           <div className="stat-title">Total Commandes</div>
-          <div className="stat-value text-primary">{orders.length}</div>
-          <div className="stat-desc">Ce mois-ci</div>
+          <div className="stat-value text-primary">{stats.totalOrders}</div>
+          <div className="stat-desc">Toutes catégories</div>
         </div>
-        
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
-          <div className="stat-figure text-warning">
-            <Clock size={32} />
-          </div>
-          <div className="stat-title">En attente</div>
-          <div className="stat-value text-warning">{statusCounts.pending}</div>
-          <div className="stat-desc">À confirmer</div>
-        </div>
-        
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
-          <div className="stat-figure text-info">
-            <Truck size={32} />
-          </div>
-          <div className="stat-title">En transit</div>
-          <div className="stat-value text-info">{statusCounts.shipped}</div>
-          <div className="stat-desc">Livraison en cours</div>
-        </div>
-        
+
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-success">
-            <DollarSign size={32} />
+            <TrendingUp size={32} />
           </div>
-          <div className="stat-title">Valeur totale</div>
-          <div className="stat-value text-success">
-            {orders.reduce((sum, o) => sum + o.total, 0).toLocaleString()} FCFA
+          <div className="stat-title">Ventes</div>
+          <div className="stat-value text-success text-2xl">
+            {stats.totalRevenue.toLocaleString('fr-FR')}
           </div>
-          <div className="stat-desc">Toutes commandes</div>
+          <div className="stat-desc">FCFA (complétées)</div>
+        </div>
+
+        <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-error">
+            <TrendingDown size={32} />
+          </div>
+          <div className="stat-title">Achats</div>
+          <div className="stat-value text-error text-2xl">
+            {stats.totalPurchases.toLocaleString('fr-FR')}
+          </div>
+          <div className="stat-desc">FCFA (complétées)</div>
+        </div>
+
+        <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-warning">
+            <Package size={32} />
+          </div>
+          <div className="stat-title">En attente</div>
+          <div className="stat-value text-warning">{stats.pendingOrders}</div>
+          <div className="stat-desc">À traiter</div>
         </div>
       </div>
 
@@ -212,210 +341,266 @@ const Orders = () => {
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
-              <div className="form-control">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    placeholder="Rechercher par N° ou fournisseur..."
-                    className="input input-bordered w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button 
-                      className="btn btn-ghost btn-square"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Rechercher par numéro, client, fournisseur..."
+                className="input input-bordered w-full"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
 
-            {/* Status Tabs */}
-            <div className="tabs tabs-boxed">
-              <button 
-                className={`tab ${selectedStatus === 'all' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedStatus('all')}
+            {/* Type Filter */}
+            <div className="form-control w-full md:w-48">
+              <select
+                className="select select-bordered"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
               >
-                Toutes ({statusCounts.all})
-              </button>
-              <button 
-                className={`tab ${selectedStatus === 'pending' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedStatus('pending')}
+                <option value="all">Tous types</option>
+                <option value="purchase">Achats</option>
+                <option value="sale">Ventes</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="form-control w-full md:w-48">
+              <select
+                className="select select-bordered"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
               >
-                En attente ({statusCounts.pending})
-              </button>
-              <button 
-                className={`tab ${selectedStatus === 'shipped' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedStatus('shipped')}
-              >
-                Expédiées ({statusCounts.shipped})
-              </button>
-              <button 
-                className={`tab ${selectedStatus === 'delivered' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedStatus('delivered')}
-              >
-                Livrées ({statusCounts.delivered})
-              </button>
+                <option value="all">Tous statuts</option>
+                <option value="draft">Brouillon</option>
+                <option value="pending">En attente</option>
+                <option value="confirmed">Confirmée</option>
+                <option value="processing">En traitement</option>
+                <option value="completed">Complétée</option>
+                <option value="cancelled">Annulée</option>
+              </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Orders List */}
-      <div className="space-y-4">
-        {filteredOrders.map((order) => {
-          const statusInfo = getStatusInfo(order.status);
-          const priorityBadge = getPriorityBadge(order.priority);
-          const StatusIcon = statusInfo.icon;
-          
-          return (
-            <div 
-              key={order.id} 
-              className={`card bg-base-100 shadow-lg hover:shadow-xl transition-shadow border-l-4 ${
-                order.status === 'pending' ? 'border-warning' :
-                order.status === 'confirmed' ? 'border-info' :
-                order.status === 'shipped' ? 'border-primary' :
-                order.status === 'delivered' ? 'border-success' :
-                'border-error'
-              }`}
-            >
-              <div className="card-body">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                  {/* Order Info */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-bold">{order.id}</h3>
-                        <div className="flex items-center gap-2 mt-1 text-base-content/70">
-                          <User size={16} />
-                          <span className="font-medium">{order.supplier}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className={`badge ${statusInfo.class} gap-2`}>
-                          <StatusIcon size={12} />
-                          {statusInfo.text}
-                        </div>
-                        <div className={`badge ${priorityBadge.class}`}>
-                          {priorityBadge.text}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <div className="text-xs text-base-content/60 mb-1">Date commande</div>
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-base-content/60" />
-                          <span className="font-semibold">{order.date}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-base-content/60 mb-1">Livraison prévue</div>
-                        <div className="flex items-center gap-2">
-                          <Truck size={16} className="text-base-content/60" />
-                          <span className="font-semibold">{order.deliveryDate}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-base-content/60 mb-1">Produits / Quantité</div>
-                        <div className="flex items-center gap-2">
-                          <Package size={16} className="text-base-content/60" />
-                          <span className="font-semibold">{order.products} / {order.quantity}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-base-content/60 mb-1">Montant total</div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign size={16} className="text-success" />
-                          <span className="font-bold text-success">{order.total.toLocaleString()} FCFA</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex lg:flex-col gap-2">
-                    <button className="btn btn-sm btn-ghost gap-2">
-                      <Eye size={16} />
-                      Détails
-                    </button>
-                    {order.status === 'pending' && (
-                      <>
-                        <button className="btn btn-sm btn-success gap-2">
-                          <CheckCircle size={16} />
-                          Confirmer
-                        </button>
-                        <button className="btn btn-sm btn-error gap-2">
-                          <XCircle size={16} />
-                          Annuler
-                        </button>
-                      </>
-                    )}
-                    {order.status === 'shipped' && (
-                      <button className="btn btn-sm btn-primary gap-2">
-                        <Truck size={16} />
-                        Suivre
-                      </button>
-                    )}
-                    {order.status === 'delivered' && (
-                      <button className="btn btn-sm btn-outline gap-2">
-                        <Download size={16} />
-                        Facture
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {filteredOrders.length === 0 && (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body text-center py-12">
-              <ShoppingCart size={48} className="mx-auto text-base-content/20 mb-4" />
-              <h3 className="text-xl font-bold">Aucune commande trouvée</h3>
-              <p className="text-base-content/60">
-                Essayez de modifier vos filtres ou créez une nouvelle commande
-              </p>
-              <button className="btn btn-primary gap-2 mx-auto mt-4">
-                <Plus size={20} />
-                Nouvelle commande
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Stats */}
+      {/* Orders Table */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
-          <h3 className="card-title mb-4">Fournisseurs principaux</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="stat bg-base-200 rounded-lg">
-              <div className="stat-title">TechDistrib SA</div>
-              <div className="stat-value text-primary text-2xl">2</div>
-              <div className="stat-desc">58,250 FCFA - 45% du total</div>
-            </div>
-            <div className="stat bg-base-200 rounded-lg">
-              <div className="stat-title">MegaTech Distribution</div>
-              <div className="stat-value text-secondary text-2xl">1</div>
-              <div className="stat-desc">67,890 FCFA - 38% du total</div>
-            </div>
-            <div className="stat bg-base-200 rounded-lg">
-              <div className="stat-title">ElectroWorld</div>
-              <div className="stat-value text-accent text-2xl">1</div>
-              <div className="stat-desc">23,400 FCFA - 13% du total</div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="table w-full">
+              <thead>
+                <tr>
+                  <th>Numéro</th>
+                  <th>Type</th>
+                  <th>Client/Fournisseur</th>
+                  <th>Date</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th>Paiement</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedOrders.map((order) => {
+                  const statusBadge = getStatusBadge(order.status);
+                  const paymentBadge = getPaymentStatusBadge(order.paymentStatus);
+
+                  return (
+                    <tr key={order._id} className="hover">
+                      <td>
+                        <span className="font-mono font-semibold">
+                          {order.orderNumber}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="badge badge-ghost">
+                          {order.type === 'purchase' ? 'Achat' : 'Vente'}
+                        </div>
+                      </td>
+                      <td>
+                        {order.type === 'purchase'
+                          ? order.supplier?.name || 'N/A'
+                          : order.customer?.name || 'N/A'}
+                      </td>
+                      <td>
+                        {new Date(order.orderDate).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="font-semibold">
+                        {order.totals.total.toLocaleString('fr-FR')} FCFA
+                      </td>
+                      <td>
+                        <div className={`badge ${statusBadge.class}`}>
+                          {statusBadge.text}
+                        </div>
+                      </td>
+                      <td>
+                        <div className={`badge ${paymentBadge.class}`}>
+                          {paymentBadge.text}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="dropdown dropdown-end">
+                          <label tabIndex={0} className="btn btn-ghost btn-xs">
+                            Actions
+                          </label>
+                          <ul
+                            tabIndex={0}
+                            className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+                          >
+                            <li>
+                              <button onClick={() => handleViewDetails(order)}>
+                                <Eye size={16} />
+                                Voir détails
+                              </button>
+                            </li>
+                            {(order.status === 'draft' || order.status === 'pending') && (
+                              <>
+                                <li>
+                                  <button onClick={() => handleEditOrder(order)}>
+                                    <Edit size={16} />
+                                    Modifier
+                                  </button>
+                                </li>
+                                {order.status === 'pending' && (
+                                  <li>
+                                    <button onClick={() => handleConfirmOrder(order._id)}>
+                                      <CheckCircle size={16} />
+                                      Confirmer
+                                    </button>
+                                  </li>
+                                )}
+                              </>
+                            )}
+                            {order.status === 'confirmed' && (
+                              <li>
+                                <button onClick={() => handleCompleteOrder(order._id)}>
+                                  <CheckCircle size={16} />
+                                  Compléter
+                                </button>
+                              </li>
+                            )}
+                            {order.status !== 'completed' && order.status !== 'cancelled' && (
+                              <li>
+                                <button
+                                  onClick={() => handleCancelOrder(order._id)}
+                                  className="text-error"
+                                >
+                                  <XCircle size={16} />
+                                  Annuler
+                                </button>
+                              </li>
+                            )}
+                            {order.status === 'draft' && (
+                              <li>
+                                <button
+                                  onClick={() => handleDeleteOrder(order._id)}
+                                  className="text-error"
+                                >
+                                  <Trash2 size={16} />
+                                  Supprimer
+                                </button>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Empty State */}
+            {paginatedOrders.length === 0 && (
+              <div className="text-center py-12">
+                <ShoppingCart size={48} className="mx-auto text-base-content/20 mb-4" />
+                <p className="text-base-content/60">
+                  {orders.length === 0
+                    ? 'Aucune commande'
+                    : 'Aucune commande trouvée avec ces filtres'}
+                </p>
+                {orders.length === 0 && (
+                  <button className="btn btn-primary mt-4 gap-2" onClick={handleAddOrder}>
+                    <Plus size={20} />
+                    Créer votre première commande
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Pagination */}
+          {filteredOrders.length > itemsPerPage && (
+            <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+              <div className="text-sm text-base-content/60">
+                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
+                {Math.min(currentPage * itemsPerPage, filteredOrders.length)} sur{' '}
+                {filteredOrders.length} commandes
+              </div>
+
+              <div className="btn-group">
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  «
+                </button>
+
+                {[...Array(totalPages)].map((_, idx) => {
+                  const page = idx + 1;
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        className={`btn btn-sm ${currentPage === page ? 'btn-active' : ''}`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return (
+                      <button key={page} className="btn btn-sm btn-disabled">
+                        ...
+                      </button>
+                    );
+                  }
+                  return null;
+                })}
+
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  »
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Modals */}
+      <OrderModal
+        isOpen={showOrderModal}
+        onClose={() => setShowOrderModal(false)}
+        order={selectedOrder}
+        onSuccess={handleOrderSaved}
+      />
+
+      <OrderDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        order={selectedOrder}
+      />
     </div>
   );
 };
 
-export default Orders;
+export default Commandes;

@@ -12,12 +12,7 @@ const {
 } = require("../utils/authValidation");
 
 // Routes publiques
-router.post(
-  "/register",
-  authLimiter,
-  validateRegister,
-  authController.register,
-);
+router.post("/register", validateRegister, authController.register);
 router.post("/login", authLimiter, validateLogin, authController.login);
 router.post("/refresh-token", authController.refreshToken);
 

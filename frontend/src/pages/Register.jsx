@@ -127,9 +127,7 @@ const Register = () => {
       }, 1500);
     } catch (err) {
       const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Une erreur est survenue";
+        err.response?.data?.message || err.message || "Une erreur est survenue";
 
       setServerError(msg);
 
@@ -163,7 +161,7 @@ const Register = () => {
             {successMessage && (
               <div className="alert alert-success">
                 <CheckCircle size={20} />
-                <span>{successMessage}</span>
+                <span>Compte crée avec succès</span>
               </div>
             )}
 
@@ -171,7 +169,7 @@ const Register = () => {
             {serverError && (
               <div className="alert alert-error">
                 <AlertCircle size={20} />
-                <span>{serverError}</span>
+                <span>Une erreur s'est produite</span>
               </div>
             )}
 
@@ -224,7 +222,7 @@ const Register = () => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Dev"
+                    placeholder="Fullstack"
                     className={`input input-bordered w-full pl-10 ${
                       errors.lastName ? "input-error" : ""
                     }`}

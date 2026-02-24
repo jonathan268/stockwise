@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Save, X, Plus, Trash2, AlertCircle, Loader2, Search } from 'lucide-react';
-import Modal from '../common/Modal';
-import { OrderService } from '../../services/orderService';
-import { ProductService } from '../../services/productService';
-import { SupplierService } from '../../services/supplierService';
+import Modal from '../Modal';
+import { OrderService } from '../../../services/orderService';
+import { ProductService } from '../../../services/productService';
+import { SupplierService } from '../../../services/suppliersService';
 import toast from 'react-hot-toast';
 
 const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {

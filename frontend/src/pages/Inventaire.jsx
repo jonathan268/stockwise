@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Search, 
-  Plus, 
-  Filter, 
-  Download, 
+import React, { useState, useEffect } from "react";
+import {
+  Package,
+  Search,
+  Plus,
+  Filter,
+  Download,
   Upload,
   Edit,
   Trash2,
@@ -14,30 +14,30 @@ import {
   X,
   Loader2,
   AlertCircle,
-  RefreshCw
-} from 'lucide-react';
-import { ProductService } from '../services/productService';
-import ProductModal from '../components/common/Inventory/ProductModal';
-import ProductDetailsModal from '../components/common/Inventory/ProductDetailsModal';
-import ImportExportButtons from '../components/common/Inventory/ImportExportButtons';
-import toast from 'react-hot-toast';
+  RefreshCw,
+} from "lucide-react";
+import { ProductService } from "../services/productService";
+import ProductModal from "../components/common/Inventory/ProductModal";
+import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
+import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
+import toast from "react-hot-toast";
 
 const Inventory = () => {
   // ==================== STATE ====================
   const [products, setProducts] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   // Modals
   const [showProductModal, setShowProductModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -48,19 +48,33 @@ const Inventory = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await ProductService.getAllProducts();
-      
-      if (response.success && response.data) {
-        setProducts(response.data);
-      } else {
-        setProducts([]);
+
+      // Extraire le tableau de produits selon la structure de la réponse API
+      let productsData = [];
+
+      if (response) {
+        if (Array.isArray(response)) {
+          // Cas : l'API retourne directement un tableau
+          productsData = response;
+        } else if (Array.isArray(response.data)) {
+          // Cas : { success: true, data: [...] }
+          productsData = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+          // Cas paginé Node  : { success: true, data: { data: [...], total: 50 } }
+          productsData = response.data.data;
+        } else if (response.data && Array.isArray(response.data.products)) {
+          // Cas : { data: { products: [...] } }
+          productsData = response.data.products;
+        }
       }
-      
+
+      setProducts(productsData);
     } catch (err) {
-      console.error('Erreur chargement produits:', err);
-      setError(err.message || 'Erreur lors du chargement des produits');
-      toast.error('Erreur lors du chargement des produits');
+      console.error("Erreur chargement produits:", err);
+      setError(err.message || "Erreur lors du chargement des produits");
+      toast.error("Erreur lors du chargement des produits");
       setProducts([]);
     } finally {
       setLoading(false);
@@ -77,7 +91,7 @@ const Inventory = () => {
     setRefreshing(true);
     await fetchProducts();
     setRefreshing(false);
-    toast.success('Inventaire actualisé');
+    toast.success("Inventaire actualisé");
   };
 
   // ==================== MODAL HANDLERS ====================
@@ -102,50 +116,54 @@ const Inventory = () => {
 
   // ==================== DELETE PRODUCT ====================
   const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       return;
     }
 
     try {
       await ProductService.deleteProduct(productId);
-      
-      setProducts(products.filter(p => p._id !== productId));
-      setSelectedProducts(selectedProducts.filter(id => id !== productId));
-      
-      toast.success('Produit supprimé avec succès');
+
+      setProducts(products.filter((p) => p._id !== productId));
+      setSelectedProducts(selectedProducts.filter((id) => id !== productId));
+
+      toast.success("Produit supprimé avec succès");
     } catch (err) {
-      console.error('Erreur suppression produit:', err);
-      toast.error('Erreur lors de la suppression du produit');
+      console.error("Erreur suppression produit:", err);
+      toast.error("Erreur lors de la suppression du produit");
     }
   };
 
   // ==================== DELETE MULTIPLE ====================
   const handleDeleteSelected = async () => {
-    if (!window.confirm(`Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`)) {
+    if (
+      !window.confirm(
+        `Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`,
+      )
+    ) {
       return;
     }
 
-    const loadingToast = toast.loading('Suppression en cours...');
+    const loadingToast = toast.loading("Suppression en cours...");
 
     try {
       await Promise.all(
-        selectedProducts.map(id => ProductService.deleteProduct(id))
+        selectedProducts.map((id) => ProductService.deleteProduct(id)),
       );
 
-      setProducts(products.filter(p => !selectedProducts.includes(p._id)));
+      setProducts(products.filter((p) => !selectedProducts.includes(p._id)));
       setSelectedProducts([]);
-      
-      toast.success('Produits supprimés avec succès', { id: loadingToast });
+
+      toast.success("Produits supprimés avec succès", { id: loadingToast });
     } catch (err) {
-      console.error('Erreur suppression multiple:', err);
-      toast.error('Erreur lors de la suppression', { id: loadingToast });
+      console.error("Erreur suppression multiple:", err);
+      toast.error("Erreur lors de la suppression", { id: loadingToast });
     }
   };
 
   // ==================== SELECTION ====================
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedProducts(paginatedProducts.map(p => p._id));
+      setSelectedProducts(paginatedProducts.map((p) => p._id));
     } else {
       setSelectedProducts([]);
     }
@@ -153,7 +171,7 @@ const Inventory = () => {
 
   const handleSelectProduct = (id) => {
     if (selectedProducts.includes(id)) {
-      setSelectedProducts(selectedProducts.filter(pId => pId !== id));
+      setSelectedProducts(selectedProducts.filter((pId) => pId !== id));
     } else {
       setSelectedProducts([...selectedProducts, id]);
     }
@@ -162,42 +180,44 @@ const Inventory = () => {
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (product) => {
     const stock = product.stock;
-    
+
     if (!stock) {
-      return { class: 'badge-ghost', text: 'Non défini' };
+      return { class: "badge-ghost", text: "Non défini" };
     }
 
     const quantity = stock.quantity || 0;
     const minThreshold = stock.minThreshold || 0;
 
     if (quantity === 0) {
-      return { class: 'badge-ghost', text: 'Rupture' };
+      return { class: "badge-ghost", text: "Rupture" };
     } else if (quantity <= minThreshold / 2) {
-      return { class: 'badge-error', text: 'Critique' };
+      return { class: "badge-error", text: "Critique" };
     } else if (quantity <= minThreshold) {
-      return { class: 'badge-warning', text: 'Stock bas' };
+      return { class: "badge-warning", text: "Stock bas" };
     } else {
-      return { class: 'badge-success', text: 'En stock' };
+      return { class: "badge-success", text: "En stock" };
     }
   };
 
   // ==================== STATS CALCULATIONS ====================
   const calculateStats = () => {
-    const totalProducts = products.length;
-    
-    const totalValue = products.reduce((sum, p) => {
+    // Sécurité : s'assurer que products est toujours un tableau
+    const safeProducts = Array.isArray(products) ? products : [];
+    const totalProducts = safeProducts.length;
+
+    const totalValue = safeProducts.reduce((sum, p) => {
       const quantity = p.stock?.quantity || 0;
       const price = p.pricing?.sellingPrice || 0;
-      return sum + (price * quantity);
+      return sum + price * quantity;
     }, 0);
 
-    const lowStockCount = products.filter(p => {
+    const lowStockCount = safeProducts.filter((p) => {
       const quantity = p.stock?.quantity || 0;
       const minThreshold = p.stock?.minThreshold || 0;
       return quantity > 0 && quantity <= minThreshold;
     }).length;
 
-    const outOfStockCount = products.filter(p => {
+    const outOfStockCount = safeProducts.filter((p) => {
       const quantity = p.stock?.quantity || 0;
       return quantity === 0;
     }).length;
@@ -206,33 +226,34 @@ const Inventory = () => {
       totalProducts,
       totalValue,
       lowStockCount,
-      outOfStockCount
+      outOfStockCount,
     };
   };
 
   const stats = calculateStats();
 
   // ==================== FILTERING ====================
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products.filter((product) => {
     // Recherche
-    const matchSearch = 
+    const matchSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      (product.sku &&
+        product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Catégorie
-    const matchCategory = 
-      filterCategory === 'all' || 
+    const matchCategory =
+      filterCategory === "all" ||
       (product.category && product.category.name === filterCategory);
 
     // Statut
     let matchStatus = true;
-    if (filterStatus !== 'all') {
+    if (filterStatus !== "all") {
       const status = getStatusBadge(product);
       const statusMap = {
-        'in_stock': 'En stock',
-        'low_stock': 'Stock bas',
-        'critical': 'Critique',
-        'out_of_stock': 'Rupture'
+        in_stock: "En stock",
+        low_stock: "Stock bas",
+        critical: "Critique",
+        out_of_stock: "Rupture",
       };
       matchStatus = status.text === statusMap[filterStatus];
     }
@@ -241,16 +262,19 @@ const Inventory = () => {
   });
 
   // ==================== CATEGORIES ====================
-  const categories = ['all', ...new Set(
-    products
-      .filter(p => p.category && p.category.name)
-      .map(p => p.category.name)
-  )];
+  const categories = [
+    "all",
+    ...new Set(
+      products
+        .filter((p) => p.category && p.category.name)
+        .map((p) => p.category.name),
+    ),
+  ];
 
   // ==================== PAGINATION ====================
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -267,7 +291,9 @@ const Inventory = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement de l'inventaire...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement de l'inventaire...
+          </p>
         </div>
       </div>
     );
@@ -283,10 +309,7 @@ const Inventory = () => {
             <h2 className="card-title justify-center">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
             <div className="card-actions justify-center mt-4">
-              <button 
-                className="btn btn-primary"
-                onClick={fetchProducts}
-              >
+              <button className="btn btn-primary" onClick={fetchProducts}>
                 <RefreshCw size={20} />
                 Réessayer
               </button>
@@ -312,24 +335,21 @@ const Inventory = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             className="btn btn-ghost gap-2"
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
-          
-          <ImportExportButtons 
+
+          <ImportExportButtons
             products={products}
             onImportSuccess={fetchProducts}
           />
-          
-          <button 
-            className="btn btn-primary gap-2"
-            onClick={handleAddProduct}
-          >
+
+          <button className="btn btn-primary gap-2" onClick={handleAddProduct}>
             <Plus size={20} />
             Ajouter un produit
           </button>
@@ -346,7 +366,7 @@ const Inventory = () => {
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-title">Valeur Totale</div>
           <div className="stat-value text-success text-2xl">
-            {stats.totalValue.toLocaleString('fr-FR')} FCFA
+            {stats.totalValue.toLocaleString("fr-FR")} FCFA
           </div>
           <div className="stat-desc">Stock actuel</div>
         </div>
@@ -378,9 +398,9 @@ const Inventory = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   {searchQuery && (
-                    <button 
+                    <button
                       className="btn btn-ghost btn-square"
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => setSearchQuery("")}
                     >
                       <X size={20} />
                     </button>
@@ -391,21 +411,23 @@ const Inventory = () => {
 
             {/* Category Filter */}
             <div className="form-control w-full md:w-48">
-              <select 
+              <select
                 className="select select-bordered"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <option value="all">Toutes catégories</option>
-                {categories.slice(1).map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.slice(1).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Status Filter */}
             <div className="form-control w-full md:w-48">
-              <select 
+              <select
                 className="select select-bordered"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -420,29 +442,33 @@ const Inventory = () => {
           </div>
 
           {/* Active Filters */}
-          {(filterCategory !== 'all' || filterStatus !== 'all' || searchQuery) && (
+          {(filterCategory !== "all" ||
+            filterStatus !== "all" ||
+            searchQuery) && (
             <div className="flex items-center gap-2 mt-4 flex-wrap">
-              <span className="text-sm text-base-content/60">Filtres actifs:</span>
+              <span className="text-sm text-base-content/60">
+                Filtres actifs:
+              </span>
               {searchQuery && (
                 <div className="badge badge-primary gap-2">
                   {searchQuery}
-                  <button onClick={() => setSearchQuery('')}>
+                  <button onClick={() => setSearchQuery("")}>
                     <X size={14} />
                   </button>
                 </div>
               )}
-              {filterCategory !== 'all' && (
+              {filterCategory !== "all" && (
                 <div className="badge badge-secondary gap-2">
                   {filterCategory}
-                  <button onClick={() => setFilterCategory('all')}>
+                  <button onClick={() => setFilterCategory("all")}>
                     <X size={14} />
                   </button>
                 </div>
               )}
-              {filterStatus !== 'all' && (
+              {filterStatus !== "all" && (
                 <div className="badge badge-accent gap-2">
                   {filterStatus}
-                  <button onClick={() => setFilterStatus('all')}>
+                  <button onClick={() => setFilterStatus("all")}>
                     <X size={14} />
                   </button>
                 </div>
@@ -461,7 +487,7 @@ const Inventory = () => {
                 <span>{selectedProducts.length} produit(s) sélectionné(s)</span>
               </div>
               <div className="flex-none">
-                <button 
+                <button
                   className="btn btn-sm btn-error gap-2"
                   onClick={handleDeleteSelected}
                 >
@@ -480,7 +506,10 @@ const Inventory = () => {
                     <input
                       type="checkbox"
                       className="checkbox checkbox-sm"
-                      checked={selectedProducts.length === paginatedProducts.length && paginatedProducts.length > 0}
+                      checked={
+                        selectedProducts.length === paginatedProducts.length &&
+                        paginatedProducts.length > 0
+                      }
                       onChange={handleSelectAll}
                     />
                   </th>
@@ -517,7 +546,10 @@ const Inventory = () => {
                           <div className="avatar placeholder">
                             <div className="bg-neutral-focus text-neutral-content rounded w-12 h-12">
                               {product.image?.url ? (
-                                <img src={product.image.url} alt={product.name} />
+                                <img
+                                  src={product.image.url}
+                                  alt={product.name}
+                                />
                               ) : (
                                 <Box size={20} />
                               )}
@@ -535,12 +567,12 @@ const Inventory = () => {
                       </td>
                       <td>
                         <span className="font-mono text-sm">
-                          {product.sku || 'N/A'}
+                          {product.sku || "N/A"}
                         </span>
                       </td>
                       <td>
                         <div className="badge badge-ghost">
-                          {product.category?.name || 'Sans catégorie'}
+                          {product.category?.name || "Sans catégorie"}
                         </div>
                       </td>
                       <td>
@@ -552,10 +584,10 @@ const Inventory = () => {
                         </div>
                       </td>
                       <td className="font-semibold">
-                        {price.toLocaleString('fr-FR')} FCFA
+                        {price.toLocaleString("fr-FR")} FCFA
                       </td>
                       <td className="font-semibold text-success">
-                        {totalValue.toLocaleString('fr-FR')} FCFA
+                        {totalValue.toLocaleString("fr-FR")} FCFA
                       </td>
                       <td>
                         <div className={`badge ${statusBadge.class}`}>
@@ -564,22 +596,22 @@ const Inventory = () => {
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button 
-                            className="btn btn-ghost btn-xs" 
+                          <button
+                            className="btn btn-ghost btn-xs"
                             title="Voir"
                             onClick={() => handleViewDetails(product)}
                           >
                             <Eye size={16} />
                           </button>
-                          <button 
-                            className="btn btn-ghost btn-xs" 
+                          <button
+                            className="btn btn-ghost btn-xs"
                             title="Modifier"
                             onClick={() => handleEditProduct(product)}
                           >
                             <Edit size={16} />
                           </button>
-                          <button 
-                            className="btn btn-ghost btn-xs text-error" 
+                          <button
+                            className="btn btn-ghost btn-xs text-error"
                             title="Supprimer"
                             onClick={() => handleDeleteProduct(product._id)}
                           >
@@ -596,14 +628,17 @@ const Inventory = () => {
             {/* Empty State */}
             {paginatedProducts.length === 0 && (
               <div className="text-center py-12">
-                <Package size={48} className="mx-auto text-base-content/20 mb-4" />
+                <Package
+                  size={48}
+                  className="mx-auto text-base-content/20 mb-4"
+                />
                 <p className="text-base-content/60">
-                  {products.length === 0 
-                    ? 'Aucun produit dans votre inventaire' 
-                    : 'Aucun produit trouvé avec ces filtres'}
+                  {products.length === 0
+                    ? "Aucun produit dans votre inventaire"
+                    : "Aucun produit trouvé avec ces filtres"}
                 </p>
                 {products.length === 0 && (
-                  <button 
+                  <button
                     className="btn btn-primary mt-4 gap-2"
                     onClick={handleAddProduct}
                   >
@@ -619,20 +654,20 @@ const Inventory = () => {
           {filteredProducts.length > itemsPerPage && (
             <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
               <div className="text-sm text-base-content/60">
-                Affichage de {((currentPage - 1) * itemsPerPage) + 1} à{' '}
-                {Math.min(currentPage * itemsPerPage, filteredProducts.length)} sur{' '}
-                {filteredProducts.length} produits
+                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
+                {Math.min(currentPage * itemsPerPage, filteredProducts.length)}{" "}
+                sur {filteredProducts.length} produits
               </div>
-              
+
               <div className="btn-group">
-                <button 
+                <button
                   className="btn btn-sm"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(currentPage - 1)}
                 >
                   «
                 </button>
-                
+
                 {[...Array(totalPages)].map((_, idx) => {
                   const page = idx + 1;
                   // Afficher uniquement certaines pages
@@ -644,19 +679,26 @@ const Inventory = () => {
                     return (
                       <button
                         key={page}
-                        className={`btn btn-sm ${currentPage === page ? 'btn-active' : ''}`}
+                        className={`btn btn-sm ${currentPage === page ? "btn-active" : ""}`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
                       </button>
                     );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <button key={page} className="btn btn-sm btn-disabled">...</button>;
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
+                    return (
+                      <button key={page} className="btn btn-sm btn-disabled">
+                        ...
+                      </button>
+                    );
                   }
                   return null;
                 })}
-                
-                <button 
+
+                <button
                   className="btn btn-sm"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(currentPage + 1)}

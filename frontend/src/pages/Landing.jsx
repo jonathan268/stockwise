@@ -149,7 +149,7 @@ export default function Landing() {
             {mobileMenuOpen && (
               <ul
                 tabIndex="0"
-                className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 border border-base-300"
+                className="dropdown-content z-1 menu p-2 shadow bg-base-100 rounded-box w-52 border border-base-300"
               >
                 <li>
                   <a href="#features" onClick={() => setMobileMenuOpen(false)}>
@@ -404,7 +404,7 @@ export default function Landing() {
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <div className="badge badge-primary gap-1 text-base p-3">
                       <Star className="w-4 h-4" />
-                      Plus populaire
+                      Populaire
                     </div>
                   </div>
                 )}
