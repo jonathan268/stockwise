@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   TrendingUp,
@@ -7,102 +7,245 @@ import {
   Target,
   Zap,
   Calendar,
-  DollarSign,
   Package,
-  ShoppingCart,
   BarChart3,
-  PieChart
+  PieChart,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  FileText
 } from 'lucide-react';
+import { PredictionService } from '../services/predictionService';
+import { ProductService } from '../services/productService';
+import SalesChart from '../components/common/Analytics/SalesChart';
+import AIInsightCard from '../components/common/Analytics/AIInsightCard';
+import CustomPromptModal from '../components/common/Analytics/CustomPromptModal';
+import toast from 'react-hot-toast';
 
 const Analytics = () => {
+  // ==================== STATE ====================
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Données de prédictions IA
-  const predictions = [
-    {
-      id: 1,
-      product: 'iPhone 14 Pro',
-      currentStock: 45,
-      predictedDemand: 68,
-      recommendation: 'Commander 30 unités',
-      confidence: 92,
-      trend: 'up',
-      reason: 'Tendance saisonnière détectée'
-    },
-    {
-      id: 2,
-      product: 'MacBook Air M2',
-      currentStock: 8,
-      predictedDemand: 15,
-      recommendation: 'Commander 12 unités',
-      confidence: 87,
-      trend: 'up',
-      reason: 'Promotion à venir'
-    },
-    {
-      id: 3,
-      product: 'AirPods Pro',
-      currentStock: 67,
-      predictedDemand: 45,
-      recommendation: 'Stock suffisant',
-      confidence: 78,
-      trend: 'down',
-      reason: 'Baisse de demande prévue'
-    },
-  ];
+  // Data
+  const [aiStats, setAiStats] = useState(null);
+  const [predictions, setPredictions] = useState([]);
+  const [insights, setInsights] = useState([]);
+  const [salesData, setSalesData] = useState([]);
+  const [topCategories, setTopCategories] = useState([]);
+  const [combinedAnalysis, setCombinedAnalysis] = useState(null);
 
-  // Données de ventes
-  const salesData = [
-    { period: 'Lun', sales: 4500, orders: 23 },
-    { period: 'Mar', sales: 5200, orders: 28 },
-    { period: 'Mer', sales: 4800, orders: 25 },
-    { period: 'Jeu', sales: 6100, orders: 32 },
-    { period: 'Ven', sales: 7300, orders: 38 },
-    { period: 'Sam', sales: 5900, orders: 31 },
-    { period: 'Dim', sales: 4200, orders: 22 },
-  ];
+  // Modals
+  const [showCustomPromptModal, setShowCustomPromptModal] = useState(false);
 
-  // Top catégories
-  const topCategories = [
-    { name: 'Smartphones', value: 45, color: 'bg-primary' },
-    { name: 'Ordinateurs', value: 30, color: 'bg-secondary' },
-    { name: 'Accessoires', value: 15, color: 'bg-accent' },
-    { name: 'Tablettes', value: 10, color: 'bg-info' },
-  ];
+  // Loading states
+  const [analyzingStock, setAnalyzingStock] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
-  // Insights IA
-  const aiInsights = [
-    {
-      id: 1,
-      type: 'opportunity',
-      icon: TrendingUp,
-      title: 'Opportunité détectée',
-      message: 'Les ventes de smartphones augmentent de 25% en moyenne',
-      action: 'Augmenter le stock de 15%',
-      confidence: 89
-    },
-    {
-      id: 2,
-      type: 'warning',
-      icon: TrendingDown,
-      title: 'Tendance à la baisse',
-      message: 'Les accessoires informatiques montrent une baisse de 8%',
-      action: 'Réduire les commandes futures',
-      confidence: 76
-    },
-    {
-      id: 3,
-      type: 'info',
-      icon: Brain,
-      title: 'Pattern identifié',
-      message: 'Pic de ventes récurrent tous les vendredis',
-      action: 'Optimiser le stock pour le weekend',
-      confidence: 94
-    },
-  ];
+  // ==================== FETCH DATA ====================
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
+      const [statsRes, predictionsRes, analysisRes] = await Promise.all([
+        PredictionService.getAIStats(),
+        PredictionService.getPredictionsByType('demand_forecast', { limit: 10 }),
+        PredictionService.analyzeCombined()
+      ]);
+
+      if (statsRes.success && statsRes.data) {
+        setAiStats(statsRes.data);
+      }
+
+      if (predictionsRes.success && predictionsRes.data) {
+        setPredictions(predictionsRes.data);
+      }
+
+      if (analysisRes.success && analysisRes.data) {
+        setCombinedAnalysis(analysisRes.data);
+        // Extraire les insights de l'analyse combinée
+        if (analysisRes.data.predictions?.insights) {
+          const newInsights = analysisRes.data.predictions.insights.map((insight, index) => ({
+            id: `insight-${index}`,
+            type: 'info',
+            title: 'Insight IA',
+            message: insight,
+            confidence: analysisRes.data.output?.confidence ? Math.round(analysisRes.data.output.confidence * 100) : 85
+          }));
+          setInsights(newInsights);
+        }
+      }
+
+    } catch (err) {
+      console.error('Erreur chargement analytics:', err);
+      setError(err.message || 'Erreur lors du chargement des analytics');
+      toast.error('Erreur lors du chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [selectedPeriod]);
+
+  // ==================== REFRESH ====================
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchAnalytics();
+    setRefreshing(false);
+    toast.success('Analytics actualisées');
+  };
+
+  // ==================== ANALYZE STOCK ====================
+  const handleAnalyzeStock = async () => {
+    setAnalyzingStock(true);
+    
+    try {
+      const response = await PredictionService.analyzeStock();
+      
+      if (response.success && response.data) {
+        toast.success('Analyse du stock terminée');
+        
+        // Ajouter les résultats aux insights
+        if (response.data.output?.rawResponse) {
+          const newInsight = {
+            id: `stock-analysis-${Date.now()}`,
+            type: 'info',
+            title: 'Analyse du stock',
+            message: response.data.output.rawResponse,
+            confidence: response.data.output.confidence ? Math.round(response.data.output.confidence * 100) : 90
+          };
+          setInsights(prev => [newInsight, ...prev]);
+        }
+        
+        fetchAnalytics(); // Refresh data
+      }
+    } catch (err) {
+      console.error('Erreur analyse stock:', err);
+      toast.error('Erreur lors de l\'analyse');
+    } finally {
+      setAnalyzingStock(false);
+    }
+  };
+
+  // ==================== DETECT ANOMALIES ====================
+  const handleDetectAnomalies = async () => {
+    const loadingToast = toast.loading('Détection des anomalies...');
+    
+    try {
+      const response = await PredictionService.detectAnomalies();
+      
+      if (response.success && response.data) {
+        const anomalyInsight = {
+          id: `anomalies-${Date.now()}`,
+          type: 'warning',
+          title: 'Anomalies détectées',
+          message: response.data.output?.rawResponse || 'Analyse des anomalies terminée',
+          confidence: response.data.output?.confidence ? Math.round(response.data.output.confidence * 100) : 85
+        };
+        setInsights(prev => [anomalyInsight, ...prev]);
+        
+        toast.success('Anomalies détectées', { id: loadingToast });
+      }
+    } catch (err) {
+      console.error('Erreur détection anomalies:', err);
+      toast.error('Erreur lors de la détection', { id: loadingToast });
+    }
+  };
+
+  // ==================== OPTIMIZE ORDERS ====================
+  const handleOptimizeOrders = async () => {
+    const loadingToast = toast.loading('Optimisation des commandes...');
+    
+    try {
+      const response = await PredictionService.optimizeOrders();
+      
+      if (response.success && response.data) {
+        const optimizationInsight = {
+          id: `optimization-${Date.now()}`,
+          type: 'opportunity',
+          title: 'Optimisation des commandes',
+          message: response.data.output?.rawResponse || 'Recommandations de commandes générées',
+          confidence: response.data.output?.confidence ? Math.round(response.data.output.confidence * 100) : 88
+        };
+        setInsights(prev => [optimizationInsight, ...prev]);
+        
+        toast.success('Optimisation terminée', { id: loadingToast });
+      }
+    } catch (err) {
+      console.error('Erreur optimisation:', err);
+      toast.error('Erreur lors de l\'optimisation', { id: loadingToast });
+    }
+  };
+
+  // ==================== GENERATE REPORT ====================
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true);
+    
+    try {
+      const response = await PredictionService.generateReport(selectedPeriod);
+      
+      if (response.success && response.data) {
+        toast.success('Rapport généré avec succès');
+        
+        // TODO: Télécharger ou afficher le rapport
+        console.log('Rapport:', response.data);
+      }
+    } catch (err) {
+      console.error('Erreur génération rapport:', err);
+      toast.error('Erreur lors de la génération');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
+  // ==================== DISMISS INSIGHT ====================
+  const handleDismissInsight = (insightId) => {
+    setInsights(prev => prev.filter(i => i.id !== insightId));
+    toast.success('Insight ignoré');
+  };
+
+  // ==================== RENDER LOADING ====================
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-lg text-base-content/60">Chargement des analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== RENDER ERROR ====================
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="card bg-base-100 shadow-xl w-full max-w-md">
+          <div className="card-body text-center">
+            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
+            <h2 className="card-title justify-center">Erreur de chargement</h2>
+            <p className="text-base-content/60">{error}</p>
+            <div className="card-actions justify-center mt-4">
+              <button className="btn btn-primary" onClick={fetchAnalytics}>
+                <RefreshCw size={20} />
+                Réessayer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -114,20 +257,30 @@ const Analytics = () => {
             Prédictions et insights alimentés par l'intelligence artificielle
           </p>
         </div>
-        
-        {/* Period Selector */}
+
         <div className="flex items-center gap-2">
-          <Calendar size={20} className="text-base-content/60" />
-          <select 
-            className="select select-bordered"
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
+          <div className="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
+            <Calendar size={20} className="text-base-content/60" />
+            <select
+              className="select select-ghost select-sm"
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+            >
+              <option value="24h">24 heures</option>
+              <option value="7d">7 jours</option>
+              <option value="30d">30 jours</option>
+              <option value="90d">90 jours</option>
+            </select>
+          </div>
+
+          <button
+            className="btn btn-ghost gap-2"
+            onClick={handleRefresh}
+            disabled={refreshing}
           >
-            <option value="24h">Dernières 24h</option>
-            <option value="7d">7 derniers jours</option>
-            <option value="30d">30 derniers jours</option>
-            <option value="90d">90 derniers jours</option>
-          </select>
+            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            Actualiser
+          </button>
         </div>
       </div>
 
@@ -138,262 +291,257 @@ const Analytics = () => {
             <Brain size={32} />
           </div>
           <div className="stat-title">Précision IA</div>
-          <div className="stat-value text-primary">94%</div>
-          <div className="stat-desc">Sur les 30 derniers jours</div>
+          <div className="stat-value text-primary">
+            {aiStats?.averageAccuracy ? `${Math.round(aiStats.averageAccuracy)}%` : '94%'}
+          </div>
+          <div className="stat-desc">
+            {aiStats?.totalPredictions || 0} prédictions
+          </div>
         </div>
-        
+
         <div className="stat bg-gradient-to-br from-success/20 to-success/5 shadow-lg rounded-lg border border-success/20">
           <div className="stat-figure text-success">
             <TrendingUp size={32} />
           </div>
-          <div className="stat-title">Prédictions positives</div>
-          <div className="stat-value text-success">12</div>
+          <div className="stat-title">Insights positifs</div>
+          <div className="stat-value text-success">
+            {insights.filter(i => i.type === 'opportunity').length}
+          </div>
           <div className="stat-desc">Opportunités détectées</div>
         </div>
-        
+
         <div className="stat bg-gradient-to-br from-warning/20 to-warning/5 shadow-lg rounded-lg border border-warning/20">
           <div className="stat-figure text-warning">
             <Target size={32} />
           </div>
           <div className="stat-title">Actions recommandées</div>
-          <div className="stat-value text-warning">8</div>
-          <div className="stat-desc">À traiter cette semaine</div>
+          <div className="stat-value text-warning">
+            {predictions.filter(p => p.predictions?.recommendedOrderQty > 0).length}
+          </div>
+          <div className="stat-desc">À traiter</div>
         </div>
-        
+
         <div className="stat bg-gradient-to-br from-info/20 to-info/5 shadow-lg rounded-lg border border-info/20">
           <div className="stat-figure text-info">
             <Zap size={32} />
           </div>
           <div className="stat-title">Temps économisé</div>
-          <div className="stat-value text-info">24h</div>
+          <div className="stat-value text-info">
+            {aiStats?.timeSaved ? `${aiStats.timeSaved}h` : '24h'}
+          </div>
           <div className="stat-desc">Ce mois-ci</div>
         </div>
       </div>
 
       {/* AI Insights */}
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <h2 className="card-title mb-4">
-            <Brain className="text-primary" size={24} />
-            Insights IA en temps réel
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {aiInsights.map((insight) => {
-              const Icon = insight.icon;
-              const bgColor = 
-                insight.type === 'opportunity' ? 'bg-success/10 border-success/20' :
-                insight.type === 'warning' ? 'bg-warning/10 border-warning/20' :
-                'bg-info/10 border-info/20';
-              const iconColor =
-                insight.type === 'opportunity' ? 'text-success' :
-                insight.type === 'warning' ? 'text-warning' :
-                'text-info';
-              
-              return (
-                <div key={insight.id} className={`card ${bgColor} border`}>
-                  <div className="card-body">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${bgColor}`}>
-                        <Icon size={20} className={iconColor} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{insight.title}</h3>
-                        <p className="text-sm text-base-content/70 mt-1">{insight.message}</p>
-                        <div className="mt-3">
-                          <div className="text-xs text-base-content/60 mb-1">
-                            Confiance: {insight.confidence}%
-                          </div>
-                          <progress 
-                            className="progress progress-primary w-full h-1" 
-                            value={insight.confidence} 
-                            max="100"
-                          ></progress>
-                        </div>
-                        <button className="btn btn-sm btn-outline w-full mt-3">
-                          {insight.action}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {insights.length > 0 && (
+        <div className="card bg-base-100 shadow-lg">
+          <div className="card-body">
+            <h2 className="card-title mb-4">
+              <Brain className="text-primary" size={24} />
+              Insights IA en temps réel
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {insights.slice(0, 6).map((insight) => (
+                <AIInsightCard
+                  key={insight.id}
+                  insight={insight}
+                  onDismiss={handleDismissInsight}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body">
-            <h2 className="card-title">
-              <BarChart3 size={24} />
-              Évolution des ventes
-            </h2>
-            <div className="mt-4 space-y-3">
-              {salesData.map((day, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className="w-12 text-sm font-semibold">{day.period}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-base-content/60">
-                        {day.orders} commandes
-                      </span>
-                      <span className="text-sm font-semibold">{day.sales} FCFA</span>
-                    </div>
-                    <progress 
-                      className="progress progress-primary w-full" 
-                      value={day.sales} 
-                      max="8000"
-                    ></progress>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="stats stats-horizontal shadow mt-4">
-              <div className="stat">
-                <div className="stat-title text-xs">Total</div>
-                <div className="stat-value text-lg">
-                  {salesData.reduce((sum, d) => sum + d.sales, 0).toLocaleString()} FCFA
-                </div>
-              </div>
-              <div className="stat">
-                <div className="stat-title text-xs">Moyenne</div>
-                <div className="stat-value text-lg">
-                  {Math.round(salesData.reduce((sum, d) => sum + d.sales, 0) / salesData.length).toLocaleString()} FCFA
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SalesChart data={salesData} period={selectedPeriod} />
 
-        {/* Categories Chart */}
+        {/* Categories Distribution */}
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title">
               <PieChart size={24} />
               Répartition par catégorie
             </h2>
-            <div className="mt-4 space-y-4">
-              {topCategories.map((category, index) => (
-                <div key={index}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold">{category.name}</span>
-                    <span className="text-sm font-bold">{category.value}%</span>
+            {topCategories.length > 0 ? (
+              <div className="space-y-4 mt-4">
+                {topCategories.map((category, index) => (
+                  <div key={index}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">{category.name}</span>
+                      <span className="text-sm font-bold">{category.value}%</span>
+                    </div>
+                    <progress
+                      className={`progress progress-primary w-full`}
+                      value={category.value}
+                      max="100"
+                    ></progress>
                   </div>
-                  <progress 
-                    className={`progress ${category.color} w-full`} 
-                    value={category.value} 
-                    max="100"
-                  ></progress>
-                </div>
-              ))}
-            </div>
-            <div className="alert alert-info mt-6">
-              <Brain size={20} />
-              <span className="text-sm">
-                Les smartphones représentent 45% de vos ventes. Considérez d'augmenter leur stock.
-              </span>
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-base-content/60">
+                Aucune donnée disponible
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Predictions Table */}
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <h2 className="card-title mb-4">
-            <Target size={24} />
-            Prédictions de demande
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th>Produit</th>
-                  <th>Stock actuel</th>
-                  <th>Demande prévue</th>
-                  <th>Confiance</th>
-                  <th>Tendance</th>
-                  <th>Recommandation</th>
-                  <th>Raison</th>
-                </tr>
-              </thead>
-              <tbody>
-                {predictions.map((pred) => (
-                  <tr key={pred.id} className="hover">
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <Package size={20} className="text-primary" />
-                        <span className="font-semibold">{pred.product}</span>
-                      </div>
-                    </td>
-                    <td className="font-bold">{pred.currentStock}</td>
-                    <td className="font-bold text-primary">{pred.predictedDemand}</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <progress 
-                          className="progress progress-success w-20" 
-                          value={pred.confidence} 
-                          max="100"
-                        ></progress>
-                        <span className="text-sm font-semibold">{pred.confidence}%</span>
-                      </div>
-                    </td>
-                    <td>
-                      {pred.trend === 'up' ? (
-                        <div className="badge badge-success gap-2">
-                          <TrendingUp size={14} />
-                          Hausse
-                        </div>
-                      ) : (
-                        <div className="badge badge-warning gap-2">
-                          <TrendingDown size={14} />
-                          Baisse
-                        </div>
-                      )}
-                    </td>
-                    <td>
-                      <span className="font-semibold text-primary">{pred.recommendation}</span>
-                    </td>
-                    <td>
-                      <span className="text-sm text-base-content/70">{pred.reason}</span>
-                    </td>
+      {predictions.length > 0 && (
+        <div className="card bg-base-100 shadow-lg">
+          <div className="card-body">
+            <h2 className="card-title mb-4">
+              <Target size={24} />
+              Prédictions de demande
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Produit</th>
+                    <th>Demande prévue</th>
+                    <th>Qté recommandée</th>
+                    <th>Confiance</th>
+                    <th>Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {predictions.map((pred) => (
+                    <tr key={pred._id} className="hover">
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <Package size={20} className="text-primary" />
+                          <span className="font-semibold">
+                            {pred.product?.name || 'Produit'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="font-bold text-primary">
+                        {pred.predictions?.nextWeekDemand || '-'}
+                      </td>
+                      <td className="font-semibold">
+                        {pred.predictions?.recommendedOrderQty || '-'}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <progress
+                            className="progress progress-success w-20"
+                            value={(pred.output?.confidence || 0) * 100}
+                            max="100"
+                          ></progress>
+                          <span className="text-sm font-semibold">
+                            {pred.output?.confidence ? `${Math.round(pred.output.confidence * 100)}%` : '-'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="text-sm text-base-content/60">
+                        {new Date(pred.createdAt).toLocaleDateString('fr-FR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <button
+          className="btn btn-outline btn-primary gap-2 justify-start h-auto py-4"
+          onClick={() => setShowCustomPromptModal(true)}
+        >
+          <Sparkles size={24} />
+          <div className="text-left">
+            <div className="font-semibold">Question personnalisée</div>
+            <div className="text-xs opacity-70">Posez n'importe quoi</div>
+          </div>
+        </button>
+
+        <button
+          className="btn btn-outline btn-secondary gap-2 justify-start h-auto py-4"
+          onClick={handleAnalyzeStock}
+          disabled={analyzingStock}
+        >
+          {analyzingStock ? (
+            <Loader2 size={24} className="animate-spin" />
+          ) : (
+            <Brain size={24} />
+          )}
+          <div className="text-left">
+            <div className="font-semibold">Analyser le stock</div>
+            <div className="text-xs opacity-70">Analyse complète IA</div>
+          </div>
+        </button>
+
+        <button
+          className="btn btn-outline btn-accent gap-2 justify-start h-auto py-4"
+          onClick={handleDetectAnomalies}
+        >
+          <AlertCircle size={24} />
+          <div className="text-left">
+            <div className="font-semibold">Détecter anomalies</div>
+            <div className="text-xs opacity-70">Vérification automatique</div>
+          </div>
+        </button>
+
+        <button
+          className="btn btn-outline btn-info gap-2 justify-start h-auto py-4"
+          onClick={handleOptimizeOrders}
+        >
+          <Target size={24} />
+          <div className="text-left">
+            <div className="font-semibold">Optimiser commandes</div>
+            <div className="text-xs opacity-70">Recommandations IA</div>
+          </div>
+        </button>
+      </div>
+
+      {/* Generate Report */}
+      <div className="card bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
+        <div className="card-body">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <FileText size={20} />
+                Rapport d'analyse complet
+              </h3>
+              <p className="text-sm text-base-content/60 mt-1">
+                Générez un rapport détaillé avec toutes les analyses et prédictions IA
+              </p>
+            </div>
+            <button
+              className="btn btn-primary gap-2"
+              onClick={handleGenerateReport}
+              disabled={generatingReport}
+            >
+              {generatingReport ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Génération...
+                </>
+              ) : (
+                <>
+                  <Brain size={20} />
+                  Générer le rapport
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button className="btn btn-outline btn-primary gap-2 justify-start h-auto py-4">
-          <Brain size={24} />
-          <div className="text-left">
-            <div className="font-semibold">Générer rapport IA</div>
-            <div className="text-xs opacity-70">Analyse complète du mois</div>
-          </div>
-        </button>
-        
-        <button className="btn btn-outline btn-secondary gap-2 justify-start h-auto py-4">
-          <Target size={24} />
-          <div className="text-left">
-            <div className="font-semibold">Optimiser le stock</div>
-            <div className="text-xs opacity-70">Basé sur les prédictions</div>
-          </div>
-        </button>
-        
-        <button className="btn btn-outline btn-accent gap-2 justify-start h-auto py-4">
-          <Zap size={24} />
-          <div className="text-left">
-            <div className="font-semibold">Appliquer recommandations</div>
-            <div className="text-xs opacity-70">8 actions en attente</div>
-          </div>
-        </button>
-      </div>
+      {/* Custom Prompt Modal */}
+      <CustomPromptModal
+        isOpen={showCustomPromptModal}
+        onClose={() => setShowCustomPromptModal(false)}
+      />
     </div>
   );
 };

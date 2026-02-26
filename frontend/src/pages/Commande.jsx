@@ -1,158 +1,110 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShoppingCart, 
-  Plus, 
-  Eye, 
-  Edit, 
+import {
+  Building2,
+  Plus,
+  Eye,
+  Edit,
   Trash2,
-  CheckCircle,
-  XCircle,
+  Search,
+  X,
   RefreshCw,
   Loader2,
   AlertCircle,
-  Filter,
-  Download,
+  Star,
   TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Package
+  Package,
+  DollarSign
 } from 'lucide-react';
-import { OrderService } from '../services/orderService';
-import OrderModal from '../components/common/Orders/orderModal';
-import OrderDetailsModal from '../components/common/Orders/orderDetailsModal';
+import { SupplierService } from '../services/suppliersService';
+import SupplierModal from '../components/common/Suppliers/SupplierModal';
+import SupplierDetailsModal from '../components/common/Suppliers/SupplierDetailsModal';
 import toast from 'react-hot-toast';
 
-const Commandes = () => {
+const Suppliers = () => {
   // ==================== STATE ====================
-  const [orders, setOrders] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Modals
-  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   // Filters
-  const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // ==================== FETCH ORDERS ====================
-  const fetchOrders = async () => {
+  // ==================== FETCH SUPPLIERS ====================
+  const fetchSuppliers = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await OrderService.getAllOrders();
+      const response = await SupplierService.getAllSuppliers();
 
       if (response.success && response.data) {
-        setOrders(response.data);
+        setSuppliers(response.data);
       } else {
-        setOrders([]);
+        setSuppliers([]);
       }
     } catch (err) {
-      console.error('Erreur chargement commandes:', err);
-      setError(err.message || 'Erreur lors du chargement des commandes');
-      toast.error('Erreur lors du chargement des commandes');
-      setOrders([]);
+      console.error('Erreur chargement fournisseurs:', err);
+      setError(err.message || 'Erreur lors du chargement des fournisseurs');
+      toast.error('Erreur lors du chargement des fournisseurs');
+      setSuppliers([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchSuppliers();
   }, []);
 
   // ==================== REFRESH ====================
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchOrders();
+    await fetchSuppliers();
     setRefreshing(false);
-    toast.success('Commandes actualisées');
+    toast.success('Fournisseurs actualisés');
   };
 
   // ==================== MODAL HANDLERS ====================
-  const handleAddOrder = () => {
-    setSelectedOrder(null);
-    setShowOrderModal(true);
+  const handleAddSupplier = () => {
+    setSelectedSupplier(null);
+    setShowSupplierModal(true);
   };
 
-  const handleEditOrder = (order) => {
-    if (!order.canBeModified && order.status !== 'draft' && order.status !== 'pending') {
-      toast.error('Cette commande ne peut plus être modifiée');
-      return;
-    }
-    setSelectedOrder(order);
-    setShowOrderModal(true);
+  const handleEditSupplier = (supplier) => {
+    setSelectedSupplier(supplier);
+    setShowSupplierModal(true);
   };
 
-  const handleViewDetails = (order) => {
-    setSelectedOrder(order);
+  const handleViewDetails = (supplier) => {
+    setSelectedSupplier(supplier);
     setShowDetailsModal(true);
   };
 
-  const handleOrderSaved = () => {
-    fetchOrders();
-  };
-
-  // ==================== STATUS ACTIONS ====================
-  const handleConfirmOrder = async (orderId) => {
-    try {
-      await OrderService.confirmOrder(orderId);
-      toast.success('Commande confirmée');
-      fetchOrders();
-    } catch (err) {
-      console.error('Erreur confirmation:', err);
-      toast.error('Erreur lors de la confirmation');
-    }
-  };
-
-  const handleCompleteOrder = async (orderId) => {
-    if (!window.confirm('Marquer cette commande comme terminée ?')) {
-      return;
-    }
-
-    try {
-      await OrderService.completeOrder(orderId);
-      toast.success('Commande complétée');
-      fetchOrders();
-    } catch (err) {
-      console.error('Erreur complétion:', err);
-      toast.error('Erreur lors de la complétion');
-    }
-  };
-
-  const handleCancelOrder = async (orderId) => {
-    const reason = prompt('Raison de l\'annulation:');
-    if (!reason) return;
-
-    try {
-      await OrderService.cancelOrder(orderId, reason);
-      toast.success('Commande annulée');
-      fetchOrders();
-    } catch (err) {
-      console.error('Erreur annulation:', err);
-      toast.error('Erreur lors de l\'annulation');
-    }
+  const handleSupplierSaved = () => {
+    fetchSuppliers();
   };
 
   // ==================== DELETE ====================
-  const handleDeleteOrder = async (orderId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) {
+  const handleDeleteSupplier = async (supplierId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
       return;
     }
 
     try {
-      await OrderService.deleteOrder(orderId);
-      setOrders(orders.filter(o => o._id !== orderId));
-      toast.success('Commande supprimée');
+      await SupplierService.deleteSupplier(supplierId);
+      setSuppliers(suppliers.filter(s => s._id !== supplierId));
+      toast.success('Fournisseur supprimé');
     } catch (err) {
       console.error('Erreur suppression:', err);
       toast.error('Erreur lors de la suppression');
@@ -162,72 +114,55 @@ const Commandes = () => {
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (status) => {
     const badges = {
-      draft: { class: 'badge-ghost', text: 'Brouillon' },
-      pending: { class: 'badge-warning', text: 'En attente' },
-      confirmed: { class: 'badge-info', text: 'Confirmée' },
-      processing: { class: 'badge-primary', text: 'En traitement' },
-      completed: { class: 'badge-success', text: 'Complétée' },
-      cancelled: { class: 'badge-error', text: 'Annulée' }
+      active: { class: 'badge-success', text: 'Actif' },
+      inactive: { class: 'badge-ghost', text: 'Inactif' },
+      blacklisted: { class: 'badge-error', text: 'Liste noire' }
     };
-    return badges[status] || badges.draft;
-  };
-
-  const getPaymentStatusBadge = (status) => {
-    const badges = {
-      pending: { class: 'badge-warning', text: 'En attente' },
-      partial: { class: 'badge-info', text: 'Partiel' },
-      paid: { class: 'badge-success', text: 'Payé' },
-      refunded: { class: 'badge-error', text: 'Remboursé' }
-    };
-    return badges[status] || badges.pending;
+    return badges[status] || badges.active;
   };
 
   // ==================== FILTERING ====================
-  const filteredOrders = orders.filter(order => {
-    const matchType = filterType === 'all' || order.type === filterType;
-    const matchStatus = filterStatus === 'all' || order.status === filterStatus;
-    const matchSearch = 
-      order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.supplier?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const matchSearch =
+      supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (supplier.code && supplier.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (supplier.email && supplier.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return matchType && matchStatus && matchSearch;
+    const matchStatus = filterStatus === 'all' || supplier.status === filterStatus;
+
+    return matchSearch && matchStatus;
   });
 
   // ==================== STATS ====================
   const calculateStats = () => {
-    const totalOrders = orders.length;
-    const totalRevenue = orders
-      .filter(o => o.type === 'sale' && o.status === 'completed')
-      .reduce((sum, o) => sum + o.totals.total, 0);
-    const totalPurchases = orders
-      .filter(o => o.type === 'purchase' && o.status === 'completed')
-      .reduce((sum, o) => sum + o.totals.total, 0);
-    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    const totalSuppliers = suppliers.length;
+    const activeSuppliers = suppliers.filter(s => s.status === 'active').length;
+    const totalSpent = suppliers.reduce((sum, s) => sum + (s.stats?.totalSpent || 0), 0);
+    const totalOrders = suppliers.reduce((sum, s) => sum + (s.stats?.totalOrders || 0), 0);
 
     return {
-      totalOrders,
-      totalRevenue,
-      totalPurchases,
-      pendingOrders
+      totalSuppliers,
+      activeSuppliers,
+      totalSpent,
+      totalOrders
     };
   };
 
   const stats = calculateStats();
 
   // ==================== PAGINATION ====================
-  const paginatedOrders = filteredOrders.slice(
+  const paginatedSuppliers = filteredSuppliers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [filteredOrders.length, currentPage, totalPages]);
+  }, [filteredSuppliers.length, currentPage, totalPages]);
 
   // ==================== RENDER LOADING ====================
   if (loading) {
@@ -235,7 +170,7 @@ const Commandes = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement des commandes...</p>
+          <p className="text-lg text-base-content/60">Chargement des fournisseurs...</p>
         </div>
       </div>
     );
@@ -251,7 +186,7 @@ const Commandes = () => {
             <h2 className="card-title justify-center">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
             <div className="card-actions justify-center mt-4">
-              <button className="btn btn-primary" onClick={fetchOrders}>
+              <button className="btn btn-primary" onClick={fetchSuppliers}>
                 <RefreshCw size={20} />
                 Réessayer
               </button>
@@ -269,11 +204,11 @@ const Commandes = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <ShoppingCart size={32} className="text-primary" />
-            Commandes
+            <Building2 size={32} className="text-primary" />
+            Fournisseurs
           </h1>
           <p className="text-base-content/60 mt-1">
-            Gérez vos commandes d'achat et de vente
+            Gérez vos fournisseurs et partenaires
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -285,9 +220,9 @@ const Commandes = () => {
             <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
             Actualiser
           </button>
-          <button className="btn btn-primary gap-2" onClick={handleAddOrder}>
+          <button className="btn btn-primary gap-2" onClick={handleAddSupplier}>
             <Plus size={20} />
-            Nouvelle commande
+            Nouveau fournisseur
           </button>
         </div>
       </div>
@@ -296,42 +231,40 @@ const Commandes = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-primary">
-            <ShoppingCart size={32} />
+            <Building2 size={32} />
           </div>
-          <div className="stat-title">Total Commandes</div>
-          <div className="stat-value text-primary">{stats.totalOrders}</div>
-          <div className="stat-desc">Toutes catégories</div>
+          <div className="stat-title">Total Fournisseurs</div>
+          <div className="stat-value text-primary">{stats.totalSuppliers}</div>
+          <div className="stat-desc">Dans la base</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-success">
-            <TrendingUp size={32} />
+            <Package size={32} />
           </div>
-          <div className="stat-title">Ventes</div>
-          <div className="stat-value text-success text-2xl">
-            {stats.totalRevenue.toLocaleString('fr-FR')}
-          </div>
-          <div className="stat-desc">FCFA (complétées)</div>
+          <div className="stat-title">Actifs</div>
+          <div className="stat-value text-success">{stats.activeSuppliers}</div>
+          <div className="stat-desc">Fournisseurs actifs</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
-          <div className="stat-figure text-error">
-            <TrendingDown size={32} />
+          <div className="stat-figure text-info">
+            <DollarSign size={32} />
           </div>
-          <div className="stat-title">Achats</div>
-          <div className="stat-value text-error text-2xl">
-            {stats.totalPurchases.toLocaleString('fr-FR')}
+          <div className="stat-title">Total Dépensé</div>
+          <div className="stat-value text-info text-2xl">
+            {stats.totalSpent.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
           </div>
-          <div className="stat-desc">FCFA (complétées)</div>
+          <div className="stat-desc">FCFA</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-warning">
-            <Package size={32} />
+            <TrendingUp size={32} />
           </div>
-          <div className="stat-title">En attente</div>
-          <div className="stat-value text-warning">{stats.pendingOrders}</div>
-          <div className="stat-desc">À traiter</div>
+          <div className="stat-title">Commandes</div>
+          <div className="stat-value text-warning">{stats.totalOrders}</div>
+          <div className="stat-desc">Total commandes</div>
         </div>
       </div>
 
@@ -341,26 +274,28 @@ const Commandes = () => {
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Rechercher par numéro, client, fournisseur..."
-                className="input input-bordered w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Type Filter */}
-            <div className="form-control w-full md:w-48">
-              <select
-                className="select select-bordered"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                <option value="all">Tous types</option>
-                <option value="purchase">Achats</option>
-                <option value="sale">Ventes</option>
-              </select>
+              <div className="form-control">
+                <div className="input-group">
+                  <span className="bg-base-200">
+                    <Search size={20} />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Rechercher par nom, code, email..."
+                    className="input input-bordered w-full"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button
+                      className="btn btn-ghost btn-square"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Status Filter */}
@@ -371,137 +306,101 @@ const Commandes = () => {
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
                 <option value="all">Tous statuts</option>
-                <option value="draft">Brouillon</option>
-                <option value="pending">En attente</option>
-                <option value="confirmed">Confirmée</option>
-                <option value="processing">En traitement</option>
-                <option value="completed">Complétée</option>
-                <option value="cancelled">Annulée</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs</option>
+                <option value="blacklisted">Liste noire</option>
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Orders Table */}
+      {/* Suppliers Table */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
-                  <th>Numéro</th>
-                  <th>Type</th>
-                  <th>Client/Fournisseur</th>
-                  <th>Date</th>
-                  <th>Montant</th>
+                  <th>Fournisseur</th>
+                  <th>Contact</th>
                   <th>Statut</th>
-                  <th>Paiement</th>
+                  <th>Commandes</th>
+                  <th>Total dépensé</th>
+                  <th>Rating</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedOrders.map((order) => {
-                  const statusBadge = getStatusBadge(order.status);
-                  const paymentBadge = getPaymentStatusBadge(order.paymentStatus);
+                {paginatedSuppliers.map((supplier) => {
+                  const statusBadge = getStatusBadge(supplier.status);
 
                   return (
-                    <tr key={order._id} className="hover">
+                    <tr key={supplier._id} className="hover">
                       <td>
-                        <span className="font-mono font-semibold">
-                          {order.orderNumber}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="badge badge-ghost">
-                          {order.type === 'purchase' ? 'Achat' : 'Vente'}
+                        <div>
+                          <div className="font-bold">{supplier.name}</div>
+                          {supplier.code && (
+                            <div className="text-sm text-base-content/60 font-mono">
+                              {supplier.code}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td>
-                        {order.type === 'purchase'
-                          ? order.supplier?.name || 'N/A'
-                          : order.customer?.name || 'N/A'}
-                      </td>
-                      <td>
-                        {new Date(order.orderDate).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="font-semibold">
-                        {order.totals.total.toLocaleString('fr-FR')} FCFA
+                        <div className="text-sm">
+                          {supplier.email && <div>{supplier.email}</div>}
+                          {supplier.phone && (
+                            <div className="text-base-content/60">{supplier.phone}</div>
+                          )}
+                        </div>
                       </td>
                       <td>
                         <div className={`badge ${statusBadge.class}`}>
                           {statusBadge.text}
                         </div>
                       </td>
-                      <td>
-                        <div className={`badge ${paymentBadge.class}`}>
-                          {paymentBadge.text}
-                        </div>
+                      <td className="font-semibold">
+                        {supplier.stats?.totalOrders || 0}
+                      </td>
+                      <td className="font-semibold">
+                        {(supplier.stats?.totalSpent || 0).toLocaleString('fr-FR')} FCFA
                       </td>
                       <td>
-                        <div className="dropdown dropdown-end">
-                          <label tabIndex={0} className="btn btn-ghost btn-xs">
-                            Actions
-                          </label>
-                          <ul
-                            tabIndex={0}
-                            className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+                        {supplier.rating?.overall > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <Star size={14} className="fill-warning text-warning" />
+                            <span className="font-semibold">
+                              {supplier.rating.overall.toFixed(1)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-base-content/40">-</span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            title="Voir détails"
+                            onClick={() => handleViewDetails(supplier)}
                           >
-                            <li>
-                              <button onClick={() => handleViewDetails(order)}>
-                                <Eye size={16} />
-                                Voir détails
-                              </button>
-                            </li>
-                            {(order.status === 'draft' || order.status === 'pending') && (
-                              <>
-                                <li>
-                                  <button onClick={() => handleEditOrder(order)}>
-                                    <Edit size={16} />
-                                    Modifier
-                                  </button>
-                                </li>
-                                {order.status === 'pending' && (
-                                  <li>
-                                    <button onClick={() => handleConfirmOrder(order._id)}>
-                                      <CheckCircle size={16} />
-                                      Confirmer
-                                    </button>
-                                  </li>
-                                )}
-                              </>
-                            )}
-                            {order.status === 'confirmed' && (
-                              <li>
-                                <button onClick={() => handleCompleteOrder(order._id)}>
-                                  <CheckCircle size={16} />
-                                  Compléter
-                                </button>
-                              </li>
-                            )}
-                            {order.status !== 'completed' && order.status !== 'cancelled' && (
-                              <li>
-                                <button
-                                  onClick={() => handleCancelOrder(order._id)}
-                                  className="text-error"
-                                >
-                                  <XCircle size={16} />
-                                  Annuler
-                                </button>
-                              </li>
-                            )}
-                            {order.status === 'draft' && (
-                              <li>
-                                <button
-                                  onClick={() => handleDeleteOrder(order._id)}
-                                  className="text-error"
-                                >
-                                  <Trash2 size={16} />
-                                  Supprimer
-                                </button>
-                              </li>
-                            )}
-                          </ul>
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            title="Modifier"
+                            onClick={() => handleEditSupplier(supplier)}
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs text-error"
+                            title="Supprimer"
+                            onClick={() => handleDeleteSupplier(supplier._id)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -511,18 +410,18 @@ const Commandes = () => {
             </table>
 
             {/* Empty State */}
-            {paginatedOrders.length === 0 && (
+            {paginatedSuppliers.length === 0 && (
               <div className="text-center py-12">
-                <ShoppingCart size={48} className="mx-auto text-base-content/20 mb-4" />
+                <Building2 size={48} className="mx-auto text-base-content/20 mb-4" />
                 <p className="text-base-content/60">
-                  {orders.length === 0
-                    ? 'Aucune commande'
-                    : 'Aucune commande trouvée avec ces filtres'}
+                  {suppliers.length === 0
+                    ? 'Aucun fournisseur'
+                    : 'Aucun fournisseur trouvé avec ces filtres'}
                 </p>
-                {orders.length === 0 && (
-                  <button className="btn btn-primary mt-4 gap-2" onClick={handleAddOrder}>
+                {suppliers.length === 0 && (
+                  <button className="btn btn-primary mt-4 gap-2" onClick={handleAddSupplier}>
                     <Plus size={20} />
-                    Créer votre première commande
+                    Ajouter votre premier fournisseur
                   </button>
                 )}
               </div>
@@ -530,12 +429,12 @@ const Commandes = () => {
           </div>
 
           {/* Pagination */}
-          {filteredOrders.length > itemsPerPage && (
+          {filteredSuppliers.length > itemsPerPage && (
             <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
               <div className="text-sm text-base-content/60">
                 Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
-                {Math.min(currentPage * itemsPerPage, filteredOrders.length)} sur{' '}
-                {filteredOrders.length} commandes
+                {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)} sur{' '}
+                {filteredSuppliers.length} fournisseurs
               </div>
 
               <div className="btn-group">
@@ -587,20 +486,20 @@ const Commandes = () => {
       </div>
 
       {/* Modals */}
-      <OrderModal
-        isOpen={showOrderModal}
-        onClose={() => setShowOrderModal(false)}
-        order={selectedOrder}
-        onSuccess={handleOrderSaved}
+      <SupplierModal
+        isOpen={showSupplierModal}
+        onClose={() => setShowSupplierModal(false)}
+        supplier={selectedSupplier}
+        onSuccess={handleSupplierSaved}
       />
 
-      <OrderDetailsModal
+      <SupplierDetailsModal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
-        order={selectedOrder}
+        supplier={selectedSupplier}
       />
     </div>
   );
 };
 
-export default Commandes;
+export default Suppliers;

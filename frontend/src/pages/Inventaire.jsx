@@ -40,7 +40,6 @@ const Inventory = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
   // ==================== FETCH PRODUCTS ====================
@@ -62,7 +61,7 @@ const Inventory = () => {
           // Cas : { success: true, data: [...] }
           productsData = response.data;
         } else if (response.data && Array.isArray(response.data.data)) {
-          // Cas paginé Node  : { success: true, data: { data: [...], total: 50 } }
+          // Cas paginé Node : { success: true, data: { data: [...], total: 50 } }
           productsData = response.data.data;
         } else if (response.data && Array.isArray(response.data.products)) {
           // Cas : { data: { products: [...] } }
@@ -70,7 +69,9 @@ const Inventory = () => {
         }
       }
 
-      setProducts(productsData);
+      // Filtrer les produits invalides
+      const validProducts = productsData.filter(p => p && typeof p === 'object');
+      setProducts(validProducts);
     } catch (err) {
       console.error("Erreur chargement produits:", err);
       setError(err.message || "Erreur lors du chargement des produits");
@@ -160,33 +161,14 @@ const Inventory = () => {
     }
   };
 
-  // ==================== SELECTION ====================
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedProducts(paginatedProducts.map((p) => p._id));
-    } else {
-      setSelectedProducts([]);
-    }
-  };
-
-  const handleSelectProduct = (id) => {
-    if (selectedProducts.includes(id)) {
-      setSelectedProducts(selectedProducts.filter((pId) => pId !== id));
-    } else {
-      setSelectedProducts([...selectedProducts, id]);
-    }
-  };
-
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (product) => {
-    const stock = product.stock;
-
-    if (!stock) {
+    if (!product || !product.stock) {
       return { class: "badge-ghost", text: "Non défini" };
     }
 
-    const quantity = stock.quantity || 0;
-    const minThreshold = stock.minThreshold || 0;
+    const quantity = product.stock.quantity || 0;
+    const minThreshold = product.stock.minThreshold || 0;
 
     if (quantity === 0) {
       return { class: "badge-ghost", text: "Rupture" };
@@ -206,19 +188,22 @@ const Inventory = () => {
     const totalProducts = safeProducts.length;
 
     const totalValue = safeProducts.reduce((sum, p) => {
+      if (!p) return sum;
       const quantity = p.stock?.quantity || 0;
       const price = p.pricing?.sellingPrice || 0;
       return sum + price * quantity;
     }, 0);
 
     const lowStockCount = safeProducts.filter((p) => {
-      const quantity = p.stock?.quantity || 0;
-      const minThreshold = p.stock?.minThreshold || 0;
+      if (!p || !p.stock) return false;
+      const quantity = p.stock.quantity || 0;
+      const minThreshold = p.stock.minThreshold || 0;
       return quantity > 0 && quantity <= minThreshold;
     }).length;
 
     const outOfStockCount = safeProducts.filter((p) => {
-      const quantity = p.stock?.quantity || 0;
+      if (!p || !p.stock) return false;
+      const quantity = p.stock.quantity || 0;
       return quantity === 0;
     }).length;
 
@@ -234,11 +219,14 @@ const Inventory = () => {
 
   // ==================== FILTERING ====================
   const filteredProducts = products.filter((product) => {
-    // Recherche
+    // Vérification que le produit est valide
+    if (!product) return false;
+
+    // Recherche - CORRECTION DE L'ERREUR PRINCIPALE
     const matchSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.sku &&
-        product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      (product.name && product.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Catégorie
     const matchCategory =
@@ -263,27 +251,43 @@ const Inventory = () => {
 
   // ==================== CATEGORIES ====================
   const categories = [
-    "all",
     ...new Set(
       products
-        .filter((p) => p.category && p.category.name)
-        .map((p) => p.category.name),
+        .filter(p => p && p.category && p.category.name)
+        .map((p) => p.category.name)
     ),
   ];
 
   // ==================== PAGINATION ====================
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
 
+  // Réinitialiser à la page 1 si on filtre et qu'on dépasse le nombre de pages
   useEffect(() => {
-    const total = Math.ceil(filteredProducts.length / itemsPerPage);
-    setTotalPages(total);
-    if (currentPage > total && total > 0) {
+    if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [filteredProducts.length, currentPage]);
+  }, [filteredProducts.length, currentPage, totalPages]);
+
+  // ==================== SELECTION ====================
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedProducts(paginatedProducts.map((p) => p._id).filter(Boolean));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (id) => {
+    if (selectedProducts.includes(id)) {
+      setSelectedProducts(selectedProducts.filter((pId) => pId !== id));
+    } else {
+      setSelectedProducts([...selectedProducts, id]);
+    }
+  };
 
   // ==================== RENDER LOADING ====================
   if (loading) {
@@ -331,7 +335,7 @@ const Inventory = () => {
             Inventaire
           </h1>
           <p className="text-base-content/60 mt-1">
-            Gérez vos produits et suivez votre stock
+            Gérez vos produits et votre stock
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -343,15 +347,10 @@ const Inventory = () => {
             <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
-
-          <ImportExportButtons
-            products={products}
-            onImportSuccess={fetchProducts}
-          />
-
+          <ImportExportButtons products={products} onImportSuccess={fetchProducts} />
           <button className="btn btn-primary gap-2" onClick={handleAddProduct}>
             <Plus size={20} />
-            Ajouter un produit
+            Ajouter
           </button>
         </div>
       </div>
@@ -359,65 +358,105 @@ const Inventory = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-primary">
+            <Package size={32} />
+          </div>
           <div className="stat-title">Total Produits</div>
           <div className="stat-value text-primary">{stats.totalProducts}</div>
-          <div className="stat-desc">Dans l'inventaire</div>
+          <div className="stat-desc">Dans votre inventaire</div>
         </div>
+
         <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-success">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              ></path>
+            </svg>
+          </div>
           <div className="stat-title">Valeur Totale</div>
           <div className="stat-value text-success text-2xl">
-            {stats.totalValue.toLocaleString("fr-FR")} FCFA
+            {stats.totalValue.toLocaleString("fr-FR")}
           </div>
-          <div className="stat-desc">Stock actuel</div>
+          <div className="stat-desc">FCFA</div>
         </div>
+
         <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-warning">
+            <AlertCircle size={32} />
+          </div>
           <div className="stat-title">Alertes</div>
           <div className="stat-value text-warning">{stats.lowStockCount}</div>
-          <div className="stat-desc">Stock bas ou critique</div>
+          <div className="stat-desc">Stock bas</div>
         </div>
+
         <div className="stat bg-base-100 shadow-lg rounded-lg">
+          <div className="stat-figure text-error">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </div>
           <div className="stat-title">Ruptures</div>
           <div className="stat-value text-error">{stats.outOfStockCount}</div>
           <div className="stat-desc">Produits en rupture</div>
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
-            <div className="flex-1">
-              <div className="form-control">
-                <div className="input-group">
-                  <input
-                    type="text"
-                    placeholder="Rechercher par nom ou SKU..."
-                    className="input input-bordered w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
-                    <button
-                      className="btn btn-ghost btn-square"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
-                </div>
+            <div className="form-control">
+              <div className="input-group">
+                <span className="bg-base-200">
+                  <Search size={20} />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom, SKU..."
+                  className="input input-bordered w-full"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    className="btn btn-ghost btn-square"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X size={20} />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Category Filter */}
-            <div className="form-control w-full md:w-48">
+            <div className="form-control">
               <select
                 className="select select-bordered"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
-                <option value="all">Toutes catégories</option>
-                {categories.slice(1).map((cat) => (
+                <option value="all">Toutes les catégories</option>
+                {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -426,13 +465,13 @@ const Inventory = () => {
             </div>
 
             {/* Status Filter */}
-            <div className="form-control w-full md:w-48">
+            <div className="form-control">
               <select
                 className="select select-bordered"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
-                <option value="all">Tous statuts</option>
+                <option value="all">Tous les statuts</option>
                 <option value="in_stock">En stock</option>
                 <option value="low_stock">Stock bas</option>
                 <option value="critical">Critique</option>
@@ -442,34 +481,32 @@ const Inventory = () => {
           </div>
 
           {/* Active Filters */}
-          {(filterCategory !== "all" ||
-            filterStatus !== "all" ||
-            searchQuery) && (
-            <div className="flex items-center gap-2 mt-4 flex-wrap">
+          {(searchQuery || filterCategory !== "all" || filterStatus !== "all") && (
+            <div className="flex flex-wrap gap-2 mt-4">
               <span className="text-sm text-base-content/60">
                 Filtres actifs:
               </span>
               {searchQuery && (
                 <div className="badge badge-primary gap-2">
-                  {searchQuery}
+                  Recherche: {searchQuery}
                   <button onClick={() => setSearchQuery("")}>
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               )}
               {filterCategory !== "all" && (
                 <div className="badge badge-secondary gap-2">
-                  {filterCategory}
+                  Catégorie: {filterCategory}
                   <button onClick={() => setFilterCategory("all")}>
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               )}
               {filterStatus !== "all" && (
                 <div className="badge badge-accent gap-2">
-                  {filterStatus}
+                  Statut: {filterStatus}
                   <button onClick={() => setFilterStatus("all")}>
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               )}
@@ -478,26 +515,42 @@ const Inventory = () => {
         </div>
       </div>
 
+      {/* Selected Products Alert */}
+      {selectedProducts.length > 0 && (
+        <div className="alert alert-info shadow-lg">
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="stroke-current flex-shrink-0 w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <span>
+              {selectedProducts.length} produit(s) sélectionné(s)
+            </span>
+          </div>
+          <div className="flex-none">
+            <button
+              className="btn btn-sm btn-error gap-2"
+              onClick={handleDeleteSelected}
+            >
+              <Trash2 size={16} />
+              Supprimer la sélection
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Products Table */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
-          {selectedProducts.length > 0 && (
-            <div className="alert shadow-lg mb-4">
-              <div className="flex-1">
-                <span>{selectedProducts.length} produit(s) sélectionné(s)</span>
-              </div>
-              <div className="flex-none">
-                <button
-                  className="btn btn-sm btn-error gap-2"
-                  onClick={handleDeleteSelected}
-                >
-                  <Trash2 size={16} />
-                  Supprimer la sélection
-                </button>
-              </div>
-            </div>
-          )}
-
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead>
@@ -507,9 +560,10 @@ const Inventory = () => {
                       type="checkbox"
                       className="checkbox checkbox-sm"
                       checked={
-                        selectedProducts.length === paginatedProducts.length &&
-                        paginatedProducts.length > 0
+                        paginatedProducts.length > 0 &&
+                        selectedProducts.length === paginatedProducts.length
                       }
+                      disabled={paginatedProducts.length === 0}
                       onChange={handleSelectAll}
                     />
                   </th>
@@ -525,6 +579,8 @@ const Inventory = () => {
               </thead>
               <tbody>
                 {paginatedProducts.map((product) => {
+                  if (!product || !product._id) return null;
+
                   const statusBadge = getStatusBadge(product);
                   const quantity = product.stock?.quantity || 0;
                   const minThreshold = product.stock?.minThreshold || 0;
@@ -548,7 +604,7 @@ const Inventory = () => {
                               {product.image?.url ? (
                                 <img
                                   src={product.image.url}
-                                  alt={product.name}
+                                  alt={product.name || "Produit"}
                                 />
                               ) : (
                                 <Box size={20} />
@@ -556,7 +612,7 @@ const Inventory = () => {
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">{product.name}</div>
+                            <div className="font-bold">{product.name || "Sans nom"}</div>
                             {product.description && (
                               <div className="text-sm text-base-content/60 truncate max-w-xs">
                                 {product.description}
