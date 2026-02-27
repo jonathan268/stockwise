@@ -5,6 +5,8 @@ const cors = require("cors");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
+const passport = require("./passport");
+app.use(passport.initialize());
 
 const categoryRoutes = require("./src/routes/CategoryRoutes");
 const productRoutes = require("./src/routes/productRoutes");
@@ -45,6 +47,18 @@ app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use("/api/v1/auth", authRoutes);
+
+
+// DEBUG TEMPORAIRE
+app.use((err, req, res, next) => {
+  console.error("💥 ERREUR DÉTAILLÉE:", err);
+  res.status(err.statusCode || 500).json({
+    error: err.message,
+    stack: err.stack,
+    name: err.name
+  });
+});
 
 app.get("/", (req, res) => {
   res.json({ message: "API StockWise fonctionnelle !" });

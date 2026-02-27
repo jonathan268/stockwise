@@ -50,7 +50,6 @@ class ProductController {
         Product.find(query)
           .populate("category", "name slug")
           .populate("supplier", "name phone")
-          .populate("stock")
           .populate("createdBy", "firstName lastName")
           .sort(sortOptions)
           .skip(skip)
@@ -88,9 +87,17 @@ class ProductController {
       })
         .populate("category")
         .populate("supplier")
-        .populate("stock")
         .populate("createdBy", "firstName lastName")
         .populate("updatedBy", "firstName lastName");
+
+      // Récupérer les données stock séparément
+      if (product) {
+        const stock = await Stock.findOne({
+          organization: organizationId,
+          product: product._id,
+        });
+        product.stock = stock;
+      }
 
       if (!product) {
         throw new AppError("Produit introuvable", 404);

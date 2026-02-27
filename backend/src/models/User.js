@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
       maxlength: [50, "Le prénom ne peut pas dépasser 50 caractères"],
     },
 
+    googleId: { type: String, sparse: true },
+    avatar: { type: String },
+
     lastName: {
       type: String,
       required: [true, "Le nom est requis"],

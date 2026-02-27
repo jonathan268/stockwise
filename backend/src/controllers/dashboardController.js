@@ -18,14 +18,14 @@ class DashboardController {
       organization: organizationId,
     });
 
-    // Valeur totale du stock
-    const products = await Product.find({
+    // Valeur totale du stock - calculer via Stock, pas via Product.stock
+    const stocks = await Stock.find({
       organization: organizationId,
-    }).select("stock pricing");
+    }).populate("product", "pricing");
 
-    const stockValue = products.reduce((sum, p) => {
-      const quantity = p.stock?.quantity || 0;
-      const price = p.pricing?.sellingPrice || 0;
+    const stockValue = stocks.reduce((sum, stock) => {
+      const quantity = stock.quantity || 0;
+      const price = stock.product?.pricing?.sellingPrice || 0;
       return sum + quantity * price;
     }, 0);
 

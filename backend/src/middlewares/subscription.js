@@ -6,6 +6,16 @@ const { catchAsync } = require("./errorHandler");
  * Vérifier abonnement actif
  */
 const checkSubscription = catchAsync(async (req, res, next) => {
+  // Guard: req.organization peut être null si l'utilisateur n'a pas d'organisation
+  if (!req.organization) {
+    return next(
+      new AppError(
+        "Aucune organisation associée à ce compte. Veuillez en créer une ou rejoindre une organisation.",
+        403,
+      ),
+    );
+  }
+
   const organizationId = req.organization._id;
 
   const subscription = await Subscription.findOne({

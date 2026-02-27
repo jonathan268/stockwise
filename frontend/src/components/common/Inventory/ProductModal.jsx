@@ -13,6 +13,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [errors, setErrors] = useState({});
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -67,7 +68,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
         name: product.name || "",
         sku: product.sku || "",
         description: product.description || "",
-        category: product.category?._id || "",
+        category: product.category?.name || product.category || "",
         unit: product.unit || "piece",
         pricing: {
           cost: product.pricing?.cost || "",
@@ -151,10 +152,6 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
       newErrors.name = "Le nom est requis";
     }
 
-    if (!formData.category) {
-      newErrors.category = "La catégorie est requise";
-    }
-
     if (!formData.pricing.cost || formData.pricing.cost < 0) {
       newErrors["pricing.cost"] = "Prix d'achat invalide";
     }
@@ -191,9 +188,29 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
     setLoading(true);
 
     try {
+      let categoryId = formData.category;
+
+      // Si l'utilisateur a saisi une catégorie (texte) qui n'existe pas en tant qu'ID
+      if (
+        formData.category &&
+        !categories.some((cat) => cat._id === formData.category)
+      ) {
+        // Créer la catégorie
+        const newCat = await CategoryService.addCategory({
+          name: formData.category,
+          slug: formData.category.toLowerCase().replace(/\s+/g, "-"),
+        });
+
+        if (newCat.success || newCat.data) {
+          categoryId = newCat.data._id || newCat.data.id;
+          toast.success("Catégorie créée");
+        }
+      }
+
       // Préparer les données
       const dataToSend = {
         ...formData,
+        category: categoryId || undefined, // Envoyer undefined si pas de catégorie
         pricing: {
           ...formData.pricing,
           cost: parseFloat(formData.pricing.cost),
@@ -233,13 +250,23 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
       onClose();
     } catch (err) {
       console.error("Erreur sauvegarde produit:", err);
-      toast.error(
-        err.response?.data?.message ||
-          err.response?.data?.error ||
-          (err.response?.data?.errors &&
-            Object.values(err.response.data.errors)[0]?.message) ||
-          "Erreur lors de la sauvegarde",
-      );
+
+      // Traiter les erreurs spécifiques
+      let errorMessage = "Erreur lors de la sauvegarde";
+
+      if (err.response?.status === 403) {
+        errorMessage =
+          "Vous n'avez pas les permissions pour créer des catégories. Contactez un administrateur.";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.errors) {
+        errorMessage =
+          Object.values(err.response.data.errors)[0]?.message || errorMessage;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -324,31 +351,76 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">
-                  Catégorie <span className="text-error">*</span>
+                  Catégorie <span className="text-gray-500">(optionnelle)</span>
                 </span>
               </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className={`select select-bordered w-full ${errors.category ? "select-error" : ""}`}
-                disabled={loading || loadingCategories}
-              >
-                <option value="">Sélectionner...</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <label className="label">
-                  <span className="label-text-alt text-error flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {errors.category}
-                  </span>
-                </label>
-              )}
+              <div className="relative">
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setShowCategorySuggestions(true);
+                  }}
+                  onFocus={() => setShowCategorySuggestions(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowCategorySuggestions(false), 200)
+                  }
+                  placeholder="Taper ou sélectionner une catégorie"
+                  className="input input-bordered w-full"
+                  disabled={loading || loadingCategories}
+                />
+
+                {/* Suggestions dropdown */}
+                {showCategorySuggestions && formData.category && (
+                  <div className="absolute top-full left-0 right-0 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                    {categories
+                      .filter((cat) =>
+                        cat.name
+                          .toLowerCase()
+                          .includes(formData.category.toLowerCase()),
+                      )
+                      .map((cat) => (
+                        <div
+                          key={cat._id}
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              category: cat.name,
+                            }));
+                            setShowCategorySuggestions(false);
+                          }}
+                          className="px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
+                        >
+                          {cat.name}
+                        </div>
+                      ))}
+
+                    {/* Créer nouvelle catégorie */}
+                    {formData.category &&
+                      !categories.some(
+                        (cat) =>
+                          cat.name.toLowerCase() ===
+                          formData.category.toLowerCase(),
+                      ) && (
+                        <div
+                          onClick={() => {
+                            setShowCategorySuggestions(false);
+                          }}
+                          className="px-4 py-2 hover:bg-primary hover:text-primary-content cursor-pointer bg-base-200 font-medium"
+                        >
+                          ✓ Créer: "{formData.category}"
+                        </div>
+                      )}
+                  </div>
+                )}
+              </div>
+              <label className="label">
+                <span className="label-text-alt">
+                  Entrez une catégorie existante ou créez-en une nouvelle
+                </span>
+              </label>
             </div>
           </div>
 

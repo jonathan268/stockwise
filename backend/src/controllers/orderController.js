@@ -6,6 +6,25 @@ const { successResponse, paginatedResponse } = require("../utils/apiResponse");
 const { getPaginationParams } = require("../utils/helpers");
 
 class OrderController {
+  constructor() {
+    // Fix: bind methods so 'this' is correct when Express calls them as callbacks
+    this.getOrders = this.getOrders.bind(this);
+    this.getOrder = this.getOrder.bind(this);
+    this.createOrder = this.createOrder.bind(this);
+    this.updateOrder = this.updateOrder.bind(this);
+    this.deleteOrder = this.deleteOrder.bind(this);
+    this.updateStatus = this.updateStatus.bind(this);
+    this.confirmOrder = this.confirmOrder.bind(this);
+    this.completeOrder = this.completeOrder.bind(this);
+    this.cancelOrder = this.cancelOrder.bind(this);
+    this.updatePaymentStatus = this.updatePaymentStatus.bind(this);
+    this.getPurchaseOrders = this.getPurchaseOrders.bind(this);
+    this.getSalesOrders = this.getSalesOrders.bind(this);
+    this.getOrderStats = this.getOrderStats.bind(this);
+    this.generatePDF = this.generatePDF.bind(this);
+    this.exportOrders = this.exportOrders.bind(this);
+  }
+
   // GET /api/v1/orders
   async getOrders(req, res, next) {
     try {
@@ -570,10 +589,13 @@ class OrderController {
       );
 
       // Compléter avec compteurs statuts
+      const mongoose = require("mongoose");
+      const orgId = new mongoose.Types.ObjectId(organizationId);
+
       const statusCounts = await Order.aggregate([
         {
           $match: {
-            organization: organizationId,
+            organization: orgId,
             ...(startDate && { orderDate: { $gte: new Date(startDate) } }),
             ...(endDate && { orderDate: { $lte: new Date(endDate) } }),
           },
@@ -589,7 +611,7 @@ class OrderController {
       const paymentStatusCounts = await Order.aggregate([
         {
           $match: {
-            organization: organizationId,
+            organization: orgId,
             status: { $ne: "cancelled" },
           },
         },

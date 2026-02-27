@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const geminiController = require("../controllers/geminiController");
-const { protect: authenticate } = require("../middlewares/auth");
+const { protect: authenticate, restrictTo } = require("../middlewares/auth");
 
 // Middleware de rate limiting pour respecter les quotas Gemini gratuits
 const rateLimit = require("express-rate-limit");
@@ -28,7 +28,7 @@ router.post(
 router.post(
   "/complete-analysis",
   authenticate,
-  authorize(["admin", "manager"]),
+  restrictTo("owner", "admin", "manager"),
   geminiRateLimiter,
   geminiController.runCompleteAnalysis,
 );
@@ -74,7 +74,7 @@ router.post(
 router.post(
   "/clear-cache",
   authenticate,
-  authorize(["admin"]),
+  restrictTo("owner", "admin"),
   geminiController.clearCache,
 );
 

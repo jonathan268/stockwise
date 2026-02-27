@@ -10,7 +10,6 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
-  TrendingUp,
   Clock,
   DollarSign,
   CheckCircle,
@@ -155,12 +154,7 @@ const Orders = () => {
     );
     const pendingOrders = orders.filter((o) => o.status === "pending").length;
 
-    return {
-      totalOrders,
-      completedOrders,
-      totalAmount,
-      pendingOrders,
-    };
+    return { totalOrders, completedOrders, totalAmount, pendingOrders };
   };
 
   const stats = calculateStats();
@@ -300,7 +294,7 @@ const Orders = () => {
                   </span>
                   <input
                     type="text"
-                    placeholder="Rechercher par nom, code, email..."
+                    placeholder="Rechercher par numéro, fournisseur, référence..."
                     className="input input-bordered w-full"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -338,46 +332,41 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* Suppliers Table */}
+      {/* Orders Table */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <div className="overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
+                  <th>N° Commande</th>
                   <th>Fournisseur</th>
-                  <th>Contact</th>
+                  <th>Référence</th>
                   <th>Statut</th>
-                  <th>Commandes</th>
-                  <th>Total dépensé</th>
-                  <th>Rating</th>
+                  <th>Montant</th>
+                  <th>Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedSuppliers.map((supplier) => {
-                  const statusBadge = getStatusBadge(supplier.status);
+                {paginatedOrders.map((order) => {
+                  const statusBadge = getStatusBadge(order.status);
 
                   return (
-                    <tr key={supplier._id} className="hover">
+                    <tr key={order._id} className="hover">
                       <td>
-                        <div>
-                          <div className="font-bold">{supplier.name}</div>
-                          {supplier.code && (
-                            <div className="text-sm text-base-content/60 font-mono">
-                              {supplier.code}
-                            </div>
-                          )}
+                        <div className="font-bold font-mono">
+                          {order.orderNumber || "—"}
                         </div>
                       </td>
                       <td>
-                        <div className="text-sm">
-                          {supplier.email && <div>{supplier.email}</div>}
-                          {supplier.phone && (
-                            <div className="text-base-content/60">
-                              {supplier.phone}
-                            </div>
-                          )}
+                        <div className="font-semibold">
+                          {order.supplier?.name || "—"}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="text-sm text-base-content/60">
+                          {order.reference || "—"}
                         </div>
                       </td>
                       <td>
@@ -386,49 +375,36 @@ const Orders = () => {
                         </div>
                       </td>
                       <td className="font-semibold">
-                        {supplier.stats?.totalOrders || 0}
-                      </td>
-                      <td className="font-semibold">
-                        {(supplier.stats?.totalSpent || 0).toLocaleString(
-                          "fr-FR",
-                        )}{" "}
+                        {(order.totalAmount || 0).toLocaleString("fr-FR")}{" "}
                         FCFA
                       </td>
-                      <td>
-                        {supplier.rating?.overall > 0 ? (
-                          <div className="flex items-center gap-1">
-                            <Star
-                              size={14}
-                              className="fill-warning text-warning"
-                            />
-                            <span className="font-semibold">
-                              {supplier.rating.overall.toFixed(1)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-base-content/40">-</span>
-                        )}
+                      <td className="text-sm text-base-content/60">
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleDateString(
+                              "fr-FR",
+                            )
+                          : "—"}
                       </td>
                       <td>
                         <div className="flex gap-2">
                           <button
                             className="btn btn-ghost btn-xs"
                             title="Voir détails"
-                            onClick={() => handleViewDetails(supplier)}
+                            onClick={() => handleViewDetails(order)}
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             className="btn btn-ghost btn-xs"
                             title="Modifier"
-                            onClick={() => handleEditSupplier(supplier)}
+                            onClick={() => handleEditOrder(order)}
                           >
                             <Edit size={16} />
                           </button>
                           <button
                             className="btn btn-ghost btn-xs text-error"
                             title="Supprimer"
-                            onClick={() => handleDeleteSupplier(supplier._id)}
+                            onClick={() => handleDeleteOrder(order._id)}
                           >
                             <Trash2 size={16} />
                           </button>

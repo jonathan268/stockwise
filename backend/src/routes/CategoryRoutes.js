@@ -12,7 +12,7 @@ router
   .route("/")
   .get(categoryController.getCategories)
   .post(
-    restrictTo("owner", "admin", "manager"),
+    restrictTo("owner", "admin", "manager", "staff"),
     validateCategory,
     categoryController.createCategory,
   );

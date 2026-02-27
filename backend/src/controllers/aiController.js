@@ -1,6 +1,7 @@
 const Prediction = require("../models/Prediction");
 const Stock = require("../models/Stock");
 const Product = require("../models/Product");
+const Transaction = require("../models/Transaction");
 const { AppError } = require("../utils/appError");
 const { successResponse } = require("../utils/apiResponse");
 const { callClaudeAPI } = require("../services/aiService");
@@ -80,7 +81,7 @@ class AIController {
         const aiResponse = await callClaudeAPI(prompt);
 
         // Parser réponse
-        const parsedPredictions = this.parseDemandForecast(aiResponse);
+        const parsedPredictions = this.parseDemandForecast(aiResponse.text);
 
         // Mettre à jour prédiction
         prediction.output = {

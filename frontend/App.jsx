@@ -12,6 +12,7 @@ import Alerts from "./src/pages/Alert";
 import Settings from "./src/pages/Settings";
 import Analytics from "./src/pages/Analyse";
 import Suppliers from "./src/pages/Suppliers";
+import AuthCallback from "./src/pages/AuthCallback";
 
 /* Admin Pages
 import AdminLayout from "./admin/components/AdminLayout";
@@ -34,6 +35,7 @@ function App() {
         {/* Routes de connexion (publiques) */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Routes de l'application (protégées avec Layout) */}
         <Route

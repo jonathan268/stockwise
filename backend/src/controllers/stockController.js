@@ -1,5 +1,6 @@
 const Stock = require("../models/Stock");
 const Product = require("../models/Product");
+const Transaction = require("../models/Transaction");
 const { AppError } = require("../utils/appError");
 const { successResponse } = require("../utils/apiResponse");
 

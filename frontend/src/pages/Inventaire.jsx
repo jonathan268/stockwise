@@ -427,9 +427,6 @@ const Inventory = () => {
             {/* Search */}
             <div className="form-control">
               <div className="input-group">
-                <span className="bg-base-200">
-                  <Search size={20} />
-                </span>
                 <input
                   type="text"
                   placeholder="Rechercher par nom, SKU..."
