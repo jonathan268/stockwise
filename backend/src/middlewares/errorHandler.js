@@ -1,130 +1,145 @@
-const { AppError } = require('../utils/appError');
-const { errorResponse } = require('../utils/apiResponse');
-const { extractMongooseErrors } = require('../utils/helpers');
+const Subscription = require("../models/Subscription");
+const { AppError } = require("../utils/appError");
 
 /**
- * Gérer erreurs Mongoose CastError (ObjectId invalide)
+ * Wrapper pour attraper les erreurs async dans les middleware
  */
-const handleCastErrorDB = (err) => {
-  const message = `Valeur invalide pour ${err.path}: ${err.value}`;
-  return new AppError(message, 400);
+const catchAsync = (fn) => (req, res, next) => {
+  fn(req, res, next).catch(next);
 };
 
 /**
- * Gérer erreurs Mongoose ValidationError
+ * Vérifier abonnement actif
  */
-const handleValidationErrorDB = (err) => {
-  const errors = extractMongooseErrors(err);
-  return new AppError('Erreur de validation', 400, errors);
-};
+const checkSubscription = catchAsync(async (req, res, next) => {
+  // FIX: Vérifier que req.organization existe avant d'accéder à ._id
+  if (!req.organization) {
+    return next(
+      new AppError(
+        "Aucune organisation associée à ce compte. Veuillez créer ou rejoindre une organisation",
+        403,
+      ),
+    );
+  }
+
+  const organizationId = req.organization._id;
+
+  const subscription = await Subscription.findOne({
+    organization: organizationId,
+  });
+
+  if (!subscription) {
+    return next(new AppError("Aucun abonnement trouvé", 404));
+  }
+
+  // Vérifier si actif
+  if (!subscription.isActive()) {
+    return next(
+      new AppError(
+        "Abonnement expiré ou inactif. Veuillez renouveler",
+        402, // Payment Required
+      ),
+    );
+  }
+
+  // Attacher à la requête
+  req.subscription = subscription;
+
+  next();
+});
 
 /**
- * Gérer erreurs duplicata MongoDB (code 11000)
+ * Vérifier limite de feature
  */
-const handleDuplicateFieldsDB = (err) => {
-  const field = Object.keys(err.keyValue)[0];
-  const value = err.keyValue[field];
-  const message = `${field} "${value}" existe déjà`;
-  return new AppError(message, 400);
-};
+const checkFeatureLimit = (feature, countFn) => {
+  return catchAsync(async (req, res, next) => {
+    // FIX: Vérifier que req.subscription et req.organization existent
+    if (!req.subscription) {
+      return next(new AppError("Abonnement non vérifié", 500));
+    }
 
-/**
- * Gérer erreurs JWT invalide
- */
-const handleJWTError = () => {
-  return new AppError('Token invalide. Veuillez vous reconnecter', 401);
-};
+    if (!req.organization) {
+      return next(new AppError("Organisation introuvable", 403));
+    }
 
-/**
- * Gérer erreurs JWT expiré
- */
-const handleJWTExpiredError = () => {
-  return new AppError('Token expiré. Veuillez vous reconnecter', 401);
-};
+    const subscription = req.subscription;
+    const organizationId = req.organization._id;
 
-/**
- * Envoyer erreur en développement
- */
-const sendErrorDev = (err, res) => {
-  return res.status(err.statusCode).json({
-    success: false,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-    ...(err.errors && { errors: err.errors })
+    // -1 = illimité
+    if (subscription.features[feature] === -1) {
+      return next();
+    }
+
+    // FIX: Vérifier que la feature existe dans le plan
+    if (subscription.features[feature] === undefined) {
+      return next(
+        new AppError(`Feature "${feature}" non reconnue dans le plan`, 400),
+      );
+    }
+
+    // Compter usage actuel
+    const currentCount = await countFn(organizationId);
+
+    if (currentCount >= subscription.features[feature]) {
+      return next(
+        new AppError(
+          `Limite de ${subscription.features[feature]} ${feature} atteinte. Passez à un plan supérieur`,
+          403,
+        ),
+      );
+    }
+
+    next();
   });
 };
 
 /**
- * Envoyer erreur en production
+ * Vérifier si feature disponible dans le plan
  */
-const sendErrorProd = (err, res) => {
-  // Erreur opérationnelle, de confiance : envoyer message au client
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      success: false,
-      message: err.message,
-      ...(err.errors && { errors: err.errors })
-    });
-  }
-  
-  // Erreur de programmation ou inconnue : ne pas leak détails
-  console.error('ERROR 💥', err);
-  
-  return res.status(500).json({
-    success: false,
-    message: 'Une erreur est survenue'
-  });
-};
-
-/**
- * Middleware global de gestion d'erreurs
- */
-const errorHandler = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-  
-  if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
-  } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
-    error.message = err.message;
-    
-    // Erreurs Mongoose
-    if (err.name === 'CastError') error = handleCastErrorDB(err);
-    if (err.name === 'ValidationError') error = handleValidationErrorDB(err);
-    if (err.code === 11000) error = handleDuplicateFieldsDB(err);
-    
-    // Erreurs JWT
-    if (err.name === 'JsonWebTokenError') error = handleJWTError();
-    if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
-    
-    sendErrorProd(error, res);
-  }
-};
-
-/**
- * Wrapper async pour éviter try-catch partout
- */
-const catchAsync = (fn) => {
+const requireFeature = (featureName) => {
   return (req, res, next) => {
-    fn(req, res, next).catch(next);
+    // FIX: Vérifier que req.subscription existe
+    if (!req.subscription) {
+      return next(new AppError("Abonnement non vérifié", 500));
+    }
+
+    const subscription = req.subscription;
+
+    if (!subscription.hasFeature(featureName)) {
+      return next(
+        new AppError(
+          `Cette fonctionnalité nécessite un plan ${featureName === "advancedReports" ? "Smart" : "Premium"}`,
+          403,
+        ),
+      );
+    }
+
+    next();
   };
 };
 
 /**
- * Middleware 404 - Route non trouvée
+ * Incrémenter usage d'une feature
  */
-const notFound = (req, res, next) => {
-  const error = new AppError(
-    `Route ${req.originalUrl} non trouvée`,
-    404
-  );
-  next(error);
+const incrementUsage = (usageField) => {
+  return catchAsync(async (req, res, next) => {
+    // FIX: Vérifier que req.organization existe
+    if (!req.organization) {
+      return next(new AppError("Organisation introuvable", 403));
+    }
+
+    await req.organization.updateOne({
+      $inc: { [`usage.${usageField}`]: 1 },
+    });
+
+    next();
+  });
 };
 
 module.exports = {
-  errorHandler,
   catchAsync,
-  notFound
+  checkSubscription,
+  checkFeatureLimit,
+  requireFeature,
+  incrementUsage,
 };

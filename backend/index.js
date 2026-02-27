@@ -15,6 +15,7 @@ const alertRoutes = require("./src/routes/alertRoutes");
 const analyticsRoutes = require("./src/routes/analyticsRoutes");
 const aiRoutes = require("./src/routes/aiRoutes");
 const organizationRoutes = require("./src/routes/organizationRoutes");
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
 
 const app = express();
 app.use(express.json());
@@ -43,6 +44,7 @@ app.use("/api/v1/alerts", alertRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API StockWise fonctionnelle !" });

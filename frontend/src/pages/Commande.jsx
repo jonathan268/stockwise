@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Building2,
+  Package,
   Plus,
   Eye,
   Edit,
@@ -10,159 +10,174 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
-  Star,
   TrendingUp,
-  Package,
-  DollarSign
-} from 'lucide-react';
-import { SupplierService } from '../services/suppliersService';
-import SupplierModal from '../components/common/Suppliers/SupplierModal';
-import SupplierDetailsModal from '../components/common/Suppliers/SupplierDetailsModal';
-import toast from 'react-hot-toast';
+  Clock,
+  DollarSign,
+  CheckCircle,
+} from "lucide-react";
+import { OrderService } from "../services/orderService";
+import OrderModal from "../components/common/Orders/orderModal";
+import OrderDetailsModal from "../components/common/Orders/orderDetailsModal";
+import toast from "react-hot-toast";
 
-const Suppliers = () => {
+const Orders = () => {
   // ==================== STATE ====================
-  const [suppliers, setSuppliers] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Modals
-  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // ==================== FETCH SUPPLIERS ====================
-  const fetchSuppliers = async () => {
+  // ==================== FETCH ORDERS ====================
+  const fetchOrders = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await SupplierService.getAllSuppliers();
+      const response = await OrderService.getAllOrders();
 
       if (response.success && response.data) {
-        setSuppliers(response.data);
+        setOrders(response.data);
       } else {
-        setSuppliers([]);
+        setOrders([]);
       }
     } catch (err) {
-      console.error('Erreur chargement fournisseurs:', err);
-      setError(err.message || 'Erreur lors du chargement des fournisseurs');
-      toast.error('Erreur lors du chargement des fournisseurs');
-      setSuppliers([]);
+      console.error("Erreur chargement commandes:", err);
+      setError(err.message || "Erreur lors du chargement des commandes");
+      toast.error("Erreur lors du chargement des commandes");
+      setOrders([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSuppliers();
+    fetchOrders();
   }, []);
 
   // ==================== REFRESH ====================
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchSuppliers();
+    await fetchOrders();
     setRefreshing(false);
-    toast.success('Fournisseurs actualisés');
+    toast.success("Commandes actualisées");
   };
 
   // ==================== MODAL HANDLERS ====================
-  const handleAddSupplier = () => {
-    setSelectedSupplier(null);
-    setShowSupplierModal(true);
+  const handleAddOrder = () => {
+    setSelectedOrder(null);
+    setShowOrderModal(true);
   };
 
-  const handleEditSupplier = (supplier) => {
-    setSelectedSupplier(supplier);
-    setShowSupplierModal(true);
+  const handleEditOrder = (order) => {
+    setSelectedOrder(order);
+    setShowOrderModal(true);
   };
 
-  const handleViewDetails = (supplier) => {
-    setSelectedSupplier(supplier);
+  const handleViewDetails = (order) => {
+    setSelectedOrder(order);
     setShowDetailsModal(true);
   };
 
-  const handleSupplierSaved = () => {
-    fetchSuppliers();
+  const handleOrderSaved = () => {
+    fetchOrders();
   };
 
   // ==================== DELETE ====================
-  const handleDeleteSupplier = async (supplierId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
+  const handleDeleteOrder = async (orderId) => {
+    if (
+      !window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")
+    ) {
       return;
     }
 
     try {
-      await SupplierService.deleteSupplier(supplierId);
-      setSuppliers(suppliers.filter(s => s._id !== supplierId));
-      toast.success('Fournisseur supprimé');
+      await OrderService.deleteOrder(orderId);
+      setOrders(orders.filter((o) => o._id !== orderId));
+      toast.success("Commande supprimée");
     } catch (err) {
-      console.error('Erreur suppression:', err);
-      toast.error('Erreur lors de la suppression');
+      console.error("Erreur suppression:", err);
+      toast.error("Erreur lors de la suppression");
     }
   };
 
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (status) => {
     const badges = {
-      active: { class: 'badge-success', text: 'Actif' },
-      inactive: { class: 'badge-ghost', text: 'Inactif' },
-      blacklisted: { class: 'badge-error', text: 'Liste noire' }
+      pending: { class: "badge-warning", text: "En attente" },
+      confirmed: { class: "badge-info", text: "Confirmée" },
+      processing: { class: "badge-info", text: "Traitement" },
+      shipped: { class: "badge-primary", text: "Expédiée" },
+      delivered: { class: "badge-success", text: "Livrée" },
+      completed: { class: "badge-success", text: "Complétée" },
+      cancelled: { class: "badge-error", text: "Annulée" },
     };
-    return badges[status] || badges.active;
+    return badges[status] || badges.pending;
   };
 
   // ==================== FILTERING ====================
-  const filteredSuppliers = suppliers.filter(supplier => {
+  const filteredOrders = orders.filter((order) => {
     const matchSearch =
-      supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (supplier.code && supplier.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (supplier.email && supplier.email.toLowerCase().includes(searchQuery.toLowerCase()));
+      order.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (order.supplier?.name &&
+        order.supplier.name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())) ||
+      (order.reference &&
+        order.reference.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchStatus = filterStatus === 'all' || supplier.status === filterStatus;
+    const matchStatus = filterStatus === "all" || order.status === filterStatus;
 
     return matchSearch && matchStatus;
   });
 
   // ==================== STATS ====================
   const calculateStats = () => {
-    const totalSuppliers = suppliers.length;
-    const activeSuppliers = suppliers.filter(s => s.status === 'active').length;
-    const totalSpent = suppliers.reduce((sum, s) => sum + (s.stats?.totalSpent || 0), 0);
-    const totalOrders = suppliers.reduce((sum, s) => sum + (s.stats?.totalOrders || 0), 0);
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter(
+      (o) => o.status === "completed" || o.status === "delivered",
+    ).length;
+    const totalAmount = orders.reduce(
+      (sum, o) => sum + (o.totalAmount || 0),
+      0,
+    );
+    const pendingOrders = orders.filter((o) => o.status === "pending").length;
 
     return {
-      totalSuppliers,
-      activeSuppliers,
-      totalSpent,
-      totalOrders
+      totalOrders,
+      completedOrders,
+      totalAmount,
+      pendingOrders,
     };
   };
 
   const stats = calculateStats();
 
   // ==================== PAGINATION ====================
-  const paginatedSuppliers = filteredSuppliers.slice(
+  const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
-  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [filteredSuppliers.length, currentPage, totalPages]);
+  }, [filteredOrders.length, currentPage, totalPages]);
 
   // ==================== RENDER LOADING ====================
   if (loading) {
@@ -170,7 +185,9 @@ const Suppliers = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement des fournisseurs...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement des commandes...
+          </p>
         </div>
       </div>
     );
@@ -186,7 +203,7 @@ const Suppliers = () => {
             <h2 className="card-title justify-center">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
             <div className="card-actions justify-center mt-4">
-              <button className="btn btn-primary" onClick={fetchSuppliers}>
+              <button className="btn btn-primary" onClick={fetchOrders}>
                 <RefreshCw size={20} />
                 Réessayer
               </button>
@@ -204,11 +221,11 @@ const Suppliers = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Building2 size={32} className="text-primary" />
-            Fournisseurs
+            <Package size={32} className="text-primary" />
+            Commandes
           </h1>
           <p className="text-base-content/60 mt-1">
-            Gérez vos fournisseurs et partenaires
+            Gérez vos commandes et achats
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -217,12 +234,12 @@ const Suppliers = () => {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
-          <button className="btn btn-primary gap-2" onClick={handleAddSupplier}>
+          <button className="btn btn-primary gap-2" onClick={handleAddOrder}>
             <Plus size={20} />
-            Nouveau fournisseur
+            Nouvelle commande
           </button>
         </div>
       </div>
@@ -231,40 +248,42 @@ const Suppliers = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-primary">
-            <Building2 size={32} />
+            <Package size={32} />
           </div>
-          <div className="stat-title">Total Fournisseurs</div>
-          <div className="stat-value text-primary">{stats.totalSuppliers}</div>
-          <div className="stat-desc">Dans la base</div>
+          <div className="stat-title">Total Commandes</div>
+          <div className="stat-value text-primary">{stats.totalOrders}</div>
+          <div className="stat-desc">Toutes périodes</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-success">
-            <Package size={32} />
+            <CheckCircle size={32} />
           </div>
-          <div className="stat-title">Actifs</div>
-          <div className="stat-value text-success">{stats.activeSuppliers}</div>
-          <div className="stat-desc">Fournisseurs actifs</div>
+          <div className="stat-title">Complétées</div>
+          <div className="stat-value text-success">{stats.completedOrders}</div>
+          <div className="stat-desc">Commandes livrées</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-info">
             <DollarSign size={32} />
           </div>
-          <div className="stat-title">Total Dépensé</div>
+          <div className="stat-title">Montant Total</div>
           <div className="stat-value text-info text-2xl">
-            {stats.totalSpent.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+            {stats.totalAmount.toLocaleString("fr-FR", {
+              maximumFractionDigits: 0,
+            })}
           </div>
           <div className="stat-desc">FCFA</div>
         </div>
 
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-warning">
-            <TrendingUp size={32} />
+            <Clock size={32} />
           </div>
-          <div className="stat-title">Commandes</div>
-          <div className="stat-value text-warning">{stats.totalOrders}</div>
-          <div className="stat-desc">Total commandes</div>
+          <div className="stat-title">En attente</div>
+          <div className="stat-value text-warning">{stats.pendingOrders}</div>
+          <div className="stat-desc">À traiter</div>
         </div>
       </div>
 
@@ -289,7 +308,7 @@ const Suppliers = () => {
                   {searchQuery && (
                     <button
                       className="btn btn-ghost btn-square"
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => setSearchQuery("")}
                     >
                       <X size={20} />
                     </button>
@@ -306,9 +325,13 @@ const Suppliers = () => {
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
                 <option value="all">Tous statuts</option>
-                <option value="active">Actifs</option>
-                <option value="inactive">Inactifs</option>
-                <option value="blacklisted">Liste noire</option>
+                <option value="pending">En attente</option>
+                <option value="confirmed">Confirmées</option>
+                <option value="processing">En traitement</option>
+                <option value="shipped">Expédiées</option>
+                <option value="delivered">Livrées</option>
+                <option value="completed">Complétées</option>
+                <option value="cancelled">Annulées</option>
               </select>
             </div>
           </div>
@@ -351,7 +374,9 @@ const Suppliers = () => {
                         <div className="text-sm">
                           {supplier.email && <div>{supplier.email}</div>}
                           {supplier.phone && (
-                            <div className="text-base-content/60">{supplier.phone}</div>
+                            <div className="text-base-content/60">
+                              {supplier.phone}
+                            </div>
                           )}
                         </div>
                       </td>
@@ -364,12 +389,18 @@ const Suppliers = () => {
                         {supplier.stats?.totalOrders || 0}
                       </td>
                       <td className="font-semibold">
-                        {(supplier.stats?.totalSpent || 0).toLocaleString('fr-FR')} FCFA
+                        {(supplier.stats?.totalSpent || 0).toLocaleString(
+                          "fr-FR",
+                        )}{" "}
+                        FCFA
                       </td>
                       <td>
                         {supplier.rating?.overall > 0 ? (
                           <div className="flex items-center gap-1">
-                            <Star size={14} className="fill-warning text-warning" />
+                            <Star
+                              size={14}
+                              className="fill-warning text-warning"
+                            />
                             <span className="font-semibold">
                               {supplier.rating.overall.toFixed(1)}
                             </span>
@@ -410,18 +441,24 @@ const Suppliers = () => {
             </table>
 
             {/* Empty State */}
-            {paginatedSuppliers.length === 0 && (
+            {paginatedOrders.length === 0 && (
               <div className="text-center py-12">
-                <Building2 size={48} className="mx-auto text-base-content/20 mb-4" />
+                <Package
+                  size={48}
+                  className="mx-auto text-base-content/20 mb-4"
+                />
                 <p className="text-base-content/60">
-                  {suppliers.length === 0
-                    ? 'Aucun fournisseur'
-                    : 'Aucun fournisseur trouvé avec ces filtres'}
+                  {orders.length === 0
+                    ? "Aucune commande"
+                    : "Aucune commande trouvée avec ces filtres"}
                 </p>
-                {suppliers.length === 0 && (
-                  <button className="btn btn-primary mt-4 gap-2" onClick={handleAddSupplier}>
+                {orders.length === 0 && (
+                  <button
+                    className="btn btn-primary mt-4 gap-2"
+                    onClick={handleAddOrder}
+                  >
                     <Plus size={20} />
-                    Ajouter votre premier fournisseur
+                    Créer votre première commande
                   </button>
                 )}
               </div>
@@ -429,12 +466,12 @@ const Suppliers = () => {
           </div>
 
           {/* Pagination */}
-          {filteredSuppliers.length > itemsPerPage && (
+          {filteredOrders.length > itemsPerPage && (
             <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
               <div className="text-sm text-base-content/60">
-                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
-                {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)} sur{' '}
-                {filteredSuppliers.length} fournisseurs
+                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
+                {Math.min(currentPage * itemsPerPage, filteredOrders.length)}{" "}
+                sur {filteredOrders.length} commandes
               </div>
 
               <div className="btn-group">
@@ -456,13 +493,16 @@ const Suppliers = () => {
                     return (
                       <button
                         key={page}
-                        className={`btn btn-sm ${currentPage === page ? 'btn-active' : ''}`}
+                        className={`btn btn-sm ${currentPage === page ? "btn-active" : ""}`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
                       </button>
                     );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
                     return (
                       <button key={page} className="btn btn-sm btn-disabled">
                         ...
@@ -486,20 +526,20 @@ const Suppliers = () => {
       </div>
 
       {/* Modals */}
-      <SupplierModal
-        isOpen={showSupplierModal}
-        onClose={() => setShowSupplierModal(false)}
-        supplier={selectedSupplier}
-        onSuccess={handleSupplierSaved}
+      <OrderModal
+        isOpen={showOrderModal}
+        onClose={() => setShowOrderModal(false)}
+        order={selectedOrder}
+        onSuccess={handleOrderSaved}
       />
 
-      <SupplierDetailsModal
+      <OrderDetailsModal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
-        supplier={selectedSupplier}
+        order={selectedOrder}
       />
     </div>
   );
 };
 
-export default Suppliers;
+export default Orders;
