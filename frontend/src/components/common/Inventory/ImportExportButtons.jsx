@@ -5,7 +5,7 @@ import {
   parseCSV,
   downloadCSVTemplate,
 } from "../../../utils/csvHelper";
-import ProductService from "../../../services/productService";
+import ProductService from "../../../services/ProductService";
 import { CategoryService } from "../../../services/categoryService";
 import toast from "react-hot-toast";
 

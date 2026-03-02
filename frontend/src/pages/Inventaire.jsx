@@ -17,7 +17,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import ProductService from "../services/productservice";
+import ProductService from "../services/ProductService";
 import ProductModal from "../components/common/Inventory/ProductModal";
 import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
 import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
