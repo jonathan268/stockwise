@@ -87,7 +87,15 @@ const Analytics = () => {
       }
     } catch (err) {
       console.error("Erreur chargement analytics:", err);
-      setError(err.message || "Erreur lors du chargement des analytics");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement des analytics";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement des analytics",
+      );
       toast.error("Erreur lors du chargement");
     } finally {
       setLoading(false);

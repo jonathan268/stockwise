@@ -67,11 +67,17 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
         ]);
 
         if (productsRes.success && productsRes.data) {
-          setProducts(productsRes.data);
+          setProducts(
+            Array.isArray(productsRes.data)
+              ? productsRes.data
+              : productsRes.data.products || [],
+          );
         }
 
         if (suppliersRes.success && suppliersRes.data) {
-          setSuppliers(suppliersRes.data);
+          setSuppliers(
+            Array.isArray(suppliersRes.data) ? suppliersRes.data : [],
+          );
         }
       } catch (err) {
         console.error("Erreur chargement données:", err);

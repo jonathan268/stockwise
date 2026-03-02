@@ -1,8 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import  GoogleLoginButton  from "../components/GoogleLoginButton";
-import { Mail, Lock, Eye, EyeOff, LogIn, PackageCheck, Loader, Loader2, CheckCircle } from "lucide-react";
+import GoogleLoginButton from "../components/GoogleLoginButton";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  PackageCheck,
+  Loader,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,7 +36,13 @@ const Login = () => {
       localStorage.setItem("refreshToken", refreshToken);
       navigate("/app/dashboard");
     } catch (error) {
-      setError(error.response?.data?.message || "Erreur de connexion");
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erreur de connexion";
+      setError(
+        typeof errorMessage === "string" ? errorMessage : "Erreur de connexion",
+      );
     } finally {
       setLoading(false);
     }
@@ -50,7 +66,12 @@ const Login = () => {
 
         {/* Formulaire */}
         <div className="card bg-base-100 shadow-2xl">
-           {error &&  <p className="text-center animate-bounce mt-5 text-white alert alert-error"> {error} </p>}
+          {error && (
+            <p className="text-center animate-bounce mt-5 text-white alert alert-error">
+              {" "}
+              {error}{" "}
+            </p>
+          )}
           <div className="card-body">
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
@@ -88,7 +109,7 @@ const Login = () => {
                     placeholder="••••••••"
                     className="input input-bordered w-full pl-10 pr-10"
                   />
-                 
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -130,7 +151,11 @@ const Login = () => {
                 className="btn btn-primary w-full gap-2"
               >
                 <LogIn size={20} />
-                {loading ? <span className="loading loading-dots loading-sm text-primary"></span> : "Se connecter"}
+                {loading ? (
+                  <span className="loading loading-dots loading-sm text-primary"></span>
+                ) : (
+                  "Se connecter"
+                )}
               </button>
             </form>
 

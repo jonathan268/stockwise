@@ -12,22 +12,53 @@ class DashboardController {
    */
   getDashboardSummary = catchAsync(async (req, res, next) => {
     const organizationId = req.user.organization;
+    const mongoose = require("mongoose");
 
     // Stats produits
     const totalProducts = await Product.countDocuments({
       organization: organizationId,
     });
 
-    // Valeur totale du stock - calculer via Stock, pas via Product.stock
-    const stocks = await Stock.find({
-      organization: organizationId,
-    }).populate("product", "pricing");
+    // Valeur totale du stock - calcul direct depuis la collection Stock
+    let stockValue = 0;
+    try {
+      console.log(
+        `DEBUG Dashboard - organizationId: ${organizationId}, type: ${typeof organizationId}`
+      );
 
-    const stockValue = stocks.reduce((sum, stock) => {
-      const quantity = stock.quantity || 0;
-      const price = stock.product?.pricing?.sellingPrice || 0;
-      return sum + quantity * price;
-    }, 0);
+      // Vérifier d'abord combien de stocks existent
+      const stockCount = await Stock.countDocuments({
+        organization: organizationId,
+      });
+      console.log(`DEBUG Dashboard - Found ${stockCount} stock records`);
+
+      // Récupérer tous les stocks avec les données de produit
+      const stocks = await Stock.find({
+        organization: organizationId,
+      })
+        .populate("product", "pricing")
+        .lean();
+
+      console.log(
+        `DEBUG Dashboard - After .find(), got ${stocks.length} stocks:`,
+        JSON.stringify(stocks.slice(0, 2), null, 2)
+      );
+
+      stockValue = stocks.reduce((sum, stock) => {
+        const quantity = stock.quantity || 0;
+        const cost = stock.product?.pricing?.cost || 0;
+        const value = quantity * cost;
+        console.log(
+          `DEBUG Dashboard - Stock calculation: qty=${quantity}, cost=${cost}, result=${value}`
+        );
+        return sum + value;
+      }, 0);
+
+      console.log(`DEBUG Dashboard - Final stockValue calculated: ${stockValue}`);
+    } catch (error) {
+      console.error("Error calculating stock value:", error);
+      stockValue = 0;
+    }
 
     // Alertes stock bas
     const lowStockAlerts = await Product.countDocuments({

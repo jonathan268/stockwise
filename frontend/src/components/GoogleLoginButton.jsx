@@ -3,14 +3,14 @@
 const GoogleLoginButton = ({ label = "Continuer avec Google" }) => {
   const handleGoogleLogin = () => {
     // Redirige vers ton backend qui lance le flux OAuth
-    window.location.href = `${import.meta.env.REACT_APP_API_URL}/api/v1/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/v1/auth/google`;
   };
 
   return (
     <button
       type="button"
       onClick={handleGoogleLogin}
-      className="btn btn-outline w-full gap-3"
+      className="w-full gap-3 btn btn-outline"
     >
       {/* Logo Google SVG */}
       <svg width="20" height="20" viewBox="0 0 48 48">

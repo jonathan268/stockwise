@@ -54,7 +54,7 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-base-100 shadow-sm sticky top-0 z-10 h-16">
+    <header className="sticky top-0 z-10 h-16 shadow-sm bg-base-100">
       <div className="flex items-center justify-between h-full px-6">
         {/* Menu Button - Mobile */}
         <button
@@ -66,7 +66,7 @@ const Header = ({ onMenuClick }) => {
         </button>
 
         {/* Search Bar */}
-        <div className="flex items-center gap-4 flex-1 max-w-2xl"></div>
+        <div className="flex items-center flex-1 max-w-2xl gap-4"></div>
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ const Header = ({ onMenuClick }) => {
             className="btn btn-ghost btn-circle"
             title="Changer de thème"
           >
-            {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === "corporate" ? <Moon size={20} /> : <Sun size={20} />}
           </button>
 
           {/* Notifications */}
@@ -89,13 +89,13 @@ const Header = ({ onMenuClick }) => {
 
             <div
               tabIndex={0}
-              className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow-2xl"
+              className="mt-3 shadow-2xl card card-compact dropdown-content w-80 bg-base-100"
             >
               <div className="card-body">
-                <h3 className="font-bold text-lg mb-3">Notifications</h3>
+                <h3 className="mb-3 text-lg font-bold">Notifications</h3>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
-                    <div className="bg-warning/20 p-2 rounded-lg">
+                  <div className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200">
+                    <div className="p-2 rounded-lg bg-warning/20">
                       <Bell size={16} className="text-warning" />
                     </div>
                     <div className="flex-1">
@@ -103,14 +103,14 @@ const Header = ({ onMenuClick }) => {
                       <p className="text-xs text-base-content/60">
                         iPhone 14 Pro - 5 unités restantes
                       </p>
-                      <div className="text-xs text-base-content/50 mt-1">
+                      <div className="mt-1 text-xs text-base-content/50">
                         Il y a 2h
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
-                    <div className="bg-success/20 p-2 rounded-lg">
+                  <div className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200">
+                    <div className="p-2 rounded-lg bg-success/20">
                       <Bell size={16} className="text-success" />
                     </div>
                     <div className="flex-1">
@@ -118,14 +118,14 @@ const Header = ({ onMenuClick }) => {
                       <p className="text-xs text-base-content/60">
                         Commande #12345 livrée avec succès
                       </p>
-                      <p className="text-xs text-base-content/50 mt-1">
+                      <p className="mt-1 text-xs text-base-content/50">
                         Il y a 5h
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 hover:bg-base-200 rounded-lg cursor-pointer">
-                    <div className="bg-info/20 p-2 rounded-lg">
+                  <div className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-base-200">
+                    <div className="p-2 rounded-lg bg-info/20">
                       <Bell size={16} className="text-info" />
                     </div>
                     <div className="flex-1">
@@ -133,14 +133,14 @@ const Header = ({ onMenuClick }) => {
                       <p className="text-xs text-base-content/60">
                         Hausse de demande prévue pour les accessoires
                       </p>
-                      <p className="text-xs text-base-content/50 mt-1">
+                      <p className="mt-1 text-xs text-base-content/50">
                         Il y a 1j
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="divider my-2"></div>
-                <button className="btn btn-sm btn-ghost w-full">
+                <div className="my-2 divider"></div>
+                <button className="w-full btn btn-sm btn-ghost">
                   Voir toutes les notifications
                 </button>
               </div>
@@ -151,11 +151,11 @@ const Header = ({ onMenuClick }) => {
           <div className="dropdown dropdown-end">
             <label
               tabIndex={0}
-              className="btn btn-ghost flex items-center gap-2 px-2 rounded-xl hover:bg-base-200"
+              className="flex items-center gap-2 px-2 btn btn-ghost rounded-xl hover:bg-base-200"
             >
               {/* Avatar : photo Google ou initiales */}
               <div className="avatar placeholder">
-                <div className="w-9 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 bg-primary text-primary-content">
+                <div className="rounded-full w-9 ring ring-primary ring-offset-base-100 ring-offset-1 bg-primary text-primary-content">
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
@@ -175,7 +175,7 @@ const Header = ({ onMenuClick }) => {
               </div>
 
               {/* Nom + rôle (masqué sur mobile) */}
-              <div className="hidden md:flex flex-col items-start leading-tight">
+              <div className="flex-col items-start hidden leading-tight md:flex">
                 <span className="text-sm font-semibold">
                   {getUserFullName()}
                 </span>
@@ -195,7 +195,7 @@ const Header = ({ onMenuClick }) => {
             {/* Dropdown menu */}
             <ul
               tabIndex={0}
-              className="mt-3 p-2 shadow-2xl menu menu-compact dropdown-content bg-base-100 rounded-box w-64 border border-base-200"
+              className="w-64 p-2 mt-3 border shadow-2xl menu menu-compact dropdown-content bg-base-100 rounded-box border-base-200"
             >
               {/* Infos utilisateur en haut du menu */}
               <li className="px-3 py-3 mb-1 hover:bg-transparent">
@@ -214,14 +214,14 @@ const Header = ({ onMenuClick }) => {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">
+                    <p className="text-sm font-semibold truncate">
                       {getUserFullName()}
                     </p>
-                    <p className="text-xs text-base-content/50 truncate">
+                    <p className="text-xs truncate text-base-content/50">
                       {user?.email}
                     </p>
                     {getUserRole() && (
-                      <span className="badge badge-primary badge-xs mt-1">
+                      <span className="mt-1 badge badge-primary badge-xs">
                         {getUserRole()}
                       </span>
                     )}
@@ -229,7 +229,7 @@ const Header = ({ onMenuClick }) => {
                 </div>
               </li>
 
-              <div className="divider my-0"></div>
+              <div className="my-0 divider"></div>
 
               <li>
                 <a onClick={() => navigate("/app/settings")} className="gap-3">
@@ -245,13 +245,13 @@ const Header = ({ onMenuClick }) => {
                 </a>
               </li>
 
-              <div className="divider my-0"></div>
+              <div className="my-0 divider"></div>
 
               {/* Bouton Déconnexion */}
               <li>
                 <button
                   onClick={() => logout()}
-                  className="gap-3 text-error hover:bg-error/10 font-medium w-full text-left"
+                  className="w-full gap-3 font-medium text-left text-error hover:bg-error/10"
                 >
                   <LogOut size={16} />
                   Déconnexion

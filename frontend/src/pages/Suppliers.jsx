@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Building2,
   Plus,
@@ -13,12 +13,12 @@ import {
   Star,
   TrendingUp,
   Package,
-  DollarSign
-} from 'lucide-react';
-import { SupplierService } from '../services/suppliersService';
-import SupplierModal from '../components/common/Suppliers/SupplierModal';
-import SupplierDetailsModal from '../components/common/Suppliers/SupplierDetailsModal';
-import toast from 'react-hot-toast';
+  DollarSign,
+} from "lucide-react";
+import { SupplierService } from "../services/suppliersService";
+import SupplierModal from "../components/common/Suppliers/SupplierModal";
+import SupplierDetailsModal from "../components/common/Suppliers/SupplierDetailsModal";
+import toast from "react-hot-toast";
 
 const Suppliers = () => {
   // ==================== STATE ====================
@@ -33,8 +33,8 @@ const Suppliers = () => {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,9 +54,17 @@ const Suppliers = () => {
         setSuppliers([]);
       }
     } catch (err) {
-      console.error('Erreur chargement fournisseurs:', err);
-      setError(err.message || 'Erreur lors du chargement des fournisseurs');
-      toast.error('Erreur lors du chargement des fournisseurs');
+      console.error("Erreur chargement fournisseurs:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement des fournisseurs";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement des fournisseurs",
+      );
+      toast.error("Erreur lors du chargement des fournisseurs");
       setSuppliers([]);
     } finally {
       setLoading(false);
@@ -72,7 +80,7 @@ const Suppliers = () => {
     setRefreshing(true);
     await fetchSuppliers();
     setRefreshing(false);
-    toast.success('Fournisseurs actualisés');
+    toast.success("Fournisseurs actualisés");
   };
 
   // ==================== MODAL HANDLERS ====================
@@ -97,38 +105,43 @@ const Suppliers = () => {
 
   // ==================== DELETE ====================
   const handleDeleteSupplier = async (supplierId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
+    if (
+      !window.confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ?")
+    ) {
       return;
     }
 
     try {
       await SupplierService.deleteSupplier(supplierId);
-      setSuppliers(suppliers.filter(s => s._id !== supplierId));
-      toast.success('Fournisseur supprimé');
+      setSuppliers(suppliers.filter((s) => s._id !== supplierId));
+      toast.success("Fournisseur supprimé");
     } catch (err) {
-      console.error('Erreur suppression:', err);
-      toast.error('Erreur lors de la suppression');
+      console.error("Erreur suppression:", err);
+      toast.error("Erreur lors de la suppression");
     }
   };
 
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (status) => {
     const badges = {
-      active: { class: 'badge-success', text: 'Actif' },
-      inactive: { class: 'badge-ghost', text: 'Inactif' },
-      blacklisted: { class: 'badge-error', text: 'Liste noire' }
+      active: { class: "badge-success", text: "Actif" },
+      inactive: { class: "badge-ghost", text: "Inactif" },
+      blacklisted: { class: "badge-error", text: "Liste noire" },
     };
     return badges[status] || badges.active;
   };
 
   // ==================== FILTERING ====================
-  const filteredSuppliers = suppliers.filter(supplier => {
+  const filteredSuppliers = suppliers.filter((supplier) => {
     const matchSearch =
       supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (supplier.code && supplier.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (supplier.email && supplier.email.toLowerCase().includes(searchQuery.toLowerCase()));
+      (supplier.code &&
+        supplier.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (supplier.email &&
+        supplier.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchStatus = filterStatus === 'all' || supplier.status === filterStatus;
+    const matchStatus =
+      filterStatus === "all" || supplier.status === filterStatus;
 
     return matchSearch && matchStatus;
   });
@@ -136,15 +149,23 @@ const Suppliers = () => {
   // ==================== STATS ====================
   const calculateStats = () => {
     const totalSuppliers = suppliers.length;
-    const activeSuppliers = suppliers.filter(s => s.status === 'active').length;
-    const totalSpent = suppliers.reduce((sum, s) => sum + (s.stats?.totalSpent || 0), 0);
-    const totalOrders = suppliers.reduce((sum, s) => sum + (s.stats?.totalOrders || 0), 0);
+    const activeSuppliers = suppliers.filter(
+      (s) => s.status === "active",
+    ).length;
+    const totalSpent = suppliers.reduce(
+      (sum, s) => sum + (s.stats?.totalSpent || 0),
+      0,
+    );
+    const totalOrders = suppliers.reduce(
+      (sum, s) => sum + (s.stats?.totalOrders || 0),
+      0,
+    );
 
     return {
       totalSuppliers,
       activeSuppliers,
       totalSpent,
-      totalOrders
+      totalOrders,
     };
   };
 
@@ -153,7 +174,7 @@ const Suppliers = () => {
   // ==================== PAGINATION ====================
   const paginatedSuppliers = filteredSuppliers.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
@@ -170,7 +191,9 @@ const Suppliers = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement des fournisseurs...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement des fournisseurs...
+          </p>
         </div>
       </div>
     );
@@ -217,7 +240,7 @@ const Suppliers = () => {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
           <button className="btn btn-primary gap-2" onClick={handleAddSupplier}>
@@ -253,7 +276,9 @@ const Suppliers = () => {
           </div>
           <div className="stat-title">Total Dépensé</div>
           <div className="stat-value text-info text-2xl">
-            {stats.totalSpent.toLocaleString('fr-FR', { maximumFractionDigits: 0 })}
+            {stats.totalSpent.toLocaleString("fr-FR", {
+              maximumFractionDigits: 0,
+            })}
           </div>
           <div className="stat-desc">FCFA</div>
         </div>
@@ -289,7 +314,7 @@ const Suppliers = () => {
                   {searchQuery && (
                     <button
                       className="btn btn-ghost btn-square"
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => setSearchQuery("")}
                     >
                       <X size={20} />
                     </button>
@@ -351,7 +376,9 @@ const Suppliers = () => {
                         <div className="text-sm">
                           {supplier.email && <div>{supplier.email}</div>}
                           {supplier.phone && (
-                            <div className="text-base-content/60">{supplier.phone}</div>
+                            <div className="text-base-content/60">
+                              {supplier.phone}
+                            </div>
                           )}
                         </div>
                       </td>
@@ -364,12 +391,18 @@ const Suppliers = () => {
                         {supplier.stats?.totalOrders || 0}
                       </td>
                       <td className="font-semibold">
-                        {(supplier.stats?.totalSpent || 0).toLocaleString('fr-FR')} FCFA
+                        {(supplier.stats?.totalSpent || 0).toLocaleString(
+                          "fr-FR",
+                        )}{" "}
+                        FCFA
                       </td>
                       <td>
                         {supplier.rating?.overall > 0 ? (
                           <div className="flex items-center gap-1">
-                            <Star size={14} className="fill-warning text-warning" />
+                            <Star
+                              size={14}
+                              className="fill-warning text-warning"
+                            />
                             <span className="font-semibold">
                               {supplier.rating.overall.toFixed(1)}
                             </span>
@@ -412,14 +445,20 @@ const Suppliers = () => {
             {/* Empty State */}
             {paginatedSuppliers.length === 0 && (
               <div className="text-center py-12">
-                <Building2 size={48} className="mx-auto text-base-content/20 mb-4" />
+                <Building2
+                  size={48}
+                  className="mx-auto text-base-content/20 mb-4"
+                />
                 <p className="text-base-content/60">
                   {suppliers.length === 0
-                    ? 'Aucun fournisseur'
-                    : 'Aucun fournisseur trouvé avec ces filtres'}
+                    ? "Aucun fournisseur"
+                    : "Aucun fournisseur trouvé avec ces filtres"}
                 </p>
                 {suppliers.length === 0 && (
-                  <button className="btn btn-primary mt-4 gap-2" onClick={handleAddSupplier}>
+                  <button
+                    className="btn btn-primary mt-4 gap-2"
+                    onClick={handleAddSupplier}
+                  >
                     <Plus size={20} />
                     Ajouter votre premier fournisseur
                   </button>
@@ -432,9 +471,9 @@ const Suppliers = () => {
           {filteredSuppliers.length > itemsPerPage && (
             <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
               <div className="text-sm text-base-content/60">
-                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
-                {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)} sur{' '}
-                {filteredSuppliers.length} fournisseurs
+                Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
+                {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)}{" "}
+                sur {filteredSuppliers.length} fournisseurs
               </div>
 
               <div className="btn-group">
@@ -456,13 +495,16 @@ const Suppliers = () => {
                     return (
                       <button
                         key={page}
-                        className={`btn btn-sm ${currentPage === page ? 'btn-active' : ''}`}
+                        className={`btn btn-sm ${currentPage === page ? "btn-active" : ""}`}
                         onClick={() => setCurrentPage(page)}
                       >
                         {page}
                       </button>
                     );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
                     return (
                       <button key={page} className="btn btn-sm btn-disabled">
                         ...

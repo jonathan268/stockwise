@@ -1,52 +1,59 @@
-import React from 'react';
-import Modal from '../Modal';
-import { 
-  Package, 
-  Tag, 
-  DollarSign, 
-  TrendingUp, 
+import React from "react";
+import Modal from "../Modal";
+import {
+  Package,
+  Tag,
+  DollarSign,
+  TrendingUp,
   Calendar,
   MapPin,
   AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+  CheckCircle,
+} from "lucide-react";
 
 const ProductDetailsModal = ({ isOpen, onClose, product }) => {
   if (!product) return null;
 
   const getStatusBadge = () => {
     const stock = product.stock;
-    
+
     if (!stock) {
-      return { class: 'badge-ghost', text: 'Non défini', icon: AlertTriangle };
+      return { class: "badge-ghost", text: "Non défini", icon: AlertTriangle };
     }
 
     const quantity = stock.quantity || 0;
     const minThreshold = stock.minThreshold || 0;
 
     if (quantity === 0) {
-      return { class: 'badge-ghost', text: 'Rupture', icon: AlertTriangle };
+      return { class: "badge-ghost", text: "Rupture", icon: AlertTriangle };
     } else if (quantity <= minThreshold / 2) {
-      return { class: 'badge-error', text: 'Critique', icon: AlertTriangle };
+      return { class: "badge-error", text: "Critique", icon: AlertTriangle };
     } else if (quantity <= minThreshold) {
-      return { class: 'badge-warning', text: 'Stock bas', icon: AlertTriangle };
+      return { class: "badge-warning", text: "Stock bas", icon: AlertTriangle };
     } else {
-      return { class: 'badge-success', text: 'En stock', icon: CheckCircle };
+      return { class: "badge-success", text: "En stock", icon: CheckCircle };
     }
   };
 
   const statusBadge = getStatusBadge();
   const StatusIcon = statusBadge.icon;
 
-  const profitMargin = product.pricing?.cost && product.pricing?.sellingPrice
-    ? (((product.pricing.sellingPrice - product.pricing.cost) / product.pricing.cost) * 100).toFixed(2)
-    : 0;
+  const profitMargin =
+    product.pricing?.cost && product.pricing?.sellingPrice
+      ? (
+          ((product.pricing.sellingPrice - product.pricing.cost) /
+            product.pricing.cost) *
+          100
+        ).toFixed(2)
+      : 0;
 
-  const profit = product.pricing?.sellingPrice && product.pricing?.cost
-    ? (product.pricing.sellingPrice - product.pricing.cost)
-    : 0;
+  const profit =
+    product.pricing?.sellingPrice && product.pricing?.cost
+      ? product.pricing.sellingPrice - product.pricing.cost
+      : 0;
 
-  const totalValue = (product.stock?.quantity || 0) * (product.pricing?.sellingPrice || 0);
+  const totalValue =
+    (product.stock?.quantity || 0) * (product.pricing?.sellingPrice || 0);
 
   return (
     <Modal
@@ -56,14 +63,17 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
       size="lg"
     >
       <div className="space-y-6">
-        
         {/* Header avec image */}
         <div className="flex flex-col md:flex-row gap-6 items-start">
           {/* Image */}
           <div className="avatar placeholder">
             <div className="bg-neutral-focus text-neutral-content rounded-xl w-32 h-32">
               {product.image?.url ? (
-                <img src={product.image.url} alt={product.name} className="object-cover" />
+                <img
+                  src={product.image.url}
+                  alt={product.name}
+                  className="object-cover"
+                />
               ) : (
                 <Package size={48} />
               )}
@@ -73,16 +83,14 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
           {/* Info principale */}
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
-            
+
             <div className="flex flex-wrap gap-2 mb-3">
               <div className={`badge ${statusBadge.class} gap-2`}>
                 <StatusIcon size={14} />
                 {statusBadge.text}
               </div>
               {product.category && (
-                <div className="badge badge-ghost">
-                  {product.category.name}
-                </div>
+                <div className="badge badge-ghost">{product.category.name}</div>
               )}
               {product.metadata?.perishable && (
                 <div className="badge badge-warning">Périssable</div>
@@ -117,7 +125,7 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
             </div>
             <div className="stat-title">Prix de vente</div>
             <div className="stat-value text-success text-2xl">
-              {(product.pricing?.sellingPrice || 0).toLocaleString('fr-FR')}
+              {(product.pricing?.sellingPrice || 0).toLocaleString("fr-FR")}
             </div>
             <div className="stat-desc">FCFA</div>
           </div>
@@ -128,7 +136,7 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
             </div>
             <div className="stat-title">Valeur totale</div>
             <div className="stat-value text-secondary text-2xl">
-              {totalValue.toLocaleString('fr-FR')}
+              {totalValue.toLocaleString("fr-FR")}
             </div>
             <div className="stat-desc">FCFA</div>
           </div>
@@ -136,7 +144,6 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
 
         {/* Informations détaillées */}
         <div className="space-y-4">
-          
           {/* Identification */}
           <div className="card bg-base-200">
             <div className="card-body">
@@ -145,7 +152,7 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
                 <div>
                   <div className="text-sm text-base-content/60">SKU</div>
                   <div className="font-mono font-semibold">
-                    {product.sku || 'Non défini'}
+                    {product.sku || "Non défini"}
                   </div>
                 </div>
                 <div>
@@ -165,33 +172,48 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-base-content/60">Prix d'achat</div>
+                  <div className="text-sm text-base-content/60">
+                    Prix d'achat
+                  </div>
                   <div className="font-semibold text-lg">
-                    {(product.pricing?.cost || 0).toLocaleString('fr-FR')} FCFA
+                    {(product.pricing?.cost || 0).toLocaleString("fr-FR")} FCFA
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-base-content/60">Prix de vente</div>
+                  <div className="text-sm text-base-content/60">
+                    Prix de vente
+                  </div>
                   <div className="font-semibold text-lg text-success">
-                    {(product.pricing?.sellingPrice || 0).toLocaleString('fr-FR')} FCFA
+                    {(product.pricing?.sellingPrice || 0).toLocaleString(
+                      "fr-FR",
+                    )}{" "}
+                    FCFA
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-base-content/60">Marge bénéficiaire</div>
+                  <div className="text-sm text-base-content/60">
+                    Marge bénéficiaire
+                  </div>
                   <div className="font-semibold text-lg text-primary">
                     {profitMargin}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-base-content/60">Bénéfice par unité</div>
+                  <div className="text-sm text-base-content/60">
+                    Bénéfice par unité
+                  </div>
                   <div className="font-semibold text-lg">
-                    {profit.toLocaleString('fr-FR')} FCFA
+                    {profit.toLocaleString("fr-FR")} FCFA
                   </div>
                 </div>
                 {product.pricing?.taxRate > 0 && (
                   <div>
-                    <div className="text-sm text-base-content/60">Taux de taxe</div>
-                    <div className="font-semibold">{product.pricing.taxRate}%</div>
+                    <div className="text-sm text-base-content/60">
+                      Taux de taxe
+                    </div>
+                    <div className="font-semibold">
+                      {product.pricing.taxRate}%
+                    </div>
                   </div>
                 )}
               </div>
@@ -207,19 +229,25 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <div className="text-sm text-base-content/60">Quantité actuelle</div>
+                  <div className="text-sm text-base-content/60">
+                    Quantité actuelle
+                  </div>
                   <div className="font-semibold text-lg">
                     {product.stock?.quantity || 0} {product.unit}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-base-content/60">Seuil minimum</div>
+                  <div className="text-sm text-base-content/60">
+                    Seuil minimum
+                  </div>
                   <div className="font-semibold">
                     {product.stock?.minThreshold || 0} {product.unit}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-base-content/60">Seuil maximum</div>
+                  <div className="text-sm text-base-content/60">
+                    Seuil maximum
+                  </div>
                   <div className="font-semibold">
                     {product.stock?.maxThreshold || 0} {product.unit}
                   </div>
@@ -230,7 +258,11 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
                       <MapPin size={14} />
                       Localisation
                     </div>
-                    <div className="font-semibold">{product.stock.location}</div>
+                    <div className="font-semibold">
+                      {typeof product.stock.location === "object"
+                        ? product.stock.location.name
+                        : product.stock.location}
+                    </div>
                   </div>
                 )}
               </div>
@@ -241,7 +273,9 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
           {(product.metadata?.perishable || product.metadata?.seasonal) && (
             <div className="card bg-base-200">
               <div className="card-body">
-                <h3 className="card-title text-lg">Informations complémentaires</h3>
+                <h3 className="card-title text-lg">
+                  Informations complémentaires
+                </h3>
                 <div className="space-y-2">
                   {product.metadata.perishable && (
                     <div className="flex items-center gap-2">
@@ -276,29 +310,39 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {product.createdAt && (
                     <div>
-                      <div className="text-sm text-base-content/60">Créé le</div>
+                      <div className="text-sm text-base-content/60">
+                        Créé le
+                      </div>
                       <div className="font-semibold">
-                        {new Date(product.createdAt).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(product.createdAt).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </div>
                     </div>
                   )}
                   {product.updatedAt && (
                     <div>
-                      <div className="text-sm text-base-content/60">Dernière modification</div>
+                      <div className="text-sm text-base-content/60">
+                        Dernière modification
+                      </div>
                       <div className="font-semibold">
-                        {new Date(product.updatedAt).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(product.updatedAt).toLocaleDateString(
+                          "fr-FR",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </div>
                     </div>
                   )}
@@ -306,9 +350,7 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
               </div>
             </div>
           )}
-
         </div>
-
       </div>
     </Modal>
   );

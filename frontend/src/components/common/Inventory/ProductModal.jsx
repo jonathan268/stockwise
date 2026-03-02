@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Save, X, AlertCircle, Loader2 } from "lucide-react";
 import Modal from "../Modal";
-import ProductService from "../../../services/productService";
+import ProductService from "../../../services/ProductService";
 import { CategoryService } from "../../../services/categoryService";
 import toast from "react-hot-toast";
 
@@ -80,7 +80,10 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           quantity: product.stock?.quantity || "",
           minThreshold: product.stock?.minThreshold || "",
           maxThreshold: product.stock?.maxThreshold || "",
-          location: product.stock?.location || "Principal",
+          location:
+            typeof product.stock?.location === "object"
+              ? product.stock.location.name
+              : product.stock?.location || "Principal",
         },
         metadata: {
           perishable: product.metadata?.perishable || false,

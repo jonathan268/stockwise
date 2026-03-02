@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardService } from "../services/dashboardService";
-import ProductService from "../services/productService";
+import ProductService from "../services/ProductService";
 import StatCard from "../components/dashboard/StatCard";
+import SubscriptionBadge from "../components/dashboard/SubscriptionBadge";
 import toast from "react-hot-toast";
 
 const Dashboard = () => {
@@ -63,10 +64,20 @@ const Dashboard = () => {
           DashboardService.getAIInsights(),
         ]);
 
+      console.log("DEBUG - Summary Response:", summaryRes);
+
       // Traiter le résumé
       if (summaryRes.status === "fulfilled" && summaryRes.value?.success) {
+        console.log(
+          "DEBUG - Setting stats from summary:",
+          summaryRes.value.data,
+        );
         setStats(summaryRes.value.data || {});
       } else {
+        console.warn(
+          "DEBUG - Summary failed, using fallback. Error:",
+          summaryRes.reason,
+        );
         // Fallback : récupérer les stats basiques
         await fetchBasicStats();
       }
@@ -95,7 +106,15 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error("Erreur chargement dashboard:", err);
-      setError(err.message || "Erreur lors du chargement du dashboard");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement du dashboard";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement du dashboard",
+      );
       toast.error("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
@@ -120,9 +139,16 @@ const Dashboard = () => {
       const totalProducts = products.length;
       const stockValue = products.reduce((sum, p) => {
         const qty = p.stock?.quantity || 0;
-        const price = p.pricing?.sellingPrice || 0;
+        const price = p.pricing?.cost || 0;
         return sum + qty * price;
       }, 0);
+
+      console.log("DEBUG - Fallback Stats:", {
+        totalProducts,
+        stockValue,
+        productsCount: products.length,
+        sampleProduct: products[0],
+      });
 
       const lowStockAlerts = products.filter((p) => {
         const qty = p.stock?.quantity || 0;
@@ -189,19 +215,19 @@ const Dashboard = () => {
 
   // ==================== HANDLERS ====================
   const handleViewProduct = (productId) => {
-    navigate(`/inventory?product=${productId}`);
+    navigate(`/app/inventaire?product=${productId}`);
   };
 
   const handleAddProduct = () => {
-    navigate("/inventory?action=add");
+    navigate("/app/inventaire?action=add");
   };
 
   const handleNewOrder = () => {
-    navigate("/orders?action=add");
+    navigate("/app/commande?action=add");
   };
 
   const handleViewPredictions = () => {
-    navigate("/analytics");
+    navigate("/app/analytics");
   };
 
   // ==================== RENDER LOADING ====================
@@ -209,7 +235,7 @@ const Dashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-primary" />
           <p className="text-lg text-base-content/60">
             Chargement du dashboard...
           </p>
@@ -222,12 +248,12 @@ const Dashboard = () => {
   if (error && stats.totalProducts === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="card bg-base-100 shadow-xl w-full max-w-md">
-          <div className="card-body text-center">
-            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
-            <h2 className="card-title justify-center">Erreur de chargement</h2>
+        <div className="w-full max-w-md shadow-xl card bg-base-100">
+          <div className="text-center card-body">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-error" />
+            <h2 className="justify-center card-title">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
-            <div className="card-actions justify-center mt-4">
+            <div className="justify-center mt-4 card-actions">
               <button className="btn btn-primary" onClick={fetchDashboardData}>
                 <RefreshCw size={20} />
                 Réessayer
@@ -251,7 +277,7 @@ const Dashboard = () => {
     },
     {
       title: "Valeur du Stock",
-      value: `${(stats.stockValue || 0).toLocaleString("fr-FR")} FCFA`,
+      value: `${Math.round(stats.stockValue || 0).toLocaleString("fr-FR")} FCFA`,
       change: stats.trends?.value || "+0%",
       trend: stats.trends?.value?.startsWith("+") ? "up" : "down",
       icon: DollarSign,
@@ -277,17 +303,18 @@ const Dashboard = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="mt-1 text-base-content/60">
             Vue d'ensemble de votre inventaire
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
+          <SubscriptionBadge />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200">
             <Calendar size={20} className="text-base-content/60" />
             <select
               className="select select-ghost select-sm"
@@ -301,7 +328,7 @@ const Dashboard = () => {
             </select>
           </div>
           <button
-            className="btn btn-ghost gap-2"
+            className="gap-2 btn btn-ghost"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -312,22 +339,22 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {displayStats.map((stat, index) => (
           <StatCard key={index} {...stat} loading={loading && refreshing} />
         ))}
       </div>
 
       {/* Alertes et Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Alertes Stock Critique */}
-        <div className="card bg-base-100 shadow-lg lg:col-span-2">
+        <div className="shadow-lg card bg-base-100 lg:col-span-2">
           <div className="card-body">
             <div className="flex items-center justify-between mb-4">
               <h2 className="card-title">Alertes Stock Critique</h2>
               <button
-                className="btn btn-ghost btn-sm gap-2"
-                onClick={() => navigate("/inventory?filter=low_stock")}
+                className="gap-2 btn btn-ghost btn-sm"
+                onClick={() => navigate("/app/inventaire?filter=low_stock")}
               >
                 <Filter size={16} />
                 Voir tout
@@ -356,7 +383,7 @@ const Dashboard = () => {
                         <td>
                           <div className="flex items-center gap-3">
                             <div className="avatar placeholder">
-                              <div className="bg-neutral-focus text-neutral-content rounded w-10">
+                              <div className="w-10 rounded bg-neutral-focus text-neutral-content">
                                 <Box size={18} />
                               </div>
                             </div>
@@ -365,7 +392,7 @@ const Dashboard = () => {
                                 {alert.product?.name || "Produit"}
                               </span>
                               {alert.product?.sku && (
-                                <div className="text-xs text-base-content/60 font-mono">
+                                <div className="font-mono text-xs text-base-content/60">
                                   {alert.product.sku}
                                 </div>
                               )}
@@ -413,7 +440,7 @@ const Dashboard = () => {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-8 text-base-content/60">
+              <div className="py-8 text-center text-base-content/60">
                 <AlertTriangle size={48} className="mx-auto mb-4 opacity-20" />
                 <p>Aucune alerte de stock pour le moment</p>
               </div>
@@ -422,26 +449,26 @@ const Dashboard = () => {
         </div>
 
         {/* Actions Rapides */}
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
-            <h2 className="card-title mb-4">Actions Rapides</h2>
+            <h2 className="mb-4 card-title">Actions Rapides</h2>
             <div className="space-y-3">
               <button
-                className="btn btn-primary w-full justify-start gap-3"
+                className="justify-start w-full gap-3 btn btn-primary"
                 onClick={handleAddProduct}
               >
                 <Plus size={20} />
                 Ajouter Produit
               </button>
               <button
-                className="btn btn-outline w-full justify-start gap-3"
+                className="justify-start w-full gap-3 btn btn-outline"
                 onClick={handleNewOrder}
               >
                 <ShoppingCart size={20} />
                 Nouvelle Commande
               </button>
               <button
-                className="btn btn-outline w-full justify-start gap-3"
+                className="justify-start w-full gap-3 btn btn-outline"
                 onClick={handleViewPredictions}
               >
                 <Brain size={20} />
@@ -453,7 +480,7 @@ const Dashboard = () => {
 
             {/* Suggestions IA */}
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-base-content/70">
+              <h3 className="text-sm font-semibold text-base-content/70">
                 Suggestions IA
               </h3>
 
@@ -476,7 +503,7 @@ const Dashboard = () => {
                 ))
               ) : (
                 <>
-                  <div className="alert alert-info shadow-lg">
+                  <div className="shadow-lg alert alert-info">
                     <div>
                       <span className="text-sm">
                         📊 Analysez vos tendances avec l'IA pour des
@@ -484,7 +511,7 @@ const Dashboard = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="alert alert-success shadow-lg">
+                  <div className="shadow-lg alert alert-success">
                     <div>
                       <span className="text-sm">
                         ✨ Activez les prédictions IA pour optimiser votre stock
@@ -499,11 +526,11 @@ const Dashboard = () => {
       </div>
 
       {/* Activité Récente et Top Produits */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Activité Récente */}
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
-            <h2 className="card-title mb-4">Activité Récente</h2>
+            <h2 className="mb-4 card-title">Activité Récente</h2>
 
             {loading && refreshing ? (
               <div className="flex justify-center py-8">
@@ -514,7 +541,7 @@ const Dashboard = () => {
                 {recentActivity.map((activity) => (
                   <div
                     key={activity._id}
-                    className="flex items-start gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors"
+                    className="flex items-start gap-4 p-3 transition-colors rounded-lg hover:bg-base-200"
                   >
                     <div
                       className={`p-2 rounded-lg ${
@@ -539,7 +566,7 @@ const Dashboard = () => {
                       <p className="font-medium">
                         {activity.action || "Action"}
                       </p>
-                      <p className="text-sm text-base-content/70 truncate">
+                      <p className="text-sm truncate text-base-content/70">
                         {activity.product?.name ||
                           activity.description ||
                           "Produit"}
@@ -563,7 +590,7 @@ const Dashboard = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-base-content/60">
+              <div className="py-8 text-center text-base-content/60">
                 <Activity size={48} className="mx-auto mb-4 opacity-20" />
                 <p>Aucune activité récente</p>
               </div>
@@ -572,9 +599,9 @@ const Dashboard = () => {
         </div>
 
         {/* Produits les Plus Actifs */}
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
-            <h2 className="card-title mb-4">Produits les Plus Actifs</h2>
+            <h2 className="mb-4 card-title">Produits les Plus Actifs</h2>
 
             {loading && refreshing ? (
               <div className="flex justify-center py-8">
@@ -602,7 +629,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <progress
-                      className="progress progress-primary w-full"
+                      className="w-full progress progress-primary"
                       value={product.movement || 0}
                       max="100"
                     ></progress>
@@ -610,7 +637,7 @@ const Dashboard = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-base-content/60">
+              <div className="py-8 text-center text-base-content/60">
                 <Package size={48} className="mx-auto mb-4 opacity-20" />
                 <p>Aucun produit actif</p>
               </div>

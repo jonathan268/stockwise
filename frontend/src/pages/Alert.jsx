@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   Bell,
@@ -14,11 +14,11 @@ import {
   RefreshCw,
   Settings,
   Trash2,
-  Eye
-} from 'lucide-react';
-import { AlertService } from '../services/alertService';
-import AlertSettingsModal from '../components/common/Alerts/alertSettingModal';
-import toast from 'react-hot-toast';
+  Eye,
+} from "lucide-react";
+import { AlertService } from "../services/alertService";
+import AlertSettingsModal from "../components/common/Alerts/alertSettingModal";
+import toast from "react-hot-toast";
 
 const Alerts = () => {
   // ==================== STATE ====================
@@ -27,8 +27,8 @@ const Alerts = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [selectedTab, setSelectedTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Stats
@@ -36,7 +36,7 @@ const Alerts = () => {
     total: 0,
     unread: 0,
     bySeverity: { low: 0, medium: 0, high: 0, critical: 0 },
-    byType: {}
+    byType: {},
   });
 
   // ==================== FETCH ALERTS ====================
@@ -47,7 +47,7 @@ const Alerts = () => {
 
       const [alertsRes, countsRes] = await Promise.all([
         AlertService.getAllAlerts(),
-        AlertService.getAlertsCount()
+        AlertService.getAlertsCount(),
       ]);
 
       if (alertsRes.success && alertsRes.data) {
@@ -59,11 +59,18 @@ const Alerts = () => {
       if (countsRes.success && countsRes.data) {
         setStats(countsRes.data);
       }
-
     } catch (err) {
-      console.error('Erreur chargement alertes:', err);
-      setError(err.message || 'Erreur lors du chargement des alertes');
-      toast.error('Erreur lors du chargement des alertes');
+      console.error("Erreur chargement alertes:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement des alertes";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement des alertes",
+      );
+      toast.error("Erreur lors du chargement des alertes");
       setAlerts([]);
     } finally {
       setLoading(false);
@@ -79,22 +86,24 @@ const Alerts = () => {
     setRefreshing(true);
     await fetchAlerts();
     setRefreshing(false);
-    toast.success('Alertes actualisées');
+    toast.success("Alertes actualisées");
   };
 
   // ==================== MARK AS READ ====================
   const handleMarkAsRead = async (alertId) => {
     try {
       await AlertService.markAsRead(alertId);
-      
-      setAlerts(alerts.map(alert =>
-        alert._id === alertId ? { ...alert, isRead: true } : alert
-      ));
 
-      toast.success('Alerte marquée comme lue');
+      setAlerts(
+        alerts.map((alert) =>
+          alert._id === alertId ? { ...alert, isRead: true } : alert,
+        ),
+      );
+
+      toast.success("Alerte marquée comme lue");
     } catch (err) {
-      console.error('Erreur marquage alerte:', err);
-      toast.error('Erreur lors du marquage');
+      console.error("Erreur marquage alerte:", err);
+      toast.error("Erreur lors du marquage");
     }
   };
 
@@ -102,14 +111,14 @@ const Alerts = () => {
   const handleMarkAllAsRead = async () => {
     try {
       await AlertService.markAllAsRead();
-      
-      setAlerts(alerts.map(alert => ({ ...alert, isRead: true })));
-      
-      toast.success('Toutes les alertes ont été marquées comme lues');
+
+      setAlerts(alerts.map((alert) => ({ ...alert, isRead: true })));
+
+      toast.success("Toutes les alertes ont été marquées comme lues");
       fetchAlerts(); // Refresh stats
     } catch (err) {
-      console.error('Erreur marquage toutes:', err);
-      toast.error('Erreur lors du marquage');
+      console.error("Erreur marquage toutes:", err);
+      toast.error("Erreur lors du marquage");
     }
   };
 
@@ -117,50 +126,54 @@ const Alerts = () => {
   const handleDismissAlert = async (alertId) => {
     try {
       await AlertService.dismissAlert(alertId);
-      
-      setAlerts(alerts.filter(alert => alert._id !== alertId));
-      
-      toast.success('Alerte ignorée');
+
+      setAlerts(alerts.filter((alert) => alert._id !== alertId));
+
+      toast.success("Alerte ignorée");
       fetchAlerts(); // Refresh stats
     } catch (err) {
-      console.error('Erreur suppression alerte:', err);
-      toast.error('Erreur lors de la suppression');
+      console.error("Erreur suppression alerte:", err);
+      toast.error("Erreur lors de la suppression");
     }
   };
 
   // ==================== DELETE ALERT ====================
   const handleDeleteAlert = async (alertId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette alerte ?")) {
       return;
     }
 
     try {
       await AlertService.deleteAlert(alertId);
-      
-      setAlerts(alerts.filter(alert => alert._id !== alertId));
-      
-      toast.success('Alerte supprimée');
+
+      setAlerts(alerts.filter((alert) => alert._id !== alertId));
+
+      toast.success("Alerte supprimée");
       fetchAlerts(); // Refresh stats
     } catch (err) {
-      console.error('Erreur suppression alerte:', err);
-      toast.error('Erreur lors de la suppression');
+      console.error("Erreur suppression alerte:", err);
+      toast.error("Erreur lors de la suppression");
     }
   };
 
   // ==================== CLEAR ALL ====================
   const handleClearAll = async () => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer toutes les alertes lues ?')) {
+    if (
+      !window.confirm(
+        "Êtes-vous sûr de vouloir supprimer toutes les alertes lues ?",
+      )
+    ) {
       return;
     }
 
     try {
       await AlertService.clearAllAlerts();
-      
-      toast.success('Alertes nettoyées');
+
+      toast.success("Alertes nettoyées");
       fetchAlerts();
     } catch (err) {
-      console.error('Erreur nettoyage:', err);
-      toast.error('Erreur lors du nettoyage');
+      console.error("Erreur nettoyage:", err);
+      toast.error("Erreur lors du nettoyage");
     }
   };
 
@@ -179,49 +192,49 @@ const Alerts = () => {
       payment_due: AlertCircle,
       supplier_issue: AlertTriangle,
       system: Bell,
-      ai_insight: Bell
+      ai_insight: Bell,
     };
     return icons[type] || Bell;
   };
 
   const getAlertColor = (severity) => {
     const colors = {
-      low: 'bg-info/10 border-info/20',
-      medium: 'bg-warning/10 border-warning/20',
-      high: 'bg-warning/10 border-warning/20',
-      critical: 'bg-error/10 border-error/20'
+      low: "bg-info/10 border-info/20",
+      medium: "bg-warning/10 border-warning/20",
+      high: "bg-warning/10 border-warning/20",
+      critical: "bg-error/10 border-error/20",
     };
     return colors[severity] || colors.medium;
   };
 
   const getAlertIconColor = (severity) => {
     const colors = {
-      low: 'text-info',
-      medium: 'text-warning',
-      high: 'text-warning',
-      critical: 'text-error'
+      low: "text-info",
+      medium: "text-warning",
+      high: "text-warning",
+      critical: "text-error",
     };
     return colors[severity] || colors.medium;
   };
 
   const getSeverityBadge = (severity) => {
     const badges = {
-      low: { class: 'badge-info', text: 'Basse' },
-      medium: { class: 'badge-warning', text: 'Moyenne' },
-      high: { class: 'badge-warning', text: 'Haute' },
-      critical: { class: 'badge-error', text: 'Critique' }
+      low: { class: "badge-info", text: "Basse" },
+      medium: { class: "badge-warning", text: "Moyenne" },
+      high: { class: "badge-warning", text: "Haute" },
+      critical: { class: "badge-error", text: "Critique" },
     };
     return badges[severity] || badges.medium;
   };
 
   // ==================== FILTERING ====================
-  const filteredAlerts = alerts.filter(alert => {
+  const filteredAlerts = alerts.filter((alert) => {
     // Tab filter
     const matchTab =
-      selectedTab === 'all' ||
-      (selectedTab === 'unread' && !alert.isRead) ||
-      (selectedTab === 'critical' && alert.severity === 'critical') ||
-      (selectedTab === 'read' && alert.isRead);
+      selectedTab === "all" ||
+      (selectedTab === "unread" && !alert.isRead) ||
+      (selectedTab === "critical" && alert.severity === "critical") ||
+      (selectedTab === "read" && alert.isRead);
 
     // Search filter
     const matchSearch =
@@ -238,7 +251,9 @@ const Alerts = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement des alertes...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement des alertes...
+          </p>
         </div>
       </div>
     );
@@ -285,7 +300,7 @@ const Alerts = () => {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
           <button
@@ -323,7 +338,9 @@ const Alerts = () => {
             <AlertTriangle size={32} />
           </div>
           <div className="stat-title">Critiques</div>
-          <div className="stat-value text-error">{stats.bySeverity?.critical || 0}</div>
+          <div className="stat-value text-error">
+            {stats.bySeverity?.critical || 0}
+          </div>
           <div className="stat-desc">Action immédiate requise</div>
         </div>
 
@@ -332,7 +349,9 @@ const Alerts = () => {
             <CheckCircle size={32} />
           </div>
           <div className="stat-title">Lues</div>
-          <div className="stat-value text-success">{stats.total - stats.unread}</div>
+          <div className="stat-value text-success">
+            {stats.total - stats.unread}
+          </div>
           <div className="stat-desc">Traitées</div>
         </div>
       </div>
@@ -344,26 +363,26 @@ const Alerts = () => {
             {/* Tabs */}
             <div className="tabs tabs-boxed">
               <button
-                className={`tab ${selectedTab === 'all' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedTab('all')}
+                className={`tab ${selectedTab === "all" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("all")}
               >
                 Toutes ({stats.total})
               </button>
               <button
-                className={`tab ${selectedTab === 'unread' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedTab('unread')}
+                className={`tab ${selectedTab === "unread" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("unread")}
               >
                 Non lues ({stats.unread})
               </button>
               <button
-                className={`tab ${selectedTab === 'critical' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedTab('critical')}
+                className={`tab ${selectedTab === "critical" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("critical")}
               >
                 Critiques ({stats.bySeverity?.critical || 0})
               </button>
               <button
-                className={`tab ${selectedTab === 'read' ? 'tab-active' : ''}`}
-                onClick={() => setSelectedTab('read')}
+                className={`tab ${selectedTab === "read" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("read")}
               >
                 Lues
               </button>
@@ -385,7 +404,7 @@ const Alerts = () => {
                 {searchQuery && (
                   <button
                     className="btn btn-ghost btn-square"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => setSearchQuery("")}
                   >
                     <X size={20} />
                   </button>
@@ -406,7 +425,7 @@ const Alerts = () => {
             <div
               key={alert._id}
               className={`card ${getAlertColor(alert.severity)} border shadow-lg hover:shadow-xl transition-shadow ${
-                !alert.isRead ? 'ring-2 ring-primary ring-offset-2' : ''
+                !alert.isRead ? "ring-2 ring-primary ring-offset-2" : ""
               }`}
             >
               <div className="card-body">
@@ -414,14 +433,18 @@ const Alerts = () => {
                   {/* Icon */}
                   <div
                     className={`p-3 rounded-lg ${
-                      alert.severity === 'critical'
-                        ? 'bg-error/20'
-                        : alert.severity === 'high' || alert.severity === 'medium'
-                        ? 'bg-warning/20'
-                        : 'bg-info/20'
+                      alert.severity === "critical"
+                        ? "bg-error/20"
+                        : alert.severity === "high" ||
+                            alert.severity === "medium"
+                          ? "bg-warning/20"
+                          : "bg-info/20"
                     }`}
                   >
-                    <Icon className={getAlertIconColor(alert.severity)} size={20} />
+                    <Icon
+                      className={getAlertIconColor(alert.severity)}
+                      size={20}
+                    />
                   </div>
 
                   {/* Content */}
@@ -431,21 +454,30 @@ const Alerts = () => {
                         <h3 className="font-bold text-lg flex items-center gap-2">
                           {alert.title}
                           {!alert.isRead && (
-                            <span className="badge badge-primary badge-sm">Nouveau</span>
+                            <span className="badge badge-primary badge-sm">
+                              Nouveau
+                            </span>
                           )}
                         </h3>
-                        <p className="text-base-content/70 mt-1">{alert.message}</p>
+                        <p className="text-base-content/70 mt-1">
+                          {alert.message}
+                        </p>
 
                         <div className="flex flex-wrap items-center gap-4 mt-3">
                           {alert.relatedTo?.name && (
                             <div className="flex items-center gap-2">
-                              <Package size={16} className="text-base-content/60" />
-                              <span className="text-sm font-semibold">{alert.relatedTo.name}</span>
+                              <Package
+                                size={16}
+                                className="text-base-content/60"
+                              />
+                              <span className="text-sm font-semibold">
+                                {alert.relatedTo.name}
+                              </span>
                             </div>
                           )}
                           <div className="flex items-center gap-1 text-sm text-base-content/60">
                             <Clock size={14} />
-                            {new Date(alert.createdAt).toLocaleString('fr-FR')}
+                            {new Date(alert.createdAt).toLocaleString("fr-FR")}
                           </div>
                         </div>
                       </div>
@@ -498,13 +530,13 @@ const Alerts = () => {
               <CheckCircle size={48} className="mx-auto text-success mb-4" />
               <h3 className="text-xl font-bold">Aucune alerte</h3>
               <p className="text-base-content/60">
-                {selectedTab === 'all'
-                  ? 'Aucune alerte trouvée'
-                  : selectedTab === 'unread'
-                  ? 'Aucune alerte non lue'
-                  : selectedTab === 'critical'
-                  ? 'Aucune alerte critique'
-                  : 'Aucune alerte lue'}
+                {selectedTab === "all"
+                  ? "Aucune alerte trouvée"
+                  : selectedTab === "unread"
+                    ? "Aucune alerte non lue"
+                    : selectedTab === "critical"
+                      ? "Aucune alerte critique"
+                      : "Aucune alerte lue"}
               </p>
             </div>
           </div>
@@ -524,7 +556,9 @@ const Alerts = () => {
                 <CheckCircle size={20} />
                 <div className="text-left">
                   <div className="font-semibold">Tout marquer comme lu</div>
-                  <div className="text-xs opacity-70">{stats.unread} alertes</div>
+                  <div className="text-xs opacity-70">
+                    {stats.unread} alertes
+                  </div>
                 </div>
               </button>
 
@@ -546,7 +580,9 @@ const Alerts = () => {
                 <Settings size={20} />
                 <div className="text-left">
                   <div className="font-semibold">Configurer</div>
-                  <div className="text-xs opacity-70">Paramètres notifications</div>
+                  <div className="text-xs opacity-70">
+                    Paramètres notifications
+                  </div>
                 </div>
               </button>
             </div>
@@ -559,7 +595,7 @@ const Alerts = () => {
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
         onSuccess={() => {
-          toast.success('Paramètres enregistrés');
+          toast.success("Paramètres enregistrés");
           fetchAlerts();
         }}
       />

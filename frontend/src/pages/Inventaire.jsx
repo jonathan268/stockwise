@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Package,
   Search,
@@ -16,7 +17,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import ProductService from "../services/productService";
+import ProductService from "../services/ProductService";
 import ProductModal from "../components/common/Inventory/ProductModal";
 import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
 import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
@@ -41,6 +42,10 @@ const Inventory = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // ==================== QUERY PARAMS ====================
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedParams = useRef(false);
 
   // ==================== FETCH PRODUCTS ====================
   const fetchProducts = async () => {
@@ -76,7 +81,15 @@ const Inventory = () => {
       setProducts(validProducts);
     } catch (err) {
       console.error("Erreur chargement produits:", err);
-      setError(err.message || "Erreur lors du chargement des produits");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement des produits";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement des produits",
+      );
       toast.error("Erreur lors du chargement des produits");
       setProducts([]);
     } finally {
@@ -88,6 +101,36 @@ const Inventory = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Handle URL query parameters on mount
+  useEffect(() => {
+    if (hasProcessedParams.current) return;
+
+    const action = searchParams.get("action");
+    const productId = searchParams.get("product");
+    const filter = searchParams.get("filter");
+
+    let processedAny = false;
+
+    if (action === "add") {
+      handleAddProduct();
+      processedAny = true;
+    } else if (productId && products.length > 0) {
+      const product = products.find((p) => p._id === productId);
+      if (product) {
+        handleViewDetails(product);
+        processedAny = true;
+      }
+    } else if (filter === "low_stock") {
+      setFilterStatus("low_stock");
+      processedAny = true;
+    }
+
+    if (processedAny) {
+      hasProcessedParams.current = true;
+      setSearchParams({});
+    }
+  }, [searchParams, products, setSearchParams]);
 
   // ==================== REFRESH ====================
   const handleRefresh = async () => {

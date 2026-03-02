@@ -57,10 +57,22 @@ class ProductController {
         Product.countDocuments(query),
       ]);
 
+      // Récupérer les données de stock pour chaque produit
+      const productsWithStock = await Promise.all(
+        products.map(async (product) => {
+          const stock = await Stock.findOne({
+            organization: organizationId,
+            product: product._id,
+          });
+          product.stock = stock;
+          return product;
+        }),
+      );
+
       return successResponse(
         res,
         {
-          products,
+          products: productsWithStock,
           pagination: {
             total,
             page: parseInt(page),
@@ -90,18 +102,16 @@ class ProductController {
         .populate("createdBy", "firstName lastName")
         .populate("updatedBy", "firstName lastName");
 
-      // Récupérer les données stock séparément
-      if (product) {
-        const stock = await Stock.findOne({
-          organization: organizationId,
-          product: product._id,
-        });
-        product.stock = stock;
-      }
-
       if (!product) {
         throw new AppError("Produit introuvable", 404);
       }
+
+      // Récupérer les données stock séparément
+      const stock = await Stock.findOne({
+        organization: organizationId,
+        product: product._id,
+      });
+      product.stock = stock;
 
       return successResponse(res, product, "Produit récupéré avec succès");
     } catch (error) {
@@ -150,11 +160,53 @@ class ProductController {
 
       const product = await Product.create(productData);
 
-      // Populer pour retour
-      await product.populate("category");
-      await product.populate("supplier");
+      // Créer le document Stock associé
+      let createdStock = null;
+      if (req.body.stock) {
+        const stockData = {
+          organization: organizationId,
+          product: product._id,
+          quantity: parseFloat(req.body.stock.quantity) || 0,
+          minThreshold: parseFloat(req.body.stock.minThreshold) || 0,
+          maxThreshold: parseFloat(req.body.stock.maxThreshold) || 0,
+          location: {
+            name: req.body.stock.location || "Principal",
+            type: "warehouse",
+          },
+        };
 
-      return successResponse(res, product, "Produit créé avec succès", 201);
+        createdStock = await Stock.create(stockData);
+      } else {
+        // Créer un document Stock vide par défaut
+        const stockData = {
+          organization: organizationId,
+          product: product._id,
+          quantity: 0,
+          minThreshold: 0,
+          maxThreshold: 0,
+          location: {
+            name: "Principal",
+            type: "warehouse",
+          },
+        };
+
+        createdStock = await Stock.create(stockData);
+      }
+
+      // Récupérer le produit avec populate et ajouter le stock
+      const productWithStock = await Product.findById(product._id)
+        .populate("category")
+        .populate("supplier");
+
+      // Attacher le stock manuellement
+      productWithStock.stock = createdStock;
+
+      return successResponse(
+        res,
+        productWithStock,
+        "Produit créé avec succès",
+        201,
+      );
     } catch (error) {
       if (error.code === 11000) {
         return next(new AppError("Un produit avec ce SKU existe déjà", 400));
@@ -194,16 +246,84 @@ class ProductController {
         }
       }
 
-      // Update
-      Object.assign(product, req.body);
+      // Extraire les données de stock pour traitement séparé
+      const stockData = req.body.stock;
+      const productDataToUpdate = { ...req.body };
+      delete productDataToUpdate.stock;
+
+      // Update du produit
+      Object.assign(product, productDataToUpdate);
       product.updatedBy = userId;
       await product.save();
 
-      // Populer pour retour
-      await product.populate("category");
-      await product.populate("supplier");
+      // Mettre à jour le Stock si présent
+      let updatedStock = null;
+      if (stockData) {
+        let stock = await Stock.findOne({
+          organization: organizationId,
+          product: id,
+        });
 
-      return successResponse(res, product, "Produit mis à jour avec succès");
+        if (stock) {
+          // Mise à jour du stock existant
+          stock.quantity =
+            stockData.quantity !== undefined
+              ? parseFloat(stockData.quantity)
+              : stock.quantity;
+          stock.minThreshold =
+            stockData.minThreshold !== undefined
+              ? parseFloat(stockData.minThreshold)
+              : stock.minThreshold;
+          stock.maxThreshold =
+            stockData.maxThreshold !== undefined
+              ? parseFloat(stockData.maxThreshold)
+              : stock.maxThreshold;
+
+          if (stockData.location) {
+            stock.location = {
+              name: stockData.location || stock.location.name,
+              type: stock.location.type || "warehouse",
+            };
+          }
+
+          updatedStock = await stock.save();
+        } else {
+          // Créer le stock s'il n'existe pas
+          const newStockData = {
+            organization: organizationId,
+            product: id,
+            quantity: parseFloat(stockData.quantity) || 0,
+            minThreshold: parseFloat(stockData.minThreshold) || 0,
+            maxThreshold: parseFloat(stockData.maxThreshold) || 0,
+            location: {
+              name: stockData.location || "Principal",
+              type: "warehouse",
+            },
+          };
+
+          updatedStock = await Stock.create(newStockData);
+        }
+      } else {
+        // Si pas de données de stock, récupérer le stock existant
+        updatedStock = await Stock.findOne({
+          organization: organizationId,
+          product: id,
+        });
+      }
+
+      // Récupérer le produit avec populate et ajouter le stock
+      const productWithStock = await Product.findById(id)
+        .populate("category")
+        .populate("supplier");
+
+      // Attacher le stock manuellement
+      productWithStock.stock = updatedStock;
+
+      return successResponse(
+        res,
+        productWithStock,
+        "Produit mis à jour avec succès",
+      );
     } catch (error) {
       if (error.code === 11000) {
         return next(new AppError("Un produit avec ce SKU existe déjà", 400));

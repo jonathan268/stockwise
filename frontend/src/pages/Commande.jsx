@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Package,
   Plus,
@@ -39,6 +40,10 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // ==================== QUERY PARAMS ====================
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasProcessedParams = useRef(false);
+
   // ==================== FETCH ORDERS ====================
   const fetchOrders = async () => {
     try {
@@ -54,7 +59,15 @@ const Orders = () => {
       }
     } catch (err) {
       console.error("Erreur chargement commandes:", err);
-      setError(err.message || "Erreur lors du chargement des commandes");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Erreur lors du chargement des commandes";
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erreur lors du chargement des commandes",
+      );
       toast.error("Erreur lors du chargement des commandes");
       setOrders([]);
     } finally {
@@ -65,6 +78,19 @@ const Orders = () => {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  // Handle URL query parameters on mount
+  useEffect(() => {
+    if (hasProcessedParams.current) return;
+
+    const action = searchParams.get("action");
+
+    if (action === "add") {
+      handleAddOrder();
+      hasProcessedParams.current = true;
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // ==================== REFRESH ====================
   const handleRefresh = async () => {
@@ -375,8 +401,7 @@ const Orders = () => {
                         </div>
                       </td>
                       <td className="font-semibold">
-                        {(order.totalAmount || 0).toLocaleString("fr-FR")}{" "}
-                        FCFA
+                        {(order.totalAmount || 0).toLocaleString("fr-FR")} FCFA
                       </td>
                       <td className="text-sm text-base-content/60">
                         {order.createdAt
