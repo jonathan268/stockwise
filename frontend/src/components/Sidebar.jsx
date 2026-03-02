@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Clock,
 } from "lucide-react";
+import { useAuthContext } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
@@ -23,9 +24,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
     { path: "/app/alerts", icon: AlertTriangle, label: "Alertes" },
     { path: "/app/analytics", icon: Activity, label: "Analytiques IA" },
     { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
-    { path: "/app/history", icon: Clock, label: "Historique" },
   ];
   const isActive = (path) => location.pathname === path;
+  const {  logout } = useAuthContext();
 
   return (
     <>
@@ -103,7 +104,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Footer */}
         <div className="p-4 border-t border-base-300 space-y-2">
           <Link
-            to="/settings"
+            to="/app/settings"
             className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all
             ${
@@ -120,6 +121,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </Link>
 
           <button
+           onClick={() => logout()}
             className={`
             flex items-center gap-3 px-4 py-3 rounded-lg transition-all w-full
             text-error hover:bg-error/10
@@ -137,3 +139,4 @@ const Sidebar = ({ isOpen, onToggle }) => {
 };
 
 export default Sidebar;
+

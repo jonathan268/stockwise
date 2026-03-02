@@ -324,7 +324,7 @@ orderSchema.virtual("calculatedPaymentStatus").get(function () {
 });
 
 // Hook: Générer orderNumber avant sauvegarde
-orderSchema.pre("save", async function (next) {
+orderSchema.pre("save", async function () {
   if (this.isNew && !this.orderNumber) {
     const prefix = this.type === "purchase" ? "PO" : "SO";
     const date = new Date();
@@ -345,12 +345,10 @@ orderSchema.pre("save", async function (next) {
     const sequence = String(count + 1).padStart(4, "0");
     this.orderNumber = `${prefix}-${year}${month}${day}-${sequence}`;
   }
-
-  next();
 });
 
 // Hook: Calculer totaux avant sauvegarde
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", function () {
   if (this.isModified("items") || this.isNew) {
     // Calculer chaque item
     this.items.forEach((item) => {
@@ -388,8 +386,6 @@ orderSchema.pre("save", function (next) {
     this.totals.total =
       subtotalAfterDiscount + this.totals.tax + this.totals.shipping;
   }
-
-  next();
 });
 
 // Hook: Mettre à jour stock quand statut change à 'completed'

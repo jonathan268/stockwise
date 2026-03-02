@@ -3,6 +3,7 @@ const router = express.Router();
 const orderController = require("../controllers/orderController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { checkSubscription } = require("../middlewares/subscription");
+const { tenantIsolation } = require("../middlewares/tenant");
 const {
   validateCreateOrder,
   validateUpdateOrder,
@@ -12,6 +13,7 @@ const {
 
 // Toutes les routes nécessitent authentification
 router.use(protect);
+router.use(tenantIsolation);
 router.use(checkSubscription);
 
 // Routes stats et types spécifiques

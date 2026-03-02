@@ -167,9 +167,9 @@ const Register = () => {
 
             {/* Server Error */}
             {serverError && (
-              <div className="alert alert-error">
+              <div className="alert alert-error text-white animate-bounce">
                 <AlertCircle size={20} />
-                <span>Une erreur s'est produite</span>
+                <span className="">Une erreur est survenue</span>
               </div>
             )}
 
@@ -355,8 +355,8 @@ const Register = () => {
               >
                 {loading ? (
                   <>
-                    <span className="loading loading-spinner loading-sm"></span>
-                    Création...
+                    <span className="loading loading-dots loading-sm text-primary"></span>
+                    <UserPlus size={18} />
                   </>
                 ) : (
                   <>

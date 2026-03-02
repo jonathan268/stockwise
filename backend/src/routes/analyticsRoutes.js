@@ -6,8 +6,10 @@ const {
   checkSubscription,
   requireFeature,
 } = require("../middlewares/subscription");
+const { tenantIsolation } = require("../middlewares/tenant");
 
 router.use(protect);
+router.use(tenantIsolation);
 router.use(checkSubscription);
 
 router.get("/dashboard", analyticsController.getDashboard);

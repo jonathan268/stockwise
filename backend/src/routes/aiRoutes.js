@@ -3,9 +3,11 @@ const router = express.Router();
 const aiController = require("../controllers/aiController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { checkSubscription } = require("../middlewares/subscription");
+const { tenantIsolation } = require("../middlewares/tenant");
 const { apiLimiter } = require("../middlewares/rateLimit");
 
 router.use(protect);
+router.use(tenantIsolation);
 router.use(checkSubscription);
 router.use(apiLimiter); // Rate limiting strict pour IA
 

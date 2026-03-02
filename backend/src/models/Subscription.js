@@ -230,7 +230,7 @@ subscriptionSchema.virtual("discountedAmount").get(function () {
 });
 
 // Hook: Définir features selon plan
-subscriptionSchema.pre("save", function (next) {
+subscriptionSchema.pre("save", function () {
   if (this.isModified("plan") || this.isNew) {
     const planFeatures = {
       free: {
@@ -336,8 +336,6 @@ subscriptionSchema.pre("save", function (next) {
       this.currentPeriod.end = new Date(now.setFullYear(now.getFullYear() + 1));
     }
   }
-
-  next();
 });
 
 // Hook: Synchroniser limites avec Organization

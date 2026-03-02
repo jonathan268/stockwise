@@ -87,7 +87,7 @@ class AuthController {
         throw new AppError("Email déjà utilisé", 400);
       }
 
-      // 2. Créer utilisateur (sans organisation pour le moment)
+      // 2. Créer utilisateur
       const user = await User.create({
         firstName,
         lastName,
@@ -96,11 +96,56 @@ class AuthController {
         phone,
       });
 
-      // 3. Générer token vérification email
+      // 3. Créer une organisation par défaut pour l'utilisateur
+      const defaultOrgName = `${firstName} ${lastName}`;
+
+      // Générer un slug unique à partir du nom
+      const generateSlug = (name) => {
+        return name
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, "") // Supprimer caractères spéciaux
+          .replace(/\s+/g, "-") // Remplacer espaces par tirets
+          .replace(/-+/g, "-"); // Remplacer tirets multiples par un
+      };
+
+      let slug = generateSlug(defaultOrgName);
+
+      // Vérifier l'unicité du slug et ajouter un suffixe si nécessaire
+      let existingOrg = await Organization.findOne({ slug });
+      let counter = 1;
+      while (existingOrg) {
+        slug = `${generateSlug(defaultOrgName)}-${counter}`;
+        existingOrg = await Organization.findOne({ slug });
+        counter++;
+      }
+
+      const organization = await Organization.create({
+        name: defaultOrgName,
+        slug: slug,
+        email: email,
+        phone: phone,
+        owner: user._id,
+        status: "active",
+      });
+
+      // 4. Mettre à jour utilisateur avec l'organisation
+      user.organization = organization._id;
+      user.ownedOrganization = organization._id;
+      user.role = "owner";
+
+      // 5. Générer token vérification email
       const verificationToken = user.createEmailVerificationToken();
       await user.save({ validateBeforeSave: false });
 
-      // 4. Envoyer email de vérification (async - ne pas bloquer)
+      // 6. Créer abonnement FREE par défaut
+      await Subscription.create({
+        organization: organization._id,
+        plan: "free",
+        status: "active",
+      });
+
+      // 7. Envoyer email de vérification (async - ne pas bloquer)
       const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
       try {
@@ -118,7 +163,7 @@ class AuthController {
         // Ne pas bloquer l'inscription si email échoue
       }
 
-      // 5. Retourner tokens
+      // 8. Retourner tokens
       return this.sendTokenResponse(
         user,
         201,

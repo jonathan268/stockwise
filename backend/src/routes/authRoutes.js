@@ -37,18 +37,18 @@ router.get(
   }),
   (req, res) => {
     try {
-      // Générer JWT pour l'utilisateur authentifié
-      const token = generateToken(req.user._id);
+      // Générer les tokens via authController
+      const accessToken = authController.generateAccessToken(req.user._id);
+      const refreshToken = authController.generateRefreshToken(req.user._id);
 
       // Rediriger vers le frontend avec le token en query param
       // Le frontend récupère le token et le stocke dans localStorage
       res.redirect(
-        `${process.env.FRONTEND_URL}/auth/callback?token=${token}`,
+        `${process.env.FRONTEND_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`,
       );
     } catch (error) {
-      res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=server_error`,
-      );
+      console.error("Erreur Google OAuth:", error);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
     }
   },
 );

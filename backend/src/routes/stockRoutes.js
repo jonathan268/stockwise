@@ -3,8 +3,12 @@ const router = express.Router();
 const stockController = require("../controllers/stockController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { validateStockAdjustment } = require("../middlewares/validation");
+const { tenantIsolation } = require("../middlewares/tenant");
+const { checkSubscription } = require("../middlewares/subscription");
 
 router.use(protect);
+router.use(tenantIsolation);
+router.use(checkSubscription);
 
 // Routes spéciales
 router.get("/overview", stockController.getStockOverview);

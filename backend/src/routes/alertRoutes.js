@@ -3,8 +3,10 @@ const router = express.Router();
 const alertController = require("../controllers/alertController");
 const { protect } = require("../middlewares/auth");
 const { checkSubscription } = require("../middlewares/subscription");
+const { tenantIsolation } = require("../middlewares/tenant");
 
 router.use(protect);
+router.use(tenantIsolation);
 router.use(checkSubscription);
 
 // Routes principales

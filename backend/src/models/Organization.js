@@ -365,7 +365,7 @@ organizationSchema.virtual("productsUsagePercentage").get(function () {
 });
 
 // Hook: Générer slug avant sauvegarde
-organizationSchema.pre("save", async function (next) {
+organizationSchema.pre("save", async function () {
   if (this.isModified("name") && !this.slug) {
     let baseSlug = this.name
       .toLowerCase()
@@ -385,11 +385,10 @@ organizationSchema.pre("save", async function (next) {
 
     this.slug = slug;
   }
-  next();
 });
 
 // Hook: Ajouter owner aux members si nouveau
-organizationSchema.pre("save", function (next) {
+organizationSchema.pre("save", function () {
   if (this.isNew && this.owner) {
     const ownerExists = this.members.some(
       (m) => m.user.toString() === this.owner.toString(),
@@ -414,7 +413,6 @@ organizationSchema.pre("save", function (next) {
       this.usage.usersCount = 1;
     }
   }
-  next();
 });
 
 // Méthode: Vérifier si limite atteinte

@@ -3,8 +3,12 @@ const router = express.Router();
 const productController = require("../controllers/productController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { validateProduct } = require("../middlewares/validation");
+const { tenantIsolation } = require("../middlewares/tenant");
+const { checkSubscription } = require("../middlewares/subscription");
 
 router.use(protect);
+router.use(tenantIsolation);
+router.use(checkSubscription);
 
 // Routes spéciales en premier
 router.get("/search", productController.searchProducts);

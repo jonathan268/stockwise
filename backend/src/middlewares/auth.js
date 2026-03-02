@@ -91,7 +91,7 @@ const restrictTo = (...roles) => {
     if (!req.organization) {
       return next(
         new AppError(
-          "Aucune organisation associée à ce compte",
+          "Veuillez d'abord créer une organisation. Rendez-vous dans les paramètres pour configurer votre organisation.",
           403,
         ),
       );

@@ -3,6 +3,7 @@ const router = express.Router();
 const supplierController = require("../controllers/supplierController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { checkSubscription } = require("../middlewares/subscription");
+const { tenantIsolation } = require("../middlewares/tenant");
 const {
   validateCreateSupplier,
   validateUpdateSupplier,
@@ -10,6 +11,7 @@ const {
 } = require("../utils/supplierValidation");
 
 router.use(protect);
+router.use(tenantIsolation);
 router.use(checkSubscription);
 
 // Routes spéciales

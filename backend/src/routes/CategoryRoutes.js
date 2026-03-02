@@ -3,9 +3,13 @@ const router = express.Router();
 const categoryController = require("../controllers/CategoryController");
 const { protect, restrictTo } = require("../middlewares/auth");
 const { validateCategory } = require("../middlewares/validation");
+const { tenantIsolation } = require("../middlewares/tenant");
+const { checkSubscription } = require("../middlewares/subscription");
 
 // Toutes les routes nécessitent authentification
 router.use(protect);
+router.use(tenantIsolation);
+router.use(checkSubscription);
 
 // Routes
 router

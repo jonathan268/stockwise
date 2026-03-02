@@ -2,8 +2,12 @@ const express = require("express");
 const router = express.Router();
 const organizationController = require("../controllers/organizationController");
 const { protect, restrictTo, isOwner } = require("../middlewares/auth");
+const { tenantIsolation } = require("../middlewares/tenant");
+const { checkSubscription } = require("../middlewares/subscription");
 
 router.use(protect);
+router.use(tenantIsolation);
+router.use(checkSubscription);
 
 // Routes principales
 router

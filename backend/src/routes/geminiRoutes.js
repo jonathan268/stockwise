@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const geminiController = require("../controllers/geminiController");
 const { protect: authenticate, restrictTo } = require("../middlewares/auth");
+const { tenantIsolation } = require("../middlewares/tenant");
+const { checkSubscription } = require("../middlewares/subscription");
 
 // Middleware de rate limiting pour respecter les quotas Gemini gratuits
 const rateLimit = require("express-rate-limit");
@@ -16,8 +18,11 @@ const geminiRateLimiter = rateLimit({
   },
 });
 
-// ROUTE ULTRA-OPTIMISÉE - Recommandée pour le plan gratuit
-router.post(
+// Appliquer les middlewares de protection
+router.use(authenticate);
+router.use(tenantIsolation);
+router.use(checkSubscription);
+router.use(geminiRateLimiter);
   "/quick-analysis",
   authenticate,
   geminiRateLimiter,

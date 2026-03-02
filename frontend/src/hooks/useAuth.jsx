@@ -43,6 +43,8 @@ export const useAuth = () => {
     localStorage.removeItem("refreshToken");
     setUser(null);
     setIsAuthenticated(false);
+    // Rediriger vers la page de login
+    window.location.href = "/login";
   };
 
   const refreshToken = async () => {

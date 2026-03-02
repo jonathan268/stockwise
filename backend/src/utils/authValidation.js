@@ -46,20 +46,9 @@ const registerSchema = Joi.object({
     "string.email": "Email invalide",
   }),
 
-  password: Joi.string()
-    .min(8)
-    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .required()
-    .messages({
-      "string.empty": "Le mot de passe est requis",
-      "string.min": "Le mot de passe doit contenir au moins 8 caractères",
-      "string.pattern.base":
-        "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
-    }),
-
-  passwordConfirm: Joi.string().valid(Joi.ref("password")).required().messages({
-    "any.only": "Les mots de passe ne correspondent pas",
-    "string.empty": "La confirmation du mot de passe est requise",
+  password: Joi.string().min(8).required().messages({
+    "string.empty": "Le mot de passe est requis",
+    "string.min": "Le mot de passe doit contenir au moins 8 caractères",
   }),
 
   phone: Joi.string()

@@ -38,7 +38,7 @@ import {
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState("forest");
+  const [theme, setTheme] = useState("corporate");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleGetStarted = () => {
@@ -50,12 +50,12 @@ export default function Landing() {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "forest" ? "light" : "forest");
+    setTheme(theme === "corporate" ? "business" : "corporate");
   };
 
   return (
     <div
-      data-theme={theme === "light" ? "light" : "forest"}
+      data-theme={theme === "corporate" ? "corporate" : "business"}
       className="min-h-screen bg-base-100 transition-colors duration-300"
     >
       {/* Navbar */}
@@ -109,9 +109,9 @@ export default function Landing() {
           <button
             onClick={toggleTheme}
             className="btn btn-ghost btn-circle transition-all hover:bg-primary/20"
-            title={`Thème ${theme === "light" ? "Synthwave" : "Light"}`}
+            title={`Thème ${theme === "corporate" ? "business" : "corporate"}`}
           >
-            {theme === "light" ? (
+            {theme === "corporate" ? (
               <Moon className="w-5 h-5" />
             ) : (
               <Sun className="w-5 h-5" />
@@ -130,7 +130,7 @@ export default function Landing() {
           >
             <Rocket className="w-4 h-4" />
             <span className="hidden sm:inline">Essai gratuit</span>
-            <span className="sm:hidden">Essai</span>
+            <span className="sm:hidden">Essai gratuit</span>
           </button>
 
           {/* Mobile Menu Button */}
@@ -172,15 +172,15 @@ export default function Landing() {
         <div className="hero-content flex-col max-w-4xl gap-12 relative z-10 text-center">
           {/* Content */}
           <div className="flex-1">
-            <div className="badge badge-lg badge-ghost gap-2 mb-6 border-2 border-primary/30 mx-auto">
+            <div className="badge badge-lg badge-ghost rounded-full gap-2 mb-6 border-2 border-primary/30 mx-auto animate-bounce">
               <Sparkles className="w-4 h-4" />
-              Alimenté par l'Intelligence Artificielle 
+              Propulsé par l'Intelligence Artificielle 
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-              <span className="block">Transformez votre</span>
-              <span className="">gestion de stock</span>
-              <span className="block">avec <span className="text-primary animate-bounce">l'IA</span></span>
+              <span className="block">Réduisez 95%</span>
+              <span className="">des érreurs de stock</span>
+              <span className="block">avec l'IA de <span className="text-primary">StockWise</span></span>
             </h1>
 
             <p className="text-lg md:text-xl text-base-content/70 mb-8 max-w-2xl mx-auto leading-relaxed">
@@ -192,12 +192,12 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <button
                 onClick={handleGetStarted}
-                className="btn btn-lg btn-primary gap-2 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                className="btn btn-lg btn-primary gap-2 shadow-xl hover:shadow-2xl transition-all hover:scale-105 hover-3d"
               >
                 <Rocket className="w-5 h-5" />
                 Commencer Gratuitement
               </button>
-              <button className="btn btn-lg btn-outline gap-2 hover:bg-base-200">
+              <button className="btn btn-lg btn-outline gap-2 hover:bg-base-200 hover-3d">
                 <PlayCircle className="w-5 h-5" />
                 Voir la démo
               </button>
@@ -205,19 +205,19 @@ export default function Landing() {
 
             <div className="flex flex-col sm:flex-row gap-6 text-sm sm:text-base justify-center">
               <div className="flex items-center gap-2 justify-center">
-                <div className="badge badge-success gap-1">
+                <div className="badge badge-success gap-1 rounded-full">
                   <CheckCircle className="w-4 h-4" />
                   14 jours gratuit
                 </div>
               </div>
               <div className="flex items-center gap-2 justify-center">
-                <div className="badge badge-success gap-1">
+                <div className="badge badge-success gap-1 rounded-full">
                   <CheckCircle className="w-4 h-4" />
                   Aucune carte bancaire requise
                 </div>
               </div>
               <div className="flex items-center gap-2 justify-center">
-                <div className="badge badge-success gap-1">
+                <div className="badge badge-success gap-1 rounded-full">
                   <CheckCircle className="w-4 h-4" />
                   Support 24/7
                 </div>
@@ -233,7 +233,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                500+
+                150+
               </div>
               <p className="text-base-content/70 font-medium">
                 Entreprises actives
@@ -247,7 +247,7 @@ export default function Landing() {
             </div>
             <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
               <div className="text-4xl md:text-5xl font-bold text-accent mb-2">
-                40%
+                95%
               </div>
               <p className="text-base-content/70 font-medium">
                 Gain d'efficacité
@@ -255,7 +255,7 @@ export default function Landing() {
             </div>
             <div className="text-center p-6 rounded-lg bg-base-100 shadow-lg">
               <div className="text-4xl md:text-5xl font-bold text-warning mb-2">
-                $2M
+                2M
               </div>
               <p className="text-base-content/70 font-medium">Stocks gérés</p>
             </div>
@@ -319,9 +319,9 @@ export default function Landing() {
               return (
                 <div
                   key={idx}
-                  className="card bg-base-200 hover:shadow-2xl transition-all hover:scale-105 group cursor-pointer"
+                  className="card hover-3d bg-base-200 hover:shadow-2xl transition-all hover:scale-100 group cursor-pointer"
                 >
-                  <div className="card-body">
+                  <div className="card-body rounded-xl">
                     <div
                       className={`w-14 h-14 rounded-xl bg-${feature.color}/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
                     >
@@ -394,9 +394,9 @@ export default function Landing() {
             ].map((plan, idx) => (
               <div
                 key={idx}
-                className={`card transition-all ${
+                className={`card hover:shadow-2xl transition-all hover:scale-105 ${
                   plan.popular
-                    ? "ring-2 ring-primary shadow-2xl scale-105"
+                    ? "ring-2 ring-primary shadow-2xl scale-105 hover:scale-110"
                     : "shadow-lg"
                 } bg-base-100`}
               >
@@ -443,7 +443,7 @@ export default function Landing() {
 
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-base-100">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 hover-3d">
           <div className="max-w-3xl mx-auto bg-primary rounded-2xl shadow-2xl p-8 md:p-16 text-center text-primary-content">
             <h2 className="text-4xl md:text-5xl font-black mb-6">
               Prêt à transformer votre gestion ?
