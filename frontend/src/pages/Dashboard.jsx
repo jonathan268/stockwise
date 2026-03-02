@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
+import React, { useState, useEffect } from "react";
+import {
+  Package,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
   ShoppingCart,
   DollarSign,
   Eye,
@@ -15,13 +15,13 @@ import {
   AlertCircle,
   RefreshCw,
   Calendar,
-  Brain
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { DashboardService } from '../services/dashboardService';
-import { ProductService } from '../services/productService';
-import StatCard from '../components/dashboard/StatCard';
-import toast from 'react-hot-toast';
+  Brain,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { DashboardService } from "../services/dashboardService";
+import ProductService from "../services/productService";
+import StatCard from "../components/dashboard/StatCard";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const Dashboard = () => {
     stockValue: 0,
     lowStockAlerts: 0,
     pendingOrders: 0,
-    trends: {}
+    trends: {},
   });
 
   const [stockAlerts, setStockAlerts] = useState([]);
@@ -45,7 +45,7 @@ const Dashboard = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [aiInsights, setAIInsights] = useState([]);
 
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [selectedPeriod, setSelectedPeriod] = useState("7d");
 
   // ==================== FETCH DATA ====================
   const fetchDashboardData = async () => {
@@ -54,16 +54,17 @@ const Dashboard = () => {
       setError(null);
 
       // Appel API pour récupérer le résumé complet
-      const [summaryRes, alertsRes, activityRes, topProductsRes, insightsRes] = await Promise.allSettled([
-        DashboardService.getDashboardSummary(),
-        DashboardService.getStockAlerts({ limit: 5 }),
-        DashboardService.getRecentActivity(5),
-        DashboardService.getTopProducts(4),
-        DashboardService.getAIInsights()
-      ]);
+      const [summaryRes, alertsRes, activityRes, topProductsRes, insightsRes] =
+        await Promise.allSettled([
+          DashboardService.getDashboardSummary(),
+          DashboardService.getStockAlerts({ limit: 5 }),
+          DashboardService.getRecentActivity(5),
+          DashboardService.getTopProducts(4),
+          DashboardService.getAIInsights(),
+        ]);
 
       // Traiter le résumé
-      if (summaryRes.status === 'fulfilled' && summaryRes.value?.success) {
+      if (summaryRes.status === "fulfilled" && summaryRes.value?.success) {
         setStats(summaryRes.value.data || {});
       } else {
         // Fallback : récupérer les stats basiques
@@ -71,29 +72,31 @@ const Dashboard = () => {
       }
 
       // Traiter les alertes
-      if (alertsRes.status === 'fulfilled' && alertsRes.value?.success) {
+      if (alertsRes.status === "fulfilled" && alertsRes.value?.success) {
         setStockAlerts(alertsRes.value.data || []);
       }
 
       // Traiter les activités
-      if (activityRes.status === 'fulfilled' && activityRes.value?.success) {
+      if (activityRes.status === "fulfilled" && activityRes.value?.success) {
         setRecentActivity(activityRes.value.data || []);
       }
 
       // Traiter les top produits
-      if (topProductsRes.status === 'fulfilled' && topProductsRes.value?.success) {
+      if (
+        topProductsRes.status === "fulfilled" &&
+        topProductsRes.value?.success
+      ) {
         setTopProducts(topProductsRes.value.data || []);
       }
 
       // Traiter les insights IA
-      if (insightsRes.status === 'fulfilled' && insightsRes.value?.success) {
+      if (insightsRes.status === "fulfilled" && insightsRes.value?.success) {
         setAIInsights(insightsRes.value.data || []);
       }
-
     } catch (err) {
-      console.error('Erreur chargement dashboard:', err);
-      setError(err.message || 'Erreur lors du chargement du dashboard');
-      toast.error('Erreur lors du chargement des données');
+      console.error("Erreur chargement dashboard:", err);
+      setError(err.message || "Erreur lors du chargement du dashboard");
+      toast.error("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
     }
@@ -103,11 +106,14 @@ const Dashboard = () => {
   const fetchBasicStats = async () => {
     try {
       const productsRes = await ProductService.getAllProducts();
-      
+
       let products = [];
       if (productsRes?.success && productsRes.data) {
-        products = Array.isArray(productsRes.data) ? productsRes.data : 
-                   Array.isArray(productsRes.data.data) ? productsRes.data.data : [];
+        products = Array.isArray(productsRes.data)
+          ? productsRes.data
+          : Array.isArray(productsRes.data.data)
+            ? productsRes.data.data
+            : [];
       }
 
       // Calculer les stats localement
@@ -115,10 +121,10 @@ const Dashboard = () => {
       const stockValue = products.reduce((sum, p) => {
         const qty = p.stock?.quantity || 0;
         const price = p.pricing?.sellingPrice || 0;
-        return sum + (qty * price);
+        return sum + qty * price;
       }, 0);
 
-      const lowStockAlerts = products.filter(p => {
+      const lowStockAlerts = products.filter((p) => {
         const qty = p.stock?.quantity || 0;
         const min = p.stock?.minThreshold || 0;
         return qty > 0 && qty <= min;
@@ -130,38 +136,41 @@ const Dashboard = () => {
         lowStockAlerts,
         pendingOrders: 0,
         trends: {
-          products: '+0%',
-          value: '+0%',
-          alerts: '+0%',
-          orders: '+0%'
-        }
+          products: "+0%",
+          value: "+0%",
+          alerts: "+0%",
+          orders: "+0%",
+        },
       });
 
       // Générer des alertes locales
       const alerts = products
-        .filter(p => {
+        .filter((p) => {
           const qty = p.stock?.quantity || 0;
           const min = p.stock?.minThreshold || 0;
           return qty <= min;
         })
         .slice(0, 5)
-        .map(p => ({
+        .map((p) => ({
           _id: p._id,
           product: {
             _id: p._id,
             name: p.name,
-            sku: p.sku
+            sku: p.sku,
           },
           quantity: p.stock?.quantity || 0,
           threshold: p.stock?.minThreshold || 0,
-          status: (p.stock?.quantity || 0) === 0 ? 'critical' : 
-                  (p.stock?.quantity || 0) <= (p.stock?.minThreshold || 0) / 2 ? 'critical' : 'warning'
+          status:
+            (p.stock?.quantity || 0) === 0
+              ? "critical"
+              : (p.stock?.quantity || 0) <= (p.stock?.minThreshold || 0) / 2
+                ? "critical"
+                : "warning",
         }));
 
       setStockAlerts(alerts);
-
     } catch (err) {
-      console.error('Erreur stats basiques:', err);
+      console.error("Erreur stats basiques:", err);
     }
   };
 
@@ -175,7 +184,7 @@ const Dashboard = () => {
     setRefreshing(true);
     await fetchDashboardData();
     setRefreshing(false);
-    toast.success('Dashboard actualisé');
+    toast.success("Dashboard actualisé");
   };
 
   // ==================== HANDLERS ====================
@@ -184,15 +193,15 @@ const Dashboard = () => {
   };
 
   const handleAddProduct = () => {
-    navigate('/inventory?action=add');
+    navigate("/inventory?action=add");
   };
 
   const handleNewOrder = () => {
-    navigate('/orders?action=add');
+    navigate("/orders?action=add");
   };
 
   const handleViewPredictions = () => {
-    navigate('/analytics');
+    navigate("/analytics");
   };
 
   // ==================== RENDER LOADING ====================
@@ -201,7 +210,9 @@ const Dashboard = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement du dashboard...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement du dashboard...
+          </p>
         </div>
       </div>
     );
@@ -231,37 +242,37 @@ const Dashboard = () => {
   // ==================== PREPARE STATS FOR DISPLAY ====================
   const displayStats = [
     {
-      title: 'Total Produits',
-      value: stats.totalProducts?.toLocaleString('fr-FR') || '0',
-      change: stats.trends?.products || '+0%',
-      trend: stats.trends?.products?.startsWith('+') ? 'up' : 'down',
+      title: "Total Produits",
+      value: stats.totalProducts?.toLocaleString("fr-FR") || "0",
+      change: stats.trends?.products || "+0%",
+      trend: stats.trends?.products?.startsWith("+") ? "up" : "down",
       icon: Package,
-      color: 'bg-blue-500'
+      color: "bg-blue-500",
     },
     {
-      title: 'Valeur du Stock',
-      value: `${(stats.stockValue || 0).toLocaleString('fr-FR')} FCFA`,
-      change: stats.trends?.value || '+0%',
-      trend: stats.trends?.value?.startsWith('+') ? 'up' : 'down',
+      title: "Valeur du Stock",
+      value: `${(stats.stockValue || 0).toLocaleString("fr-FR")} FCFA`,
+      change: stats.trends?.value || "+0%",
+      trend: stats.trends?.value?.startsWith("+") ? "up" : "down",
       icon: DollarSign,
-      color: 'bg-green-500'
+      color: "bg-green-500",
     },
     {
-      title: 'Alertes Stock Bas',
+      title: "Alertes Stock Bas",
       value: (stats.lowStockAlerts || 0).toString(),
-      change: stats.trends?.alerts || '0%',
-      trend: stats.trends?.alerts?.startsWith('-') ? 'up' : 'down',
+      change: stats.trends?.alerts || "0%",
+      trend: stats.trends?.alerts?.startsWith("-") ? "up" : "down",
       icon: AlertTriangle,
-      color: 'bg-orange-500'
+      color: "bg-orange-500",
     },
     {
-      title: 'Commandes en attente',
+      title: "Commandes en attente",
       value: (stats.pendingOrders || 0).toString(),
-      change: stats.trends?.orders || '+0%',
-      trend: stats.trends?.orders?.startsWith('+') ? 'up' : 'down',
+      change: stats.trends?.orders || "+0%",
+      trend: stats.trends?.orders?.startsWith("+") ? "up" : "down",
       icon: ShoppingCart,
-      color: 'bg-purple-500'
-    }
+      color: "bg-purple-500",
+    },
   ];
 
   // ==================== MAIN RENDER ====================
@@ -294,7 +305,7 @@ const Dashboard = () => {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
         </div>
@@ -314,15 +325,15 @@ const Dashboard = () => {
           <div className="card-body">
             <div className="flex items-center justify-between mb-4">
               <h2 className="card-title">Alertes Stock Critique</h2>
-              <button 
+              <button
                 className="btn btn-ghost btn-sm gap-2"
-                onClick={() => navigate('/inventory?filter=low_stock')}
+                onClick={() => navigate("/inventory?filter=low_stock")}
               >
                 <Filter size={16} />
                 Voir tout
               </button>
             </div>
-            
+
             {loading && refreshing ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -350,7 +361,9 @@ const Dashboard = () => {
                               </div>
                             </div>
                             <div>
-                              <span className="font-medium">{alert.product?.name || 'Produit'}</span>
+                              <span className="font-medium">
+                                {alert.product?.name || "Produit"}
+                              </span>
                               {alert.product?.sku && (
                                 <div className="text-xs text-base-content/60 font-mono">
                                   {alert.product.sku}
@@ -362,23 +375,31 @@ const Dashboard = () => {
                         <td>
                           <span className="font-bold">{alert.quantity}</span>
                         </td>
-                        <td className="text-base-content/60">{alert.threshold}</td>
+                        <td className="text-base-content/60">
+                          {alert.threshold}
+                        </td>
                         <td>
-                          <div className={`badge ${alert.status === 'critical' ? 'badge-error' : 'badge-warning'} gap-2`}>
+                          <div
+                            className={`badge ${alert.status === "critical" ? "badge-error" : "badge-warning"} gap-2`}
+                          >
                             <AlertTriangle size={12} />
-                            {alert.status === 'critical' ? 'Critique' : 'Attention'}
+                            {alert.status === "critical"
+                              ? "Critique"
+                              : "Attention"}
                           </div>
                         </td>
                         <td>
                           <div className="flex gap-2">
-                            <button 
-                              className="btn btn-ghost btn-xs" 
+                            <button
+                              className="btn btn-ghost btn-xs"
                               title="Voir détails"
-                              onClick={() => handleViewProduct(alert.product?._id)}
+                              onClick={() =>
+                                handleViewProduct(alert.product?._id)
+                              }
                             >
                               <Eye size={16} />
                             </button>
-                            <button 
+                            <button
                               className="btn btn-primary btn-xs"
                               onClick={handleNewOrder}
                             >
@@ -405,21 +426,21 @@ const Dashboard = () => {
           <div className="card-body">
             <h2 className="card-title mb-4">Actions Rapides</h2>
             <div className="space-y-3">
-              <button 
+              <button
                 className="btn btn-primary w-full justify-start gap-3"
                 onClick={handleAddProduct}
               >
                 <Plus size={20} />
                 Ajouter Produit
               </button>
-              <button 
+              <button
                 className="btn btn-outline w-full justify-start gap-3"
                 onClick={handleNewOrder}
               >
                 <ShoppingCart size={20} />
                 Nouvelle Commande
               </button>
-              <button 
+              <button
                 className="btn btn-outline w-full justify-start gap-3"
                 onClick={handleViewPredictions}
               >
@@ -432,16 +453,20 @@ const Dashboard = () => {
 
             {/* Suggestions IA */}
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-base-content/70">Suggestions IA</h3>
-              
+              <h3 className="font-semibold text-sm text-base-content/70">
+                Suggestions IA
+              </h3>
+
               {aiInsights.length > 0 ? (
                 aiInsights.slice(0, 2).map((insight, index) => (
-                  <div 
+                  <div
                     key={index}
                     className={`alert ${
-                      insight.type === 'opportunity' ? 'alert-info' :
-                      insight.type === 'warning' ? 'alert-warning' : 
-                      'alert-success'
+                      insight.type === "opportunity"
+                        ? "alert-info"
+                        : insight.type === "warning"
+                          ? "alert-warning"
+                          : "alert-success"
                     } shadow-lg`}
                   >
                     <div>
@@ -454,7 +479,8 @@ const Dashboard = () => {
                   <div className="alert alert-info shadow-lg">
                     <div>
                       <span className="text-sm">
-                        📊 Analysez vos tendances avec l'IA pour des recommandations personnalisées
+                        📊 Analysez vos tendances avec l'IA pour des
+                        recommandations personnalisées
                       </span>
                     </div>
                   </div>
@@ -478,7 +504,7 @@ const Dashboard = () => {
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Activité Récente</h2>
-            
+
             {loading && refreshing ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -486,37 +512,52 @@ const Dashboard = () => {
             ) : recentActivity.length > 0 ? (
               <div className="space-y-3">
                 {recentActivity.map((activity) => (
-                  <div 
-                    key={activity._id} 
+                  <div
+                    key={activity._id}
                     className="flex items-start gap-4 p-3 hover:bg-base-200 rounded-lg transition-colors"
                   >
-                    <div className={`p-2 rounded-lg ${
-                      activity.type === 'in' ? 'bg-success/20 text-success' :
-                      activity.type === 'out' ? 'bg-warning/20 text-warning' : 
-                      activity.type === 'order' ? 'bg-info/20 text-info' :
-                      'bg-primary/20 text-primary'
-                    }`}>
-                      {activity.type === 'alert' ? (
+                    <div
+                      className={`p-2 rounded-lg ${
+                        activity.type === "in"
+                          ? "bg-success/20 text-success"
+                          : activity.type === "out"
+                            ? "bg-warning/20 text-warning"
+                            : activity.type === "order"
+                              ? "bg-info/20 text-info"
+                              : "bg-primary/20 text-primary"
+                      }`}
+                    >
+                      {activity.type === "alert" ? (
                         <AlertTriangle size={20} />
-                      ) : activity.type === 'order' ? (
+                      ) : activity.type === "order" ? (
                         <ShoppingCart size={20} />
                       ) : (
                         <Package size={20} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium">{activity.action || 'Action'}</p>
+                      <p className="font-medium">
+                        {activity.action || "Action"}
+                      </p>
                       <p className="text-sm text-base-content/70 truncate">
-                        {activity.product?.name || activity.description || 'Produit'}
+                        {activity.product?.name ||
+                          activity.description ||
+                          "Produit"}
                       </p>
                       {activity.quantity && (
                         <p className="text-sm">
-                          Quantité: <span className="font-semibold">{activity.quantity}</span>
+                          Quantité:{" "}
+                          <span className="font-semibold">
+                            {activity.quantity}
+                          </span>
                         </p>
                       )}
                     </div>
                     <span className="text-xs text-base-content/50 whitespace-nowrap">
-                      {activity.time || new Date(activity.createdAt).toLocaleDateString('fr-FR')}
+                      {activity.time ||
+                        new Date(activity.createdAt).toLocaleDateString(
+                          "fr-FR",
+                        )}
                     </span>
                   </div>
                 ))}
@@ -534,7 +575,7 @@ const Dashboard = () => {
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Produits les Plus Actifs</h2>
-            
+
             {loading && refreshing ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -547,20 +588,22 @@ const Dashboard = () => {
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-base-content/60">
-                          Stock: {product.stock || 0} • 
-                          Valeur: {(product.value || 0).toLocaleString('fr-FR')} FCFA
+                          Stock: {product.stock || 0} • Valeur:{" "}
+                          {(product.value || 0).toLocaleString("fr-FR")} FCFA
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-primary">
                           {product.movement || 0}%
                         </p>
-                        <p className="text-xs text-base-content/60">Mouvement</p>
+                        <p className="text-xs text-base-content/60">
+                          Mouvement
+                        </p>
                       </div>
                     </div>
-                    <progress 
-                      className="progress progress-primary w-full" 
-                      value={product.movement || 0} 
+                    <progress
+                      className="progress progress-primary w-full"
+                      value={product.movement || 0}
                       max="100"
                     ></progress>
                   </div>

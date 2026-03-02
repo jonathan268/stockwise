@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Activity,
   TrendingUp,
@@ -14,18 +14,18 @@ import {
   Loader2,
   AlertCircle,
   Sparkles,
-  FileText
-} from 'lucide-react';
-import { PredictionService } from '../services/predictionService';
-import { ProductService } from '../services/productService';
-import SalesChart from '../components/common/Analytics/SalesChart';
-import AIInsightCard from '../components/common/Analytics/AIInsightCard';
-import CustomPromptModal from '../components/common/Analytics/CustomPromptModal';
-import toast from 'react-hot-toast';
+  FileText,
+} from "lucide-react";
+import { PredictionService } from "../services/predictionService";
+import ProductService from "../services/productService";
+import SalesChart from "../components/common/Analytics/SalesChart";
+import AIInsightCard from "../components/common/Analytics/AIInsightCard";
+import CustomPromptModal from "../components/common/Analytics/CustomPromptModal";
+import toast from "react-hot-toast";
 
 const Analytics = () => {
   // ==================== STATE ====================
-  const [selectedPeriod, setSelectedPeriod] = useState('7d');
+  const [selectedPeriod, setSelectedPeriod] = useState("7d");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,8 +53,10 @@ const Analytics = () => {
 
       const [statsRes, predictionsRes, analysisRes] = await Promise.all([
         PredictionService.getAIStats(),
-        PredictionService.getPredictionsByType('demand_forecast', { limit: 10 }),
-        PredictionService.analyzeCombined()
+        PredictionService.getPredictionsByType("demand_forecast", {
+          limit: 10,
+        }),
+        PredictionService.analyzeCombined(),
       ]);
 
       if (statsRes.success && statsRes.data) {
@@ -69,21 +71,24 @@ const Analytics = () => {
         setCombinedAnalysis(analysisRes.data);
         // Extraire les insights de l'analyse combinée
         if (analysisRes.data.predictions?.insights) {
-          const newInsights = analysisRes.data.predictions.insights.map((insight, index) => ({
-            id: `insight-${index}`,
-            type: 'info',
-            title: 'Insight IA',
-            message: insight,
-            confidence: analysisRes.data.output?.confidence ? Math.round(analysisRes.data.output.confidence * 100) : 85
-          }));
+          const newInsights = analysisRes.data.predictions.insights.map(
+            (insight, index) => ({
+              id: `insight-${index}`,
+              type: "info",
+              title: "Insight IA",
+              message: insight,
+              confidence: analysisRes.data.output?.confidence
+                ? Math.round(analysisRes.data.output.confidence * 100)
+                : 85,
+            }),
+          );
           setInsights(newInsights);
         }
       }
-
     } catch (err) {
-      console.error('Erreur chargement analytics:', err);
-      setError(err.message || 'Erreur lors du chargement des analytics');
-      toast.error('Erreur lors du chargement');
+      console.error("Erreur chargement analytics:", err);
+      setError(err.message || "Erreur lors du chargement des analytics");
+      toast.error("Erreur lors du chargement");
     } finally {
       setLoading(false);
     }
@@ -98,36 +103,38 @@ const Analytics = () => {
     setRefreshing(true);
     await fetchAnalytics();
     setRefreshing(false);
-    toast.success('Analytics actualisées');
+    toast.success("Analytics actualisées");
   };
 
   // ==================== ANALYZE STOCK ====================
   const handleAnalyzeStock = async () => {
     setAnalyzingStock(true);
-    
+
     try {
       const response = await PredictionService.analyzeStock();
-      
+
       if (response.success && response.data) {
-        toast.success('Analyse du stock terminée');
-        
+        toast.success("Analyse du stock terminée");
+
         // Ajouter les résultats aux insights
         if (response.data.output?.rawResponse) {
           const newInsight = {
             id: `stock-analysis-${Date.now()}`,
-            type: 'info',
-            title: 'Analyse du stock',
+            type: "info",
+            title: "Analyse du stock",
             message: response.data.output.rawResponse,
-            confidence: response.data.output.confidence ? Math.round(response.data.output.confidence * 100) : 90
+            confidence: response.data.output.confidence
+              ? Math.round(response.data.output.confidence * 100)
+              : 90,
           };
-          setInsights(prev => [newInsight, ...prev]);
+          setInsights((prev) => [newInsight, ...prev]);
         }
-        
+
         fetchAnalytics(); // Refresh data
       }
     } catch (err) {
-      console.error('Erreur analyse stock:', err);
-      toast.error('Erreur lors de l\'analyse');
+      console.error("Erreur analyse stock:", err);
+      toast.error("Erreur lors de l'analyse");
     } finally {
       setAnalyzingStock(false);
     }
@@ -135,70 +142,78 @@ const Analytics = () => {
 
   // ==================== DETECT ANOMALIES ====================
   const handleDetectAnomalies = async () => {
-    const loadingToast = toast.loading('Détection des anomalies...');
-    
+    const loadingToast = toast.loading("Détection des anomalies...");
+
     try {
       const response = await PredictionService.detectAnomalies();
-      
+
       if (response.success && response.data) {
         const anomalyInsight = {
           id: `anomalies-${Date.now()}`,
-          type: 'warning',
-          title: 'Anomalies détectées',
-          message: response.data.output?.rawResponse || 'Analyse des anomalies terminée',
-          confidence: response.data.output?.confidence ? Math.round(response.data.output.confidence * 100) : 85
+          type: "warning",
+          title: "Anomalies détectées",
+          message:
+            response.data.output?.rawResponse ||
+            "Analyse des anomalies terminée",
+          confidence: response.data.output?.confidence
+            ? Math.round(response.data.output.confidence * 100)
+            : 85,
         };
-        setInsights(prev => [anomalyInsight, ...prev]);
-        
-        toast.success('Anomalies détectées', { id: loadingToast });
+        setInsights((prev) => [anomalyInsight, ...prev]);
+
+        toast.success("Anomalies détectées", { id: loadingToast });
       }
     } catch (err) {
-      console.error('Erreur détection anomalies:', err);
-      toast.error('Erreur lors de la détection', { id: loadingToast });
+      console.error("Erreur détection anomalies:", err);
+      toast.error("Erreur lors de la détection", { id: loadingToast });
     }
   };
 
   // ==================== OPTIMIZE ORDERS ====================
   const handleOptimizeOrders = async () => {
-    const loadingToast = toast.loading('Optimisation des commandes...');
-    
+    const loadingToast = toast.loading("Optimisation des commandes...");
+
     try {
       const response = await PredictionService.optimizeOrders();
-      
+
       if (response.success && response.data) {
         const optimizationInsight = {
           id: `optimization-${Date.now()}`,
-          type: 'opportunity',
-          title: 'Optimisation des commandes',
-          message: response.data.output?.rawResponse || 'Recommandations de commandes générées',
-          confidence: response.data.output?.confidence ? Math.round(response.data.output.confidence * 100) : 88
+          type: "opportunity",
+          title: "Optimisation des commandes",
+          message:
+            response.data.output?.rawResponse ||
+            "Recommandations de commandes générées",
+          confidence: response.data.output?.confidence
+            ? Math.round(response.data.output.confidence * 100)
+            : 88,
         };
-        setInsights(prev => [optimizationInsight, ...prev]);
-        
-        toast.success('Optimisation terminée', { id: loadingToast });
+        setInsights((prev) => [optimizationInsight, ...prev]);
+
+        toast.success("Optimisation terminée", { id: loadingToast });
       }
     } catch (err) {
-      console.error('Erreur optimisation:', err);
-      toast.error('Erreur lors de l\'optimisation', { id: loadingToast });
+      console.error("Erreur optimisation:", err);
+      toast.error("Erreur lors de l'optimisation", { id: loadingToast });
     }
   };
 
   // ==================== GENERATE REPORT ====================
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
-    
+
     try {
       const response = await PredictionService.generateReport(selectedPeriod);
-      
+
       if (response.success && response.data) {
-        toast.success('Rapport généré avec succès');
-        
+        toast.success("Rapport généré avec succès");
+
         // TODO: Télécharger ou afficher le rapport
-        console.log('Rapport:', response.data);
+        console.log("Rapport:", response.data);
       }
     } catch (err) {
-      console.error('Erreur génération rapport:', err);
-      toast.error('Erreur lors de la génération');
+      console.error("Erreur génération rapport:", err);
+      toast.error("Erreur lors de la génération");
     } finally {
       setGeneratingReport(false);
     }
@@ -206,8 +221,8 @@ const Analytics = () => {
 
   // ==================== DISMISS INSIGHT ====================
   const handleDismissInsight = (insightId) => {
-    setInsights(prev => prev.filter(i => i.id !== insightId));
-    toast.success('Insight ignoré');
+    setInsights((prev) => prev.filter((i) => i.id !== insightId));
+    toast.success("Insight ignoré");
   };
 
   // ==================== RENDER LOADING ====================
@@ -216,7 +231,9 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg text-base-content/60">Chargement des analytics...</p>
+          <p className="text-lg text-base-content/60">
+            Chargement des analytics...
+          </p>
         </div>
       </div>
     );
@@ -278,7 +295,7 @@ const Analytics = () => {
             onClick={handleRefresh}
             disabled={refreshing}
           >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
         </div>
@@ -292,7 +309,9 @@ const Analytics = () => {
           </div>
           <div className="stat-title">Précision IA</div>
           <div className="stat-value text-primary">
-            {aiStats?.averageAccuracy ? `${Math.round(aiStats.averageAccuracy)}%` : '94%'}
+            {aiStats?.averageAccuracy
+              ? `${Math.round(aiStats.averageAccuracy)}%`
+              : "94%"}
           </div>
           <div className="stat-desc">
             {aiStats?.totalPredictions || 0} prédictions
@@ -305,7 +324,7 @@ const Analytics = () => {
           </div>
           <div className="stat-title">Insights positifs</div>
           <div className="stat-value text-success">
-            {insights.filter(i => i.type === 'opportunity').length}
+            {insights.filter((i) => i.type === "opportunity").length}
           </div>
           <div className="stat-desc">Opportunités détectées</div>
         </div>
@@ -316,7 +335,10 @@ const Analytics = () => {
           </div>
           <div className="stat-title">Actions recommandées</div>
           <div className="stat-value text-warning">
-            {predictions.filter(p => p.predictions?.recommendedOrderQty > 0).length}
+            {
+              predictions.filter((p) => p.predictions?.recommendedOrderQty > 0)
+                .length
+            }
           </div>
           <div className="stat-desc">À traiter</div>
         </div>
@@ -327,7 +349,7 @@ const Analytics = () => {
           </div>
           <div className="stat-title">Temps économisé</div>
           <div className="stat-value text-info">
-            {aiStats?.timeSaved ? `${aiStats.timeSaved}h` : '24h'}
+            {aiStats?.timeSaved ? `${aiStats.timeSaved}h` : "24h"}
           </div>
           <div className="stat-desc">Ce mois-ci</div>
         </div>
@@ -372,7 +394,9 @@ const Analytics = () => {
                   <div key={index}>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold">{category.name}</span>
-                      <span className="text-sm font-bold">{category.value}%</span>
+                      <span className="text-sm font-bold">
+                        {category.value}%
+                      </span>
                     </div>
                     <progress
                       className={`progress progress-primary w-full`}
@@ -417,15 +441,15 @@ const Analytics = () => {
                         <div className="flex items-center gap-3">
                           <Package size={20} className="text-primary" />
                           <span className="font-semibold">
-                            {pred.product?.name || 'Produit'}
+                            {pred.product?.name || "Produit"}
                           </span>
                         </div>
                       </td>
                       <td className="font-bold text-primary">
-                        {pred.predictions?.nextWeekDemand || '-'}
+                        {pred.predictions?.nextWeekDemand || "-"}
                       </td>
                       <td className="font-semibold">
-                        {pred.predictions?.recommendedOrderQty || '-'}
+                        {pred.predictions?.recommendedOrderQty || "-"}
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
@@ -435,12 +459,14 @@ const Analytics = () => {
                             max="100"
                           ></progress>
                           <span className="text-sm font-semibold">
-                            {pred.output?.confidence ? `${Math.round(pred.output.confidence * 100)}%` : '-'}
+                            {pred.output?.confidence
+                              ? `${Math.round(pred.output.confidence * 100)}%`
+                              : "-"}
                           </span>
                         </div>
                       </td>
                       <td className="text-sm text-base-content/60">
-                        {new Date(pred.createdAt).toLocaleDateString('fr-FR')}
+                        {new Date(pred.createdAt).toLocaleDateString("fr-FR")}
                       </td>
                     </tr>
                   ))}
@@ -513,7 +539,8 @@ const Analytics = () => {
                 Rapport d'analyse complet
               </h3>
               <p className="text-sm text-base-content/60 mt-1">
-                Générez un rapport détaillé avec toutes les analyses et prédictions IA
+                Générez un rapport détaillé avec toutes les analyses et
+                prédictions IA
               </p>
             </div>
             <button

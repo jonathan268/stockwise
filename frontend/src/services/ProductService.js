@@ -1,6 +1,6 @@
 import api from "../api/axios";
 
-export const ProductService = {
+const ProductService = {
   getAllProducts: async (params = {}) => {
     const response = await api.get("/api/v1/products", { params });
     return response.data;
@@ -26,3 +26,5 @@ export const ProductService = {
     return response.data;
   },
 };
+
+export default ProductService;

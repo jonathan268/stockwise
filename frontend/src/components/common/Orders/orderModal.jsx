@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Save, X, Plus, Trash2, AlertCircle, Loader2, Search } from 'lucide-react';
-import Modal from '../Modal';
-import { OrderService } from '../../../services/orderService';
-import { ProductService } from '../../../services/productService';
-import { SupplierService } from '../../../services/suppliersService';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import {
+  Save,
+  X,
+  Plus,
+  Trash2,
+  AlertCircle,
+  Loader2,
+  Search,
+} from "lucide-react";
+import Modal from "../Modal";
+import { OrderService } from "../../../services/orderService";
+import ProductService from "../../../services/productService";
+import { SupplierService } from "../../../services/suppliersService";
+import toast from "react-hot-toast";
 
 const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
   const isEditMode = !!order;
@@ -17,32 +25,32 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    type: 'sale',
-    supplier: '',
+    type: "sale",
+    supplier: "",
     customer: {
-      name: '',
-      email: '',
-      phone: '',
+      name: "",
+      email: "",
+      phone: "",
       address: {
-        street: '',
-        city: '',
-        country: 'Cameroun',
-        postalCode: ''
-      }
+        street: "",
+        city: "",
+        country: "Cameroun",
+        postalCode: "",
+      },
     },
     items: [],
     totals: {
       discountPercentage: 0,
-      shipping: 0
+      shipping: 0,
     },
-    paymentMethod: 'cash',
+    paymentMethod: "cash",
     delivery: {
-      method: 'pickup'
+      method: "pickup",
     },
-    notes: ''
+    notes: "",
   });
 
-  const [searchProduct, setSearchProduct] = useState('');
+  const [searchProduct, setSearchProduct] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
 
   // ==================== LOAD DATA ====================
@@ -52,10 +60,10 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
 
       try {
         setLoadingData(true);
-        
+
         const [productsRes, suppliersRes] = await Promise.all([
           ProductService.getAllProducts(),
-          SupplierService.getAllSuppliers()
+          SupplierService.getAllSuppliers(),
         ]);
 
         if (productsRes.success && productsRes.data) {
@@ -66,8 +74,8 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
           setSuppliers(suppliersRes.data);
         }
       } catch (err) {
-        console.error('Erreur chargement données:', err);
-        toast.error('Erreur lors du chargement des données');
+        console.error("Erreur chargement données:", err);
+        toast.error("Erreur lors du chargement des données");
       } finally {
         setLoadingData(false);
       }
@@ -80,62 +88,63 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
   useEffect(() => {
     if (order && isOpen) {
       setFormData({
-        type: order.type || 'sale',
-        supplier: order.supplier?._id || '',
+        type: order.type || "sale",
+        supplier: order.supplier?._id || "",
         customer: {
-          name: order.customer?.name || '',
-          email: order.customer?.email || '',
-          phone: order.customer?.phone || '',
+          name: order.customer?.name || "",
+          email: order.customer?.email || "",
+          phone: order.customer?.phone || "",
           address: {
-            street: order.customer?.address?.street || '',
-            city: order.customer?.address?.city || '',
-            country: order.customer?.address?.country || 'Cameroun',
-            postalCode: order.customer?.address?.postalCode || ''
-          }
+            street: order.customer?.address?.street || "",
+            city: order.customer?.address?.city || "",
+            country: order.customer?.address?.country || "Cameroun",
+            postalCode: order.customer?.address?.postalCode || "",
+          },
         },
-        items: order.items?.map(item => ({
-          product: item.product?._id || item.product,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          discount: item.discount || 0,
-          taxRate: item.taxRate || 0
-        })) || [],
+        items:
+          order.items?.map((item) => ({
+            product: item.product?._id || item.product,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            discount: item.discount || 0,
+            taxRate: item.taxRate || 0,
+          })) || [],
         totals: {
           discountPercentage: order.totals?.discountPercentage || 0,
-          shipping: order.totals?.shipping || 0
+          shipping: order.totals?.shipping || 0,
         },
-        paymentMethod: order.paymentMethod || 'cash',
+        paymentMethod: order.paymentMethod || "cash",
         delivery: {
-          method: order.delivery?.method || 'pickup'
+          method: order.delivery?.method || "pickup",
         },
-        notes: order.notes || ''
+        notes: order.notes || "",
       });
     } else if (!isOpen) {
       // Reset form
       setFormData({
-        type: 'sale',
-        supplier: '',
+        type: "sale",
+        supplier: "",
         customer: {
-          name: '',
-          email: '',
-          phone: '',
+          name: "",
+          email: "",
+          phone: "",
           address: {
-            street: '',
-            city: '',
-            country: 'Cameroun',
-            postalCode: ''
-          }
+            street: "",
+            city: "",
+            country: "Cameroun",
+            postalCode: "",
+          },
         },
         items: [],
         totals: {
           discountPercentage: 0,
-          shipping: 0
+          shipping: 0,
         },
-        paymentMethod: 'cash',
+        paymentMethod: "cash",
         delivery: {
-          method: 'pickup'
+          method: "pickup",
         },
-        notes: ''
+        notes: "",
       });
       setErrors({});
     }
@@ -145,50 +154,50 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name.includes('.')) {
-      const parts = name.split('.');
+    if (name.includes(".")) {
+      const parts = name.split(".");
       if (parts.length === 2) {
         const [parent, child] = parts;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [parent]: {
             ...prev[parent],
-            [child]: value
-          }
+            [child]: value,
+          },
         }));
       } else if (parts.length === 3) {
         const [parent, middle, child] = parts;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           [parent]: {
             ...prev[parent],
             [middle]: {
               ...prev[parent][middle],
-              [child]: value
-            }
-          }
+              [child]: value,
+            },
+          },
         }));
       }
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   // ==================== ITEMS MANAGEMENT ====================
   const addItem = (product) => {
     const existingIndex = formData.items.findIndex(
-      item => item.product === product._id
+      (item) => item.product === product._id,
     );
 
     if (existingIndex >= 0) {
       // Incrémenter quantité si déjà présent
       const newItems = [...formData.items];
       newItems[existingIndex].quantity += 1;
-      setFormData(prev => ({ ...prev, items: newItems }));
+      setFormData((prev) => ({ ...prev, items: newItems }));
     } else {
       // Ajouter nouveau
       const newItem = {
@@ -198,30 +207,30 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
         quantity: 1,
         unitPrice: product.pricing?.sellingPrice || 0,
         discount: 0,
-        taxRate: product.pricing?.taxRate || 0
+        taxRate: product.pricing?.taxRate || 0,
       };
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        items: [...prev.items, newItem]
+        items: [...prev.items, newItem],
       }));
     }
 
-    setSearchProduct('');
+    setSearchProduct("");
     setShowProductSearch(false);
   };
 
   const removeItem = (index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== index)
+      items: prev.items.filter((_, i) => i !== index),
     }));
   };
 
   const updateItem = (index, field, value) => {
     const newItems = [...formData.items];
     newItems[index][field] = parseFloat(value) || 0;
-    setFormData(prev => ({ ...prev, items: newItems }));
+    setFormData((prev) => ({ ...prev, items: newItems }));
   };
 
   // ==================== CALCULATIONS ====================
@@ -235,15 +244,16 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
 
   const calculateTotals = () => {
     const subtotal = formData.items.reduce((sum, item) => {
-      return sum + (item.quantity * item.unitPrice);
+      return sum + item.quantity * item.unitPrice;
     }, 0);
 
     const itemsDiscount = formData.items.reduce((sum, item) => {
       const itemSubtotal = item.quantity * item.unitPrice;
-      return sum + ((itemSubtotal * item.discount) / 100);
+      return sum + (itemSubtotal * item.discount) / 100;
     }, 0);
 
-    const globalDiscount = (subtotal * formData.totals.discountPercentage) / 100;
+    const globalDiscount =
+      (subtotal * formData.totals.discountPercentage) / 100;
     const totalDiscount = itemsDiscount + globalDiscount;
 
     const tax = formData.items.reduce((sum, item) => {
@@ -261,7 +271,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
       discount: totalDiscount,
       tax,
       shipping,
-      total
+      total,
     };
   };
 
@@ -271,16 +281,16 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
   const validate = () => {
     const newErrors = {};
 
-    if (formData.type === 'purchase' && !formData.supplier) {
-      newErrors.supplier = 'Fournisseur requis pour un achat';
+    if (formData.type === "purchase" && !formData.supplier) {
+      newErrors.supplier = "Fournisseur requis pour un achat";
     }
 
-    if (formData.type === 'sale' && !formData.customer.name) {
-      newErrors['customer.name'] = 'Nom du client requis';
+    if (formData.type === "sale" && !formData.customer.name) {
+      newErrors["customer.name"] = "Nom du client requis";
     }
 
     if (formData.items.length === 0) {
-      newErrors.items = 'Ajoutez au moins un produit';
+      newErrors.items = "Ajoutez au moins un produit";
     }
 
     setErrors(newErrors);
@@ -292,7 +302,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
     e.preventDefault();
 
     if (!validate()) {
-      toast.error('Veuillez corriger les erreurs');
+      toast.error("Veuillez corriger les erreurs");
       return;
     }
 
@@ -301,46 +311,49 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
     try {
       const dataToSend = {
         type: formData.type,
-        ...(formData.type === 'purchase' && { supplier: formData.supplier }),
-        ...(formData.type === 'sale' && { customer: formData.customer }),
-        items: formData.items.map(item => ({
+        ...(formData.type === "purchase" && { supplier: formData.supplier }),
+        ...(formData.type === "sale" && { customer: formData.customer }),
+        items: formData.items.map((item) => ({
           product: item.product,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           discount: item.discount,
-          taxRate: item.taxRate
+          taxRate: item.taxRate,
         })),
         totals: {
           discountPercentage: formData.totals.discountPercentage,
-          shipping: formData.totals.shipping
+          shipping: formData.totals.shipping,
         },
         paymentMethod: formData.paymentMethod,
         delivery: formData.delivery,
-        notes: formData.notes
+        notes: formData.notes,
       };
 
       if (isEditMode) {
         await OrderService.updateOrder(order._id, dataToSend);
-        toast.success('Commande mise à jour avec succès');
+        toast.success("Commande mise à jour avec succès");
       } else {
         await OrderService.createOrder(dataToSend);
-        toast.success('Commande créée avec succès');
+        toast.success("Commande créée avec succès");
       }
 
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Erreur sauvegarde commande:', err);
-      toast.error(err.response?.data?.message || 'Erreur lors de la sauvegarde');
+      console.error("Erreur sauvegarde commande:", err);
+      toast.error(
+        err.response?.data?.message || "Erreur lors de la sauvegarde",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // ==================== FILTERED PRODUCTS ====================
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-    (p.sku && p.sku.toLowerCase().includes(searchProduct.toLowerCase()))
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(searchProduct.toLowerCase())),
   );
 
   // ==================== RENDER ====================
@@ -358,11 +371,10 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditMode ? 'Modifier la commande' : 'Nouvelle commande'}
+      title={isEditMode ? "Modifier la commande" : "Nouvelle commande"}
       size="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-
         {/* Type de commande */}
         <div className="form-control">
           <label className="label">
@@ -374,7 +386,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                 type="radio"
                 name="type"
                 value="purchase"
-                checked={formData.type === 'purchase'}
+                checked={formData.type === "purchase"}
                 onChange={handleChange}
                 className="radio radio-primary"
                 disabled={loading}
@@ -386,7 +398,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                 type="radio"
                 name="type"
                 value="sale"
-                checked={formData.type === 'sale'}
+                checked={formData.type === "sale"}
                 onChange={handleChange}
                 className="radio radio-primary"
                 disabled={loading}
@@ -397,7 +409,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
         </div>
 
         {/* Fournisseur (si achat) */}
-        {formData.type === 'purchase' && (
+        {formData.type === "purchase" && (
           <div className="form-control">
             <label className="label">
               <span className="label-text font-semibold">
@@ -408,11 +420,11 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
               name="supplier"
               value={formData.supplier}
               onChange={handleChange}
-              className={`select select-bordered w-full ${errors.supplier ? 'select-error' : ''}`}
+              className={`select select-bordered w-full ${errors.supplier ? "select-error" : ""}`}
               disabled={loading}
             >
               <option value="">Sélectionner un fournisseur...</option>
-              {suppliers.map(supplier => (
+              {suppliers.map((supplier) => (
                 <option key={supplier._id} value={supplier._id}>
                   {supplier.name}
                 </option>
@@ -430,9 +442,11 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
         )}
 
         {/* Client (si vente) */}
-        {formData.type === 'sale' && (
+        {formData.type === "sale" && (
           <div className="space-y-4">
-            <h4 className="font-semibold text-lg border-b pb-2">Informations client</h4>
+            <h4 className="font-semibold text-lg border-b pb-2">
+              Informations client
+            </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
@@ -447,14 +461,14 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                   value={formData.customer.name}
                   onChange={handleChange}
                   placeholder="Nom du client"
-                  className={`input input-bordered w-full ${errors['customer.name'] ? 'input-error' : ''}`}
+                  className={`input input-bordered w-full ${errors["customer.name"] ? "input-error" : ""}`}
                   disabled={loading}
                 />
-                {errors['customer.name'] && (
+                {errors["customer.name"] && (
                   <label className="label">
                     <span className="label-text-alt text-error flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
-                      {errors['customer.name']}
+                      {errors["customer.name"]}
                     </span>
                   </label>
                 )}
@@ -552,7 +566,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                   <div className="max-h-60 overflow-y-auto mt-2">
                     {filteredProducts.length > 0 ? (
                       <div className="space-y-2">
-                        {filteredProducts.map(product => (
+                        {filteredProducts.map((product) => (
                           <div
                             key={product._id}
                             onClick={() => addItem(product)}
@@ -561,11 +575,15 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                             <div>
                               <div className="font-medium">{product.name}</div>
                               <div className="text-sm text-base-content/60">
-                                {product.sku} • Stock: {product.stock?.quantity || 0}
+                                {product.sku} • Stock:{" "}
+                                {product.stock?.quantity || 0}
                               </div>
                             </div>
                             <div className="font-semibold">
-                              {(product.pricing?.sellingPrice || 0).toLocaleString('fr-FR')} FCFA
+                              {(
+                                product.pricing?.sellingPrice || 0
+                              ).toLocaleString("fr-FR")}{" "}
+                              FCFA
                             </div>
                           </div>
                         ))}
@@ -601,13 +619,17 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                     <tr key={index}>
                       <td>
                         <div className="font-medium">{item.productName}</div>
-                        <div className="text-sm text-base-content/60">{item.productSku}</div>
+                        <div className="text-sm text-base-content/60">
+                          {item.productSku}
+                        </div>
                       </td>
                       <td>
                         <input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(index, "quantity", e.target.value)
+                          }
                           min="1"
                           className="input input-bordered input-sm w-20"
                           disabled={loading}
@@ -617,7 +639,9 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                         <input
                           type="number"
                           value={item.unitPrice}
-                          onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(index, "unitPrice", e.target.value)
+                          }
                           min="0"
                           step="0.01"
                           className="input input-bordered input-sm w-28"
@@ -628,7 +652,9 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                         <input
                           type="number"
                           value={item.discount}
-                          onChange={(e) => updateItem(index, 'discount', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(index, "discount", e.target.value)
+                          }
                           min="0"
                           max="100"
                           className="input input-bordered input-sm w-20"
@@ -639,7 +665,9 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                         <input
                           type="number"
                           value={item.taxRate}
-                          onChange={(e) => updateItem(index, 'taxRate', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(index, "taxRate", e.target.value)
+                          }
                           min="0"
                           max="100"
                           className="input input-bordered input-sm w-20"
@@ -647,7 +675,7 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                         />
                       </td>
                       <td className="font-semibold">
-                        {calculateItemTotal(item).toLocaleString('fr-FR')} FCFA
+                        {calculateItemTotal(item).toLocaleString("fr-FR")} FCFA
                       </td>
                       <td>
                         <button
@@ -674,7 +702,9 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-medium">Remise globale (%)</span>
+                    <span className="label-text font-medium">
+                      Remise globale (%)
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -690,7 +720,9 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-medium">Frais de livraison</span>
+                    <span className="label-text font-medium">
+                      Frais de livraison
+                    </span>
                   </label>
                   <input
                     type="number"
@@ -710,32 +742,32 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
                 <div className="flex justify-between">
                   <span>Sous-total:</span>
                   <span className="font-semibold">
-                    {totals.subtotal.toLocaleString('fr-FR')} FCFA
+                    {totals.subtotal.toLocaleString("fr-FR")} FCFA
                   </span>
                 </div>
                 <div className="flex justify-between text-warning">
                   <span>Remise:</span>
                   <span className="font-semibold">
-                    - {totals.discount.toLocaleString('fr-FR')} FCFA
+                    - {totals.discount.toLocaleString("fr-FR")} FCFA
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Taxes:</span>
                   <span className="font-semibold">
-                    {totals.tax.toLocaleString('fr-FR')} FCFA
+                    {totals.tax.toLocaleString("fr-FR")} FCFA
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Livraison:</span>
                   <span className="font-semibold">
-                    {totals.shipping.toLocaleString('fr-FR')} FCFA
+                    {totals.shipping.toLocaleString("fr-FR")} FCFA
                   </span>
                 </div>
                 <div className="divider my-2"></div>
                 <div className="flex justify-between text-lg">
                   <span className="font-bold">TOTAL:</span>
                   <span className="font-bold text-success">
-                    {totals.total.toLocaleString('fr-FR')} FCFA
+                    {totals.total.toLocaleString("fr-FR")} FCFA
                   </span>
                 </div>
               </div>
@@ -823,12 +855,11 @@ const OrderModal = ({ isOpen, onClose, order, onSuccess }) => {
             ) : (
               <>
                 <Save size={20} />
-                {isEditMode ? 'Mettre à jour' : 'Créer la commande'}
+                {isEditMode ? "Mettre à jour" : "Créer la commande"}
               </>
             )}
           </button>
         </div>
-
       </form>
     </Modal>
   );

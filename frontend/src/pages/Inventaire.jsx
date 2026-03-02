@@ -16,7 +16,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import { ProductService } from "../services/productService";
+import ProductService from "../services/productService";
 import ProductModal from "../components/common/Inventory/ProductModal";
 import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
 import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
@@ -70,7 +70,9 @@ const Inventory = () => {
       }
 
       // Filtrer les produits invalides
-      const validProducts = productsData.filter(p => p && typeof p === 'object');
+      const validProducts = productsData.filter(
+        (p) => p && typeof p === "object",
+      );
       setProducts(validProducts);
     } catch (err) {
       console.error("Erreur chargement produits:", err);
@@ -224,9 +226,12 @@ const Inventory = () => {
 
     // Recherche - CORRECTION DE L'ERREUR PRINCIPALE
     const matchSearch =
-      (product.name && product.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      (product.name &&
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.sku &&
+        product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.description &&
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
     // Catégorie
     const matchCategory =
@@ -253,8 +258,8 @@ const Inventory = () => {
   const categories = [
     ...new Set(
       products
-        .filter(p => p && p.category && p.category.name)
-        .map((p) => p.category.name)
+        .filter((p) => p && p.category && p.category.name)
+        .map((p) => p.category.name),
     ),
   ];
 
@@ -347,7 +352,10 @@ const Inventory = () => {
             <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
-          <ImportExportButtons products={products} onImportSuccess={fetchProducts} />
+          <ImportExportButtons
+            products={products}
+            onImportSuccess={fetchProducts}
+          />
           <button className="btn btn-primary gap-2" onClick={handleAddProduct}>
             <Plus size={20} />
             Ajouter
@@ -478,7 +486,9 @@ const Inventory = () => {
           </div>
 
           {/* Active Filters */}
-          {(searchQuery || filterCategory !== "all" || filterStatus !== "all") && (
+          {(searchQuery ||
+            filterCategory !== "all" ||
+            filterStatus !== "all") && (
             <div className="flex flex-wrap gap-2 mt-4">
               <span className="text-sm text-base-content/60">
                 Filtres actifs:
@@ -529,9 +539,7 @@ const Inventory = () => {
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               ></path>
             </svg>
-            <span>
-              {selectedProducts.length} produit(s) sélectionné(s)
-            </span>
+            <span>{selectedProducts.length} produit(s) sélectionné(s)</span>
           </div>
           <div className="flex-none">
             <button
@@ -609,7 +617,9 @@ const Inventory = () => {
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">{product.name || "Sans nom"}</div>
+                            <div className="font-bold">
+                              {product.name || "Sans nom"}
+                            </div>
                             {product.description && (
                               <div className="text-sm text-base-content/60 truncate max-w-xs">
                                 {product.description}

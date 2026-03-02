@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Save, X, AlertCircle, Loader2 } from "lucide-react";
 import Modal from "../Modal";
-import { ProductService } from "../../../services/productService";
+import ProductService from "../../../services/productService";
 import { CategoryService } from "../../../services/categoryService";
 import toast from "react-hot-toast";
 
