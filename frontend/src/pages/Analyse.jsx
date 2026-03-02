@@ -17,7 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import { PredictionService } from "../services/predictionService";
-import ProductService from "../services/productService";
+import ProductService from "../services/ProductService";
 import SalesChart from "../components/common/Analytics/SalesChart";
 import AIInsightCard from "../components/common/Analytics/AIInsightCard";
 import CustomPromptModal from "../components/common/Analytics/CustomPromptModal";
@@ -238,7 +238,7 @@ const Analytics = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-primary" />
           <p className="text-lg text-base-content/60">
             Chargement des analytics...
           </p>
@@ -251,12 +251,12 @@ const Analytics = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="card bg-base-100 shadow-xl w-full max-w-md">
-          <div className="card-body text-center">
-            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
-            <h2 className="card-title justify-center">Erreur de chargement</h2>
+        <div className="w-full max-w-md shadow-xl card bg-base-100">
+          <div className="text-center card-body">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-error" />
+            <h2 className="justify-center card-title">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
-            <div className="card-actions justify-center mt-4">
+            <div className="justify-center mt-4 card-actions">
               <button className="btn btn-primary" onClick={fetchAnalytics}>
                 <RefreshCw size={20} />
                 Réessayer
@@ -270,21 +270,21 @@ const Analytics = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-bold">
             <Activity size={32} className="text-primary" />
             Analytiques IA
           </h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="mt-1 text-base-content/60">
             Prédictions et insights alimentés par l'intelligence artificielle
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-base-200 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-base-200">
             <Calendar size={20} className="text-base-content/60" />
             <select
               className="select select-ghost select-sm"
@@ -299,7 +299,7 @@ const Analytics = () => {
           </div>
 
           <button
-            className="btn btn-ghost gap-2"
+            className="gap-2 btn btn-ghost"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -310,8 +310,8 @@ const Analytics = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg rounded-lg border border-primary/20">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20">
           <div className="stat-figure text-primary">
             <Brain size={32} />
           </div>
@@ -326,7 +326,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        <div className="stat bg-gradient-to-br from-success/20 to-success/5 shadow-lg rounded-lg border border-success/20">
+        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-success/20 to-success/5 border-success/20">
           <div className="stat-figure text-success">
             <TrendingUp size={32} />
           </div>
@@ -337,7 +337,7 @@ const Analytics = () => {
           <div className="stat-desc">Opportunités détectées</div>
         </div>
 
-        <div className="stat bg-gradient-to-br from-warning/20 to-warning/5 shadow-lg rounded-lg border border-warning/20">
+        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-warning/20 to-warning/5 border-warning/20">
           <div className="stat-figure text-warning">
             <Target size={32} />
           </div>
@@ -351,7 +351,7 @@ const Analytics = () => {
           <div className="stat-desc">À traiter</div>
         </div>
 
-        <div className="stat bg-gradient-to-br from-info/20 to-info/5 shadow-lg rounded-lg border border-info/20">
+        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-info/20 to-info/5 border-info/20">
           <div className="stat-figure text-info">
             <Zap size={32} />
           </div>
@@ -365,13 +365,13 @@ const Analytics = () => {
 
       {/* AI Insights */}
       {insights.length > 0 && (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
-            <h2 className="card-title mb-4">
+            <h2 className="mb-4 card-title">
               <Brain className="text-primary" size={24} />
               Insights IA en temps réel
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               {insights.slice(0, 6).map((insight) => (
                 <AIInsightCard
                   key={insight.id}
@@ -385,19 +385,19 @@ const Analytics = () => {
       )}
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Sales Chart */}
         <SalesChart data={salesData} period={selectedPeriod} />
 
         {/* Categories Distribution */}
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
             <h2 className="card-title">
               <PieChart size={24} />
               Répartition par catégorie
             </h2>
             {topCategories.length > 0 ? (
-              <div className="space-y-4 mt-4">
+              <div className="mt-4 space-y-4">
                 {topCategories.map((category, index) => (
                   <div key={index}>
                     <div className="flex items-center justify-between mb-2">
@@ -415,7 +415,7 @@ const Analytics = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-base-content/60">
+              <div className="py-12 text-center text-base-content/60">
                 Aucune donnée disponible
               </div>
             )}
@@ -425,9 +425,9 @@ const Analytics = () => {
 
       {/* Predictions Table */}
       {predictions.length > 0 && (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
-            <h2 className="card-title mb-4">
+            <h2 className="mb-4 card-title">
               <Target size={24} />
               Prédictions de demande
             </h2>
@@ -462,7 +462,7 @@ const Analytics = () => {
                       <td>
                         <div className="flex items-center gap-2">
                           <progress
-                            className="progress progress-success w-20"
+                            className="w-20 progress progress-success"
                             value={(pred.output?.confidence || 0) * 100}
                             max="100"
                           ></progress>
@@ -486,9 +486,9 @@ const Analytics = () => {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <button
-          className="btn btn-outline btn-primary gap-2 justify-start h-auto py-4"
+          className="justify-start h-auto gap-2 py-4 btn btn-outline btn-primary"
           onClick={() => setShowCustomPromptModal(true)}
         >
           <Sparkles size={24} />
@@ -499,7 +499,7 @@ const Analytics = () => {
         </button>
 
         <button
-          className="btn btn-outline btn-secondary gap-2 justify-start h-auto py-4"
+          className="justify-start h-auto gap-2 py-4 btn btn-outline btn-secondary"
           onClick={handleAnalyzeStock}
           disabled={analyzingStock}
         >
@@ -515,7 +515,7 @@ const Analytics = () => {
         </button>
 
         <button
-          className="btn btn-outline btn-accent gap-2 justify-start h-auto py-4"
+          className="justify-start h-auto gap-2 py-4 btn btn-outline btn-accent"
           onClick={handleDetectAnomalies}
         >
           <AlertCircle size={24} />
@@ -526,7 +526,7 @@ const Analytics = () => {
         </button>
 
         <button
-          className="btn btn-outline btn-info gap-2 justify-start h-auto py-4"
+          className="justify-start h-auto gap-2 py-4 btn btn-outline btn-info"
           onClick={handleOptimizeOrders}
         >
           <Target size={24} />
@@ -538,21 +538,21 @@ const Analytics = () => {
       </div>
 
       {/* Generate Report */}
-      <div className="card bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
+      <div className="border shadow-lg card bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-lg flex items-center gap-2">
+              <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <FileText size={20} />
                 Rapport d'analyse complet
               </h3>
-              <p className="text-sm text-base-content/60 mt-1">
+              <p className="mt-1 text-sm text-base-content/60">
                 Générez un rapport détaillé avec toutes les analyses et
                 prédictions IA
               </p>
             </div>
             <button
-              className="btn btn-primary gap-2"
+              className="gap-2 btn btn-primary"
               onClick={handleGenerateReport}
               disabled={generatingReport}
             >
