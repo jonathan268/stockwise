@@ -23,7 +23,7 @@ class DashboardController {
     let stockValue = 0;
     try {
       console.log(
-        `DEBUG Dashboard - organizationId: ${organizationId}, type: ${typeof organizationId}`
+        `DEBUG Dashboard - organizationId: ${organizationId}, type: ${typeof organizationId}`,
       );
 
       // Vérifier d'abord combien de stocks existent
@@ -41,7 +41,7 @@ class DashboardController {
 
       console.log(
         `DEBUG Dashboard - After .find(), got ${stocks.length} stocks:`,
-        JSON.stringify(stocks.slice(0, 2), null, 2)
+        JSON.stringify(stocks.slice(0, 2), null, 2),
       );
 
       stockValue = stocks.reduce((sum, stock) => {
@@ -49,12 +49,14 @@ class DashboardController {
         const cost = stock.product?.pricing?.cost || 0;
         const value = quantity * cost;
         console.log(
-          `DEBUG Dashboard - Stock calculation: qty=${quantity}, cost=${cost}, result=${value}`
+          `DEBUG Dashboard - Stock calculation: qty=${quantity}, cost=${cost}, result=${value}`,
         );
         return sum + value;
       }, 0);
 
-      console.log(`DEBUG Dashboard - Final stockValue calculated: ${stockValue}`);
+      console.log(
+        `DEBUG Dashboard - Final stockValue calculated: ${stockValue}`,
+      );
     } catch (error) {
       console.error("Error calculating stock value:", error);
       stockValue = 0;

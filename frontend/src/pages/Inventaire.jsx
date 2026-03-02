@@ -17,7 +17,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import ProductService from "../services/ProductService";
+import ProductService from "../services/productservice";
 import ProductModal from "../components/common/Inventory/ProductModal";
 import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
 import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
@@ -342,7 +342,7 @@ const Inventory = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-primary" />
           <p className="text-lg text-base-content/60">
             Chargement de l'inventaire...
           </p>
@@ -355,12 +355,12 @@ const Inventory = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="card bg-base-100 shadow-xl w-full max-w-md">
-          <div className="card-body text-center">
-            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
-            <h2 className="card-title justify-center">Erreur de chargement</h2>
+        <div className="w-full max-w-md shadow-xl card bg-base-100">
+          <div className="text-center card-body">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-error" />
+            <h2 className="justify-center card-title">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
-            <div className="card-actions justify-center mt-4">
+            <div className="justify-center mt-4 card-actions">
               <button className="btn btn-primary" onClick={fetchProducts}>
                 <RefreshCw size={20} />
                 Réessayer
@@ -374,21 +374,21 @@ const Inventory = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-bold">
             <Package size={32} className="text-primary" />
             Inventaire
           </h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="mt-1 text-base-content/60">
             Gérez vos produits et votre stock
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn btn-ghost gap-2"
+            className="gap-2 btn btn-ghost"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -399,7 +399,7 @@ const Inventory = () => {
             products={products}
             onImportSuccess={fetchProducts}
           />
-          <button className="btn btn-primary gap-2" onClick={handleAddProduct}>
+          <button className="gap-2 btn btn-primary" onClick={handleAddProduct}>
             <Plus size={20} />
             Ajouter
           </button>
@@ -407,8 +407,8 @@ const Inventory = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-primary">
             <Package size={32} />
           </div>
@@ -417,7 +417,7 @@ const Inventory = () => {
           <div className="stat-desc">Dans votre inventaire</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-success">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -434,13 +434,13 @@ const Inventory = () => {
             </svg>
           </div>
           <div className="stat-title">Valeur Totale</div>
-          <div className="stat-value text-success text-2xl">
+          <div className="text-2xl stat-value text-success">
             {stats.totalValue.toLocaleString("fr-FR")}
           </div>
           <div className="stat-desc">FCFA</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-warning">
             <AlertCircle size={32} />
           </div>
@@ -449,7 +449,7 @@ const Inventory = () => {
           <div className="stat-desc">Stock bas</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-error">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -472,16 +472,16 @@ const Inventory = () => {
       </div>
 
       {/* Filters */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="shadow-lg card bg-base-100">
         <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Search */}
             <div className="form-control">
               <div className="input-group">
                 <input
                   type="text"
                   placeholder="Rechercher par nom, SKU..."
-                  className="input input-bordered w-full"
+                  className="w-full input input-bordered"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -537,7 +537,7 @@ const Inventory = () => {
                 Filtres actifs:
               </span>
               {searchQuery && (
-                <div className="badge badge-primary gap-2">
+                <div className="gap-2 badge badge-primary">
                   Recherche: {searchQuery}
                   <button onClick={() => setSearchQuery("")}>
                     <X size={12} />
@@ -545,7 +545,7 @@ const Inventory = () => {
                 </div>
               )}
               {filterCategory !== "all" && (
-                <div className="badge badge-secondary gap-2">
+                <div className="gap-2 badge badge-secondary">
                   Catégorie: {filterCategory}
                   <button onClick={() => setFilterCategory("all")}>
                     <X size={12} />
@@ -553,7 +553,7 @@ const Inventory = () => {
                 </div>
               )}
               {filterStatus !== "all" && (
-                <div className="badge badge-accent gap-2">
+                <div className="gap-2 badge badge-accent">
                   Statut: {filterStatus}
                   <button onClick={() => setFilterStatus("all")}>
                     <X size={12} />
@@ -567,13 +567,13 @@ const Inventory = () => {
 
       {/* Selected Products Alert */}
       {selectedProducts.length > 0 && (
-        <div className="alert alert-info shadow-lg">
+        <div className="shadow-lg alert alert-info">
           <div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              className="stroke-current flex-shrink-0 w-6 h-6"
+              className="flex-shrink-0 w-6 h-6 stroke-current"
             >
               <path
                 strokeLinecap="round"
@@ -586,7 +586,7 @@ const Inventory = () => {
           </div>
           <div className="flex-none">
             <button
-              className="btn btn-sm btn-error gap-2"
+              className="gap-2 btn btn-sm btn-error"
               onClick={handleDeleteSelected}
             >
               <Trash2 size={16} />
@@ -597,7 +597,7 @@ const Inventory = () => {
       )}
 
       {/* Products Table */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="shadow-lg card bg-base-100">
         <div className="card-body">
           <div className="overflow-x-auto">
             <table className="table w-full">
@@ -648,7 +648,7 @@ const Inventory = () => {
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="avatar placeholder">
-                            <div className="bg-neutral-focus text-neutral-content rounded w-12 h-12">
+                            <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
                               {product.image?.url ? (
                                 <img
                                   src={product.image.url}
@@ -664,7 +664,7 @@ const Inventory = () => {
                               {product.name || "Sans nom"}
                             </div>
                             {product.description && (
-                              <div className="text-sm text-base-content/60 truncate max-w-xs">
+                              <div className="max-w-xs text-sm truncate text-base-content/60">
                                 {product.description}
                               </div>
                             )}
@@ -733,10 +733,10 @@ const Inventory = () => {
 
             {/* Empty State */}
             {paginatedProducts.length === 0 && (
-              <div className="text-center py-12">
+              <div className="py-12 text-center">
                 <Package
                   size={48}
-                  className="mx-auto text-base-content/20 mb-4"
+                  className="mx-auto mb-4 text-base-content/20"
                 />
                 <p className="text-base-content/60">
                   {products.length === 0
@@ -745,7 +745,7 @@ const Inventory = () => {
                 </p>
                 {products.length === 0 && (
                   <button
-                    className="btn btn-primary mt-4 gap-2"
+                    className="gap-2 mt-4 btn btn-primary"
                     onClick={handleAddProduct}
                   >
                     <Plus size={20} />
@@ -758,7 +758,7 @@ const Inventory = () => {
 
           {/* Pagination */}
           {filteredProducts.length > itemsPerPage && (
-            <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+            <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">
                 Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
                 {Math.min(currentPage * itemsPerPage, filteredProducts.length)}{" "}

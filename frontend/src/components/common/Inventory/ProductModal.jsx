@@ -301,14 +301,14 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Informations de base */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-lg border-b pb-2">
+          <h4 className="pb-2 text-lg font-semibold border-b">
             Informations de base
           </h4>
 
           {/* Nom */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">
+              <span className="font-medium label-text">
                 Nom du produit <span className="text-error">*</span>
               </span>
             </label>
@@ -323,8 +323,8 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
             />
             {errors.name && (
               <label className="label">
-                <span className="label-text-alt text-error flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
+                <span className="flex items-center gap-1 label-text-alt text-error">
+                  <AlertCircle className="w-3 h-3" />
                   {errors.name}
                 </span>
               </label>
@@ -332,11 +332,11 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           </div>
 
           {/* SKU & Catégorie */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">SKU</span>
-                <span className="label-text-alt text-gray-500">
+                <span className="font-medium label-text">SKU</span>
+                <span className="text-gray-500 label-text-alt">
                   Auto-généré si vide
                 </span>
               </label>
@@ -346,14 +346,14 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                 value={formData.sku}
                 onChange={handleChange}
                 placeholder="PRD-001"
-                className="input input-bordered w-full"
+                className="w-full input input-bordered"
                 disabled={loading}
               />
             </div>
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">
+                <span className="font-medium label-text">
                   Catégorie <span className="text-gray-500">(optionnelle)</span>
                 </span>
               </label>
@@ -371,13 +371,13 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                     setTimeout(() => setShowCategorySuggestions(false), 200)
                   }
                   placeholder="Taper ou sélectionner une catégorie"
-                  className="input input-bordered w-full"
+                  className="w-full input input-bordered"
                   disabled={loading || loadingCategories}
                 />
 
                 {/* Suggestions dropdown */}
                 {showCategorySuggestions && formData.category && (
-                  <div className="absolute top-full left-0 right-0 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                  <div className="absolute left-0 right-0 z-50 overflow-y-auto border rounded-lg shadow-lg top-full bg-base-100 border-base-300 max-h-48">
                     {categories
                       .filter((cat) =>
                         cat.name
@@ -394,7 +394,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                             }));
                             setShowCategorySuggestions(false);
                           }}
-                          className="px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
+                          className="px-4 py-2 border-b cursor-pointer hover:bg-base-200 border-base-300 last:border-b-0"
                         >
                           {cat.name}
                         </div>
@@ -411,7 +411,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                           onClick={() => {
                             setShowCategorySuggestions(false);
                           }}
-                          className="px-4 py-2 hover:bg-primary hover:text-primary-content cursor-pointer bg-base-200 font-medium"
+                          className="px-4 py-2 font-medium cursor-pointer hover:bg-primary hover:text-primary-content bg-base-200"
                         >
                           ✓ Créer: "{formData.category}"
                         </div>
@@ -430,13 +430,13 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           {/* Unité */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Unité</span>
+              <span className="font-medium label-text">Unité</span>
             </label>
             <select
               name="unit"
               value={formData.unit}
               onChange={handleChange}
-              className="select select-bordered w-full"
+              className="w-full select select-bordered"
               disabled={loading}
             >
               <option value="piece">Pièce</option>
@@ -454,7 +454,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           {/* Description */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Description</span>
+              <span className="font-medium label-text">Description</span>
             </label>
             <textarea
               name="description"
@@ -462,7 +462,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
               onChange={handleChange}
               rows="3"
               placeholder="Description du produit..."
-              className="textarea textarea-bordered w-full"
+              className="w-full textarea textarea-bordered"
               disabled={loading}
             />
           </div>
@@ -470,12 +470,12 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
         {/* Prix */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-lg border-b pb-2">Prix</h4>
+          <h4 className="pb-2 text-lg font-semibold border-b">Prix</h4>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">
+                <span className="font-medium label-text">
                   Prix d'achat (FCFA) <span className="text-error">*</span>
                 </span>
               </label>
@@ -492,8 +492,8 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
               />
               {errors["pricing.cost"] && (
                 <label className="label">
-                  <span className="label-text-alt text-error flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
+                  <span className="flex items-center gap-1 label-text-alt text-error">
+                    <AlertCircle className="w-3 h-3" />
                     {errors["pricing.cost"]}
                   </span>
                 </label>
@@ -502,7 +502,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">
+                <span className="font-medium label-text">
                   Prix de vente (FCFA) <span className="text-error">*</span>
                 </span>
               </label>
@@ -519,8 +519,8 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
               />
               {errors["pricing.sellingPrice"] && (
                 <label className="label">
-                  <span className="label-text-alt text-error flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
+                  <span className="flex items-center gap-1 label-text-alt text-error">
+                    <AlertCircle className="w-3 h-3" />
                     {errors["pricing.sellingPrice"]}
                   </span>
                 </label>
@@ -532,11 +532,11 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           {formData.pricing.cost > 0 && formData.pricing.sellingPrice > 0 && (
             <div className="alert alert-success">
               <div className="flex-1">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="font-medium">Marge bénéficiaire:</span>
                   <span className="text-2xl font-bold">{profitMargin}%</span>
                 </div>
-                <div className="text-sm mt-1">
+                <div className="mt-1 text-sm">
                   Bénéfice par unité:{" "}
                   {parseFloat(profit).toLocaleString("fr-FR")} FCFA
                 </div>
@@ -547,7 +547,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
           {/* Tax Rate */}
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Taux de taxe (%)</span>
+              <span className="font-medium label-text">Taux de taxe (%)</span>
             </label>
             <input
               type="number"
@@ -558,7 +558,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
               min="0"
               max="100"
               step="0.01"
-              className="input input-bordered w-full"
+              className="w-full input input-bordered"
               disabled={loading}
             />
           </div>
@@ -566,12 +566,12 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
         {/* Stock */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-lg border-b pb-2">Stock</h4>
+          <h4 className="pb-2 text-lg font-semibold border-b">Stock</h4>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">
+                <span className="font-medium label-text">
                   Quantité initiale
                 </span>
               </label>
@@ -590,7 +590,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Seuil minimum</span>
+                <span className="font-medium label-text">Seuil minimum</span>
               </label>
               <input
                 type="number"
@@ -600,14 +600,14 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                 placeholder="0"
                 min="0"
                 step="0.01"
-                className="input input-bordered w-full"
+                className="w-full input input-bordered"
                 disabled={loading}
               />
             </div>
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Seuil maximum</span>
+                <span className="font-medium label-text">Seuil maximum</span>
               </label>
               <input
                 type="number"
@@ -617,7 +617,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                 placeholder="0"
                 min="0"
                 step="0.01"
-                className="input input-bordered w-full"
+                className="w-full input input-bordered"
                 disabled={loading}
               />
             </div>
@@ -625,7 +625,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
           <div className="form-control">
             <label className="label">
-              <span className="label-text font-medium">Localisation</span>
+              <span className="font-medium label-text">Localisation</span>
             </label>
             <input
               type="text"
@@ -633,7 +633,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
               value={formData.stock.location}
               onChange={handleChange}
               placeholder="Principal, Entrepôt A..."
-              className="input input-bordered w-full"
+              className="w-full input input-bordered"
               disabled={loading}
             />
           </div>
@@ -641,7 +641,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
 
         {/* Métadonnées */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-lg border-b pb-2">
+          <h4 className="pb-2 text-lg font-semibold border-b">
             Informations complémentaires
           </h4>
 
@@ -659,9 +659,9 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
             </label>
 
             {formData.metadata.perishable && (
-              <div className="form-control ml-8">
+              <div className="ml-8 form-control">
                 <label className="label">
-                  <span className="label-text font-medium">
+                  <span className="font-medium label-text">
                     Durée de conservation (jours)
                   </span>
                 </label>
@@ -672,7 +672,7 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
                   onChange={handleChange}
                   placeholder="Ex: 7"
                   min="1"
-                  className="input input-bordered w-full max-w-xs"
+                  className="w-full max-w-xs input input-bordered"
                   disabled={loading}
                 />
               </div>

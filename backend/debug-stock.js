@@ -7,16 +7,18 @@ async function debugStock() {
   try {
     const mongoUri = process.env.MONGO_URI || process.env.MONGO_URI_LOCAL;
     console.log(`Connecting to: ${mongoUri?.substring(0, 50)}...`);
-    
+
     await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB");
 
     // Get all products
-    const products = await Product.find().select("_id name pricing organization");
+    const products = await Product.find().select(
+      "_id name pricing organization",
+    );
     console.log(`\n=== PRODUCTS (${products.length}) ===`);
     products.slice(0, 5).forEach((p) => {
       console.log(
-        `- ${p.name}: cost=${p.pricing?.cost}, org=${p.organization}`
+        `- ${p.name}: cost=${p.pricing?.cost}, org=${p.organization}`,
       );
     });
 
@@ -29,7 +31,7 @@ async function debugStock() {
       console.log(
         `- Product: ${s.product?.name}, qty=${s.quantity}, cost=${s.product?.pricing?.cost}, value=${
           s.quantity * (s.product?.pricing?.cost || 0)
-        }, org=${s.organization}`
+        }, org=${s.organization}`,
       );
     });
 
