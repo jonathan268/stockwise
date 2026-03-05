@@ -1,13 +1,20 @@
 const mongoose = require("mongoose");
-const uri = "mongodb+srv://darrenjonathan97_stockwise:<db_password>@cluster0.esnbapp.mongodb.net/?appName=Cluster0";
 require("dotenv").config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI_LOCAL);
+    const uri = process.env.MONGO_URI || process.env.MONGO_URI_LOCAL;
+
+    if (!uri) {
+      throw new Error(
+        "Aucune URI MongoDB fournie. Définissez MONGO_URI (prod) ou MONGO_URI_LOCAL (dev) dans vos variables d'environnement.",
+      );
+    }
+
+    await mongoose.connect(uri);
     console.log("Connecté à MongoDB avec succès");
   } catch (error) {
-    console.error("Erreur de connexion à MongDB:", error.message);
+    console.error("Erreur de connexion à MongoDB:", error.message);
     process.exit(1);
   }
 };
