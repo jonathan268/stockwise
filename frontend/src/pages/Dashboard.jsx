@@ -222,8 +222,8 @@ const Dashboard = () => {
     navigate("/app/inventaire?action=add");
   };
 
-  const handleNewOrder = () => {
-    navigate("/app/commande?action=add");
+  const handleNewOrder = (productId) => {
+    navigate(`/app/commande?product=${productId}`);
   };
 
   const handleViewPredictions = () => {

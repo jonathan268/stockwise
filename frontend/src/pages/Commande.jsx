@@ -204,7 +204,7 @@ const Orders = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-primary" />
           <p className="text-lg text-base-content/60">
             Chargement des commandes...
           </p>
@@ -217,12 +217,12 @@ const Orders = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="card bg-base-100 shadow-xl w-full max-w-md">
-          <div className="card-body text-center">
-            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
-            <h2 className="card-title justify-center">Erreur de chargement</h2>
+        <div className="w-full max-w-md shadow-xl card bg-base-100">
+          <div className="text-center card-body">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-error" />
+            <h2 className="justify-center card-title">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
-            <div className="card-actions justify-center mt-4">
+            <div className="justify-center mt-4 card-actions">
               <button className="btn btn-primary" onClick={fetchOrders}>
                 <RefreshCw size={20} />
                 Réessayer
@@ -236,28 +236,28 @@ const Orders = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-bold">
             <Package size={32} className="text-primary" />
             Commandes
           </h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="mt-1 text-base-content/60">
             Gérez vos commandes et achats
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn btn-ghost gap-2"
+            className="gap-2 btn btn-ghost"
             onClick={handleRefresh}
             disabled={refreshing}
           >
             <RefreshCw size={20} className={refreshing ? "animate-spin" : ""} />
             Actualiser
           </button>
-          <button className="btn btn-primary gap-2" onClick={handleAddOrder}>
+          <button className="gap-2 btn btn-primary" onClick={handleAddOrder}>
             <Plus size={20} />
             Nouvelle commande
           </button>
@@ -265,8 +265,8 @@ const Orders = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-primary">
             <Package size={32} />
           </div>
@@ -275,7 +275,7 @@ const Orders = () => {
           <div className="stat-desc">Toutes périodes</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-success">
             <CheckCircle size={32} />
           </div>
@@ -284,12 +284,12 @@ const Orders = () => {
           <div className="stat-desc">Commandes livrées</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-info">
             <DollarSign size={32} />
           </div>
           <div className="stat-title">Montant Total</div>
-          <div className="stat-value text-info text-2xl">
+          <div className="text-2xl stat-value text-info">
             {stats.totalAmount.toLocaleString("fr-FR", {
               maximumFractionDigits: 0,
             })}
@@ -297,7 +297,7 @@ const Orders = () => {
           <div className="stat-desc">FCFA</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-warning">
             <Clock size={32} />
           </div>
@@ -308,20 +308,19 @@ const Orders = () => {
       </div>
 
       {/* Filters */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="shadow-lg card bg-base-100">
         <div className="card-body">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col gap-4 md:flex-row">
             {/* Search */}
             <div className="flex-1">
               <div className="form-control">
                 <div className="input-group">
                   <span className="bg-base-200">
-                    <Search size={20} />
                   </span>
                   <input
                     type="text"
                     placeholder="Rechercher par numéro, fournisseur, référence..."
-                    className="input input-bordered w-full"
+                    className="w-full input input-bordered"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -338,7 +337,7 @@ const Orders = () => {
             </div>
 
             {/* Status Filter */}
-            <div className="form-control w-full md:w-48">
+            <div className="w-full form-control md:w-48">
               <select
                 className="select select-bordered"
                 value={filterStatus}
@@ -359,7 +358,7 @@ const Orders = () => {
       </div>
 
       {/* Orders Table */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="shadow-lg card bg-base-100">
         <div className="card-body">
           <div className="overflow-x-auto">
             <table className="table w-full">
@@ -381,7 +380,7 @@ const Orders = () => {
                   return (
                     <tr key={order._id} className="hover">
                       <td>
-                        <div className="font-bold font-mono">
+                        <div className="font-mono font-bold">
                           {order.orderNumber || "—"}
                         </div>
                       </td>
@@ -443,10 +442,10 @@ const Orders = () => {
 
             {/* Empty State */}
             {paginatedOrders.length === 0 && (
-              <div className="text-center py-12">
+              <div className="py-12 text-center">
                 <Package
                   size={48}
-                  className="mx-auto text-base-content/20 mb-4"
+                  className="mx-auto mb-4 text-base-content/20"
                 />
                 <p className="text-base-content/60">
                   {orders.length === 0
@@ -455,7 +454,7 @@ const Orders = () => {
                 </p>
                 {orders.length === 0 && (
                   <button
-                    className="btn btn-primary mt-4 gap-2"
+                    className="gap-2 mt-4 btn btn-primary"
                     onClick={handleAddOrder}
                   >
                     <Plus size={20} />
@@ -468,7 +467,7 @@ const Orders = () => {
 
           {/* Pagination */}
           {filteredOrders.length > itemsPerPage && (
-            <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+            <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">
                 Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
                 {Math.min(currentPage * itemsPerPage, filteredOrders.length)}{" "}

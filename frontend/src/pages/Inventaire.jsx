@@ -55,28 +55,34 @@ const Inventory = () => {
 
       const response = await ProductService.getAllProducts();
 
-      // Extraire le tableau de produits selon la structure de la réponse API
+      // DEBUG - retire ce log une fois que l'affichage fonctionne
+     
+      console.log("FULL RESPONSE:", JSON.stringify(response, null, 2));
+
       let productsData = [];
 
-      if (response) {
-        if (Array.isArray(response)) {
-          // Cas : l'API retourne directement un tableau
-          productsData = response;
-        } else if (Array.isArray(response.data)) {
-          // Cas : { success: true, data: [...] }
-          productsData = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          // Cas paginé Node : { success: true, data: { data: [...], total: 50 } }
-          productsData = response.data.data;
-        } else if (response.data && Array.isArray(response.data.products)) {
-          // Cas : { data: { products: [...] } }
-          productsData = response.data.products;
-        }
+      if (Array.isArray(response)) {
+        // L'API retourne directement un tableau
+        productsData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        // { success: true, data: [...] }
+        productsData = response.data;
+      } else if (response?.data?.data && Array.isArray(response.data.data)) {
+        // { success: true, data: { data: [...], total: 50 } }
+        productsData = response.data.data;
+      } else if (response?.products && Array.isArray(response.products)) {
+        // { products: [...] }
+        productsData = response.products;
+      } else if (response?.data?.products && Array.isArray(response.data.products)) {
+        // { data: { products: [...] } }
+        productsData = response.data.products;
       }
 
-      // Filtrer les produits invalides
+      // DEBUG - retire ce log une fois que l'affichage fonctionne
+      console.log("Premier produit extrait:", productsData[0]);
+
       const validProducts = productsData.filter(
-        (p) => p && typeof p === "object",
+        (p) => p && typeof p === "object"
       );
       setProducts(validProducts);
     } catch (err) {
@@ -88,7 +94,7 @@ const Inventory = () => {
       setError(
         typeof errorMessage === "string"
           ? errorMessage
-          : "Erreur lors du chargement des produits",
+          : "Erreur lors du chargement des produits"
       );
       toast.error("Erreur lors du chargement des produits");
       setProducts([]);
@@ -102,7 +108,6 @@ const Inventory = () => {
     fetchProducts();
   }, []);
 
-  // Handle URL query parameters on mount
   useEffect(() => {
     if (hasProcessedParams.current) return;
 
@@ -168,10 +173,8 @@ const Inventory = () => {
 
     try {
       await ProductService.deleteProduct(productId);
-
       setProducts(products.filter((p) => p._id !== productId));
       setSelectedProducts(selectedProducts.filter((id) => id !== productId));
-
       toast.success("Produit supprimé avec succès");
     } catch (err) {
       console.error("Erreur suppression produit:", err);
@@ -183,7 +186,7 @@ const Inventory = () => {
   const handleDeleteSelected = async () => {
     if (
       !window.confirm(
-        `Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`,
+        `Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`
       )
     ) {
       return;
@@ -193,12 +196,10 @@ const Inventory = () => {
 
     try {
       await Promise.all(
-        selectedProducts.map((id) => ProductService.deleteProduct(id)),
+        selectedProducts.map((id) => ProductService.deleteProduct(id))
       );
-
       setProducts(products.filter((p) => !selectedProducts.includes(p._id)));
       setSelectedProducts([]);
-
       toast.success("Produits supprimés avec succès", { id: loadingToast });
     } catch (err) {
       console.error("Erreur suppression multiple:", err);
@@ -208,12 +209,20 @@ const Inventory = () => {
 
   // ==================== STATUS BADGE ====================
   const getStatusBadge = (product) => {
-    if (!product || !product.stock) {
-      return { class: "badge-ghost", text: "Non défini" };
-    }
+    if (!product) return { class: "badge-ghost", text: "Non défini" };
 
-    const quantity = product.stock.quantity || 0;
-    const minThreshold = product.stock.minThreshold || 0;
+    // Support plusieurs structures possibles de l'API
+    const quantity =
+      product.stock?.quantity ??
+      product.quantity ??
+      product.inventory?.quantity ??
+      0;
+
+    const minThreshold =
+      product.stock?.minThreshold ??
+      product.minThreshold ??
+      product.inventory?.minThreshold ??
+      0;
 
     if (quantity === 0) {
       return { class: "badge-ghost", text: "Rupture" };
@@ -226,62 +235,55 @@ const Inventory = () => {
     }
   };
 
-  // ==================== STATS CALCULATIONS ====================
+  // ==================== STATS ====================
   const calculateStats = () => {
-    // Sécurité : s'assurer que products est toujours un tableau
     const safeProducts = Array.isArray(products) ? products : [];
+
     const totalProducts = safeProducts.length;
 
     const totalValue = safeProducts.reduce((sum, p) => {
       if (!p) return sum;
-      const quantity = p.stock?.quantity || 0;
-      const price = p.pricing?.sellingPrice || 0;
+      const quantity =
+        p.stock?.quantity ?? p.quantity ?? p.inventory?.quantity ?? 0;
+      const price =
+        p.pricing?.sellingPrice ?? p.sellingPrice ?? p.price ?? 0;
       return sum + price * quantity;
     }, 0);
 
     const lowStockCount = safeProducts.filter((p) => {
-      if (!p || !p.stock) return false;
-      const quantity = p.stock.quantity || 0;
-      const minThreshold = p.stock.minThreshold || 0;
+      if (!p) return false;
+      const quantity =
+        p.stock?.quantity ?? p.quantity ?? p.inventory?.quantity ?? 0;
+      const minThreshold =
+        p.stock?.minThreshold ?? p.minThreshold ?? p.inventory?.minThreshold ?? 0;
       return quantity > 0 && quantity <= minThreshold;
     }).length;
 
     const outOfStockCount = safeProducts.filter((p) => {
-      if (!p || !p.stock) return false;
-      const quantity = p.stock.quantity || 0;
+      if (!p) return false;
+      const quantity =
+        p.stock?.quantity ?? p.quantity ?? p.inventory?.quantity ?? 0;
       return quantity === 0;
     }).length;
 
-    return {
-      totalProducts,
-      totalValue,
-      lowStockCount,
-      outOfStockCount,
-    };
+    return { totalProducts, totalValue, lowStockCount, outOfStockCount };
   };
 
   const stats = calculateStats();
 
   // ==================== FILTERING ====================
   const filteredProducts = products.filter((product) => {
-    // Vérification que le produit est valide
     if (!product) return false;
 
-    // Recherche - CORRECTION DE L'ERREUR PRINCIPALE
     const matchSearch =
-      (product.name &&
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.sku &&
-        product.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.description &&
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      (product.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.sku?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.description?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Catégorie
     const matchCategory =
       filterCategory === "all" ||
-      (product.category && product.category.name === filterCategory);
+      product.category?.name === filterCategory;
 
-    // Statut
     let matchStatus = true;
     if (filterStatus !== "all") {
       const status = getStatusBadge(product);
@@ -301,8 +303,8 @@ const Inventory = () => {
   const categories = [
     ...new Set(
       products
-        .filter((p) => p && p.category && p.category.name)
-        .map((p) => p.category.name),
+        .filter((p) => p?.category?.name)
+        .map((p) => p.category.name)
     ),
   ];
 
@@ -310,10 +312,9 @@ const Inventory = () => {
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  // Réinitialiser à la page 1 si on filtre et qu'on dépasse le nombre de pages
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
@@ -419,18 +420,10 @@ const Inventory = () => {
 
         <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-success">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              className="inline-block w-8 h-8 stroke-current"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-              ></path>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
           </div>
           <div className="stat-title">Valeur Totale</div>
@@ -451,18 +444,10 @@ const Inventory = () => {
 
         <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-error">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              className="inline-block w-8 h-8 stroke-current"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
           <div className="stat-title">Ruptures</div>
@@ -475,7 +460,6 @@ const Inventory = () => {
       <div className="shadow-lg card bg-base-100">
         <div className="card-body">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Search */}
             <div className="form-control">
               <div className="input-group">
                 <input
@@ -486,39 +470,26 @@ const Inventory = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
-                  <button
-                    className="btn btn-ghost btn-square"
-                    onClick={() => setSearchQuery("")}
-                  >
+                  <button className="btn btn-ghost btn-square" onClick={() => setSearchQuery("")}>
                     <X size={20} />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Category Filter */}
             <div className="form-control">
-              <select
-                className="select select-bordered"
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-              >
+              <select className="select select-bordered" value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}>
                 <option value="all">Toutes les catégories</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
 
-            {/* Status Filter */}
             <div className="form-control">
-              <select
-                className="select select-bordered"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
+              <select className="select select-bordered" value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="all">Tous les statuts</option>
                 <option value="in_stock">En stock</option>
                 <option value="low_stock">Stock bas</option>
@@ -528,36 +499,25 @@ const Inventory = () => {
             </div>
           </div>
 
-          {/* Active Filters */}
-          {(searchQuery ||
-            filterCategory !== "all" ||
-            filterStatus !== "all") && (
+          {(searchQuery || filterCategory !== "all" || filterStatus !== "all") && (
             <div className="flex flex-wrap gap-2 mt-4">
-              <span className="text-sm text-base-content/60">
-                Filtres actifs:
-              </span>
+              <span className="text-sm text-base-content/60">Filtres actifs:</span>
               {searchQuery && (
                 <div className="gap-2 badge badge-primary">
                   Recherche: {searchQuery}
-                  <button onClick={() => setSearchQuery("")}>
-                    <X size={12} />
-                  </button>
+                  <button onClick={() => setSearchQuery("")}><X size={12} /></button>
                 </div>
               )}
               {filterCategory !== "all" && (
                 <div className="gap-2 badge badge-secondary">
                   Catégorie: {filterCategory}
-                  <button onClick={() => setFilterCategory("all")}>
-                    <X size={12} />
-                  </button>
+                  <button onClick={() => setFilterCategory("all")}><X size={12} /></button>
                 </div>
               )}
               {filterStatus !== "all" && (
                 <div className="gap-2 badge badge-accent">
                   Statut: {filterStatus}
-                  <button onClick={() => setFilterStatus("all")}>
-                    <X size={12} />
-                  </button>
+                  <button onClick={() => setFilterStatus("all")}><X size={12} /></button>
                 </div>
               )}
             </div>
@@ -569,26 +529,15 @@ const Inventory = () => {
       {selectedProducts.length > 0 && (
         <div className="shadow-lg alert alert-info">
           <div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              className="flex-shrink-0 w-6 h-6 stroke-current"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              className="flex-shrink-0 w-6 h-6 stroke-current">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{selectedProducts.length} produit(s) sélectionné(s)</span>
           </div>
           <div className="flex-none">
-            <button
-              className="gap-2 btn btn-sm btn-error"
-              onClick={handleDeleteSelected}
-            >
+            <button className="gap-2 btn btn-sm btn-error" onClick={handleDeleteSelected}>
               <Trash2 size={16} />
               Supprimer la sélection
             </button>
@@ -604,13 +553,8 @@ const Inventory = () => {
               <thead>
                 <tr>
                   <th>
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm"
-                      checked={
-                        paginatedProducts.length > 0 &&
-                        selectedProducts.length === paginatedProducts.length
-                      }
+                    <input type="checkbox" className="checkbox checkbox-sm"
+                      checked={paginatedProducts.length > 0 && selectedProducts.length === paginatedProducts.length}
                       disabled={paginatedProducts.length === 0}
                       onChange={handleSelectAll}
                     />
@@ -630,17 +574,32 @@ const Inventory = () => {
                   if (!product || !product._id) return null;
 
                   const statusBadge = getStatusBadge(product);
-                  const quantity = product.stock?.quantity || 0;
-                  const minThreshold = product.stock?.minThreshold || 0;
-                  const price = product.pricing?.sellingPrice || 0;
+
+                  // Support plusieurs structures d'API possibles
+                  const quantity =
+                    product.stock?.quantity ??
+                    product.quantity ??
+                    product.inventory?.quantity ??
+                    0;
+
+                  const minThreshold =
+                    product.stock?.minThreshold ??
+                    product.minThreshold ??
+                    product.inventory?.minThreshold ??
+                    0;
+
+                  const price =
+                    product.pricing?.sellingPrice ??
+                    product.sellingPrice ??
+                    product.price ??
+                    0;
+
                   const totalValue = price * quantity;
 
                   return (
                     <tr key={product._id} className="hover">
                       <td>
-                        <input
-                          type="checkbox"
-                          className="checkbox checkbox-sm"
+                        <input type="checkbox" className="checkbox checkbox-sm"
                           checked={selectedProducts.includes(product._id)}
                           onChange={() => handleSelectProduct(product._id)}
                         />
@@ -650,19 +609,14 @@ const Inventory = () => {
                           <div className="avatar placeholder">
                             <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
                               {product.image?.url ? (
-                                <img
-                                  src={product.image.url}
-                                  alt={product.name || "Produit"}
-                                />
+                                <img src={product.image.url} alt={product.name || "Produit"} />
                               ) : (
                                 <Box size={20} />
                               )}
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">
-                              {product.name || "Sans nom"}
-                            </div>
+                            <div className="font-bold">{product.name || "Sans nom"}</div>
                             {product.description && (
                               <div className="max-w-xs text-sm truncate text-base-content/60">
                                 {product.description}
@@ -672,9 +626,7 @@ const Inventory = () => {
                         </div>
                       </td>
                       <td>
-                        <span className="font-mono text-sm">
-                          {product.sku || "N/A"}
-                        </span>
+                        <span className="font-mono text-sm">{product.sku || "N/A"}</span>
                       </td>
                       <td>
                         <div className="badge badge-ghost">
@@ -684,9 +636,7 @@ const Inventory = () => {
                       <td>
                         <div className="flex flex-col">
                           <span className="font-bold">{quantity}</span>
-                          <span className="text-xs text-base-content/60">
-                            Seuil: {minThreshold}
-                          </span>
+                          <span className="text-xs text-base-content/60">Seuil: {minThreshold}</span>
                         </div>
                       </td>
                       <td className="font-semibold">
@@ -696,31 +646,20 @@ const Inventory = () => {
                         {totalValue.toLocaleString("fr-FR")} FCFA
                       </td>
                       <td>
-                        <div className={`badge ${statusBadge.class}`}>
-                          {statusBadge.text}
-                        </div>
+                        <div className={`badge ${statusBadge.class}`}>{statusBadge.text}</div>
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button
-                            className="btn btn-ghost btn-xs"
-                            title="Voir"
-                            onClick={() => handleViewDetails(product)}
-                          >
+                          <button className="btn btn-ghost btn-xs" title="Voir"
+                            onClick={() => handleViewDetails(product)}>
                             <Eye size={16} />
                           </button>
-                          <button
-                            className="btn btn-ghost btn-xs"
-                            title="Modifier"
-                            onClick={() => handleEditProduct(product)}
-                          >
+                          <button className="btn btn-ghost btn-xs" title="Modifier"
+                            onClick={() => handleEditProduct(product)}>
                             <Edit size={16} />
                           </button>
-                          <button
-                            className="btn btn-ghost btn-xs text-error"
-                            title="Supprimer"
-                            onClick={() => handleDeleteProduct(product._id)}
-                          >
+                          <button className="btn btn-ghost btn-xs text-error" title="Supprimer"
+                            onClick={() => handleDeleteProduct(product._id)}>
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -731,23 +670,16 @@ const Inventory = () => {
               </tbody>
             </table>
 
-            {/* Empty State */}
             {paginatedProducts.length === 0 && (
               <div className="py-12 text-center">
-                <Package
-                  size={48}
-                  className="mx-auto mb-4 text-base-content/20"
-                />
+                <Package size={48} className="mx-auto mb-4 text-base-content/20" />
                 <p className="text-base-content/60">
                   {products.length === 0
                     ? "Aucun produit dans votre inventaire"
                     : "Aucun produit trouvé avec ces filtres"}
                 </p>
                 {products.length === 0 && (
-                  <button
-                    className="gap-2 mt-4 btn btn-primary"
-                    onClick={handleAddProduct}
-                  >
+                  <button className="gap-2 mt-4 btn btn-primary" onClick={handleAddProduct}>
                     <Plus size={20} />
                     Ajouter votre premier produit
                   </button>
@@ -761,56 +693,30 @@ const Inventory = () => {
             <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">
                 Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
-                {Math.min(currentPage * itemsPerPage, filteredProducts.length)}{" "}
-                sur {filteredProducts.length} produits
+                {Math.min(currentPage * itemsPerPage, filteredProducts.length)} sur{" "}
+                {filteredProducts.length} produits
               </div>
-
               <div className="btn-group">
-                <button
-                  className="btn btn-sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  «
-                </button>
-
+                <button className="btn btn-sm" disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}>«</button>
                 {[...Array(totalPages)].map((_, idx) => {
                   const page = idx + 1;
-                  // Afficher uniquement certaines pages
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
+                  if (page === 1 || page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)) {
                     return (
-                      <button
-                        key={page}
+                      <button key={page}
                         className={`btn btn-sm ${currentPage === page ? "btn-active" : ""}`}
-                        onClick={() => setCurrentPage(page)}
-                      >
+                        onClick={() => setCurrentPage(page)}>
                         {page}
                       </button>
                     );
-                  } else if (
-                    page === currentPage - 2 ||
-                    page === currentPage + 2
-                  ) {
-                    return (
-                      <button key={page} className="btn btn-sm btn-disabled">
-                        ...
-                      </button>
-                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <button key={page} className="btn btn-sm btn-disabled">...</button>;
                   }
                   return null;
                 })}
-
-                <button
-                  className="btn btn-sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  »
-                </button>
+                <button className="btn btn-sm" disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}>»</button>
               </div>
             </div>
           )}
@@ -824,7 +730,6 @@ const Inventory = () => {
         product={selectedProduct}
         onSuccess={handleProductSaved}
       />
-
       <ProductDetailsModal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}

@@ -250,7 +250,7 @@ const Alerts = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
+          <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-primary" />
           <p className="text-lg text-base-content/60">
             Chargement des alertes...
           </p>
@@ -263,12 +263,12 @@ const Alerts = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="card bg-base-100 shadow-xl w-full max-w-md">
-          <div className="card-body text-center">
-            <AlertCircle className="w-16 h-16 text-error mx-auto mb-4" />
-            <h2 className="card-title justify-center">Erreur de chargement</h2>
+        <div className="w-full max-w-md shadow-xl card bg-base-100">
+          <div className="text-center card-body">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-error" />
+            <h2 className="justify-center card-title">Erreur de chargement</h2>
             <p className="text-base-content/60">{error}</p>
-            <div className="card-actions justify-center mt-4">
+            <div className="justify-center mt-4 card-actions">
               <button className="btn btn-primary" onClick={fetchAlerts}>
                 <RefreshCw size={20} />
                 Réessayer
@@ -282,21 +282,21 @@ const Alerts = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-bold">
             <Bell size={32} className="text-warning" />
             Alertes
           </h1>
-          <p className="text-base-content/60 mt-1">
+          <p className="mt-1 text-base-content/60">
             Surveillez et gérez vos alertes de stock
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn btn-ghost gap-2"
+            className="gap-2 btn btn-ghost"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -304,7 +304,7 @@ const Alerts = () => {
             Actualiser
           </button>
           <button
-            className="btn btn-primary gap-2"
+            className="gap-2 btn btn-primary"
             onClick={() => setShowSettingsModal(true)}
           >
             <Settings size={20} />
@@ -314,8 +314,8 @@ const Alerts = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-warning">
             <Bell size={32} />
           </div>
@@ -324,7 +324,7 @@ const Alerts = () => {
           <div className="stat-desc">Toutes les alertes</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-info">
             <AlertCircle size={32} />
           </div>
@@ -333,7 +333,7 @@ const Alerts = () => {
           <div className="stat-desc">À consulter</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-error">
             <AlertTriangle size={32} />
           </div>
@@ -344,7 +344,7 @@ const Alerts = () => {
           <div className="stat-desc">Action immédiate requise</div>
         </div>
 
-        <div className="stat bg-base-100 shadow-lg rounded-lg">
+        <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-success">
             <CheckCircle size={32} />
           </div>
@@ -357,9 +357,9 @@ const Alerts = () => {
       </div>
 
       {/* Tabs and Search */}
-      <div className="card bg-base-100 shadow-lg">
+      <div className="shadow-lg card bg-base-100">
         <div className="card-body">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             {/* Tabs */}
             <div className="tabs tabs-boxed">
               <button
@@ -390,14 +390,11 @@ const Alerts = () => {
 
             {/* Search */}
             <div className="form-control">
-              <div className="input-group">
-                <span className="bg-base-200">
-                  <Search size={20} />
-                </span>
+              <div className=" input-group">
                 <input
                   type="text"
                   placeholder="Rechercher..."
-                  className="input input-bordered w-full md:w-64"
+                  className="w-full input input-bordered md:w-64"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -451,7 +448,7 @@ const Alerts = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg flex items-center gap-2">
+                        <h3 className="flex items-center gap-2 text-lg font-bold">
                           {alert.title}
                           {!alert.isRead && (
                             <span className="badge badge-primary badge-sm">
@@ -459,7 +456,7 @@ const Alerts = () => {
                             </span>
                           )}
                         </h3>
-                        <p className="text-base-content/70 mt-1">
+                        <p className="mt-1 text-base-content/70">
                           {alert.message}
                         </p>
 
@@ -494,7 +491,7 @@ const Alerts = () => {
                     <div className="flex items-center gap-2 mt-4">
                       {!alert.isRead && (
                         <button
-                          className="btn btn-sm btn-success gap-2"
+                          className="gap-2 btn btn-sm btn-success"
                           onClick={() => handleMarkAsRead(alert._id)}
                         >
                           <CheckCircle size={16} />
@@ -502,14 +499,14 @@ const Alerts = () => {
                         </button>
                       )}
                       <button
-                        className="btn btn-sm btn-ghost gap-2"
+                        className="gap-2 btn btn-sm btn-ghost"
                         onClick={() => handleDismissAlert(alert._id)}
                       >
                         <XCircle size={16} />
                         Ignorer
                       </button>
                       <button
-                        className="btn btn-sm btn-ghost text-error gap-2"
+                        className="gap-2 btn btn-sm btn-ghost text-error"
                         onClick={() => handleDeleteAlert(alert._id)}
                       >
                         <Trash2 size={16} />
@@ -525,9 +522,9 @@ const Alerts = () => {
 
         {/* Empty State */}
         {filteredAlerts.length === 0 && (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body text-center py-12">
-              <CheckCircle size={48} className="mx-auto text-success mb-4" />
+          <div className="shadow-lg card bg-base-100">
+            <div className="py-12 text-center card-body">
+              <CheckCircle size={48} className="mx-auto mb-4 text-success" />
               <h3 className="text-xl font-bold">Aucune alerte</h3>
               <p className="text-base-content/60">
                 {selectedTab === "all"
@@ -545,12 +542,12 @@ const Alerts = () => {
 
       {/* Quick Actions */}
       {stats.unread > 0 && (
-        <div className="card bg-base-100 shadow-lg">
+        <div className="shadow-lg card bg-base-100">
           <div className="card-body">
             <h3 className="card-title">Actions rapides</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-3">
               <button
-                className="btn btn-outline btn-success gap-2 justify-start"
+                className="justify-start gap-2 btn btn-outline btn-success"
                 onClick={handleMarkAllAsRead}
               >
                 <CheckCircle size={20} />
@@ -563,7 +560,7 @@ const Alerts = () => {
               </button>
 
               <button
-                className="btn btn-outline btn-error gap-2 justify-start"
+                className="justify-start gap-2 btn btn-outline btn-error"
                 onClick={handleClearAll}
               >
                 <Trash2 size={20} />
@@ -574,7 +571,7 @@ const Alerts = () => {
               </button>
 
               <button
-                className="btn btn-outline btn-primary gap-2 justify-start"
+                className="justify-start gap-2 btn btn-outline btn-primary"
                 onClick={() => setShowSettingsModal(true)}
               >
                 <Settings size={20} />
