@@ -1,8 +1,7 @@
 import axios from "axios";
 
 // Configuration du baseURL - utilise la variable d'environnement ou localhost par défaut
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
   baseURL: apiUrl,
@@ -13,7 +12,7 @@ const api = axios.create({
 });
 
 const authApi = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: apiUrl,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
