@@ -22,15 +22,10 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // Configuration CORS
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "https://stockwise-eight.vercel.app"
-        : ["http://localhost:5173", "https://stockwise-backend-q7s1.onrender.com"],
-    credentials: true,
-  }),
-);
+app.use(cors({
+  origin: ['https://stockwise-eight.vercel.app', 'http://localhost:3000'],
+  credentials: true,
+}));
 
 connectDB();
 
