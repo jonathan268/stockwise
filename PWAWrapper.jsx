@@ -45,7 +45,7 @@ const PWAWrapper = ({ children }) => {
           }, 60 * 60 * 1000);
         })
         .catch((error) => {
-          console.error('❌ Erreur Service Worker:', error);
+          console.error(' Erreur Service Worker:', error);
         });
     }
 
@@ -64,7 +64,7 @@ const PWAWrapper = ({ children }) => {
     const { outcome } = await installPromptEvent.userChoice;
 
     if (outcome === 'accepted') {
-      console.log('✅ PWA installée');
+      console.log(' PWA installée');
     }
 
     setShowInstallPrompt(false);
@@ -85,8 +85,8 @@ const PWAWrapper = ({ children }) => {
 
       {/* Prompt d'installation */}
       {showInstallPrompt && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-slide-up">
-          <div className="alert alert-info shadow-lg">
+        <div className="fixed z-50 max-w-sm bottom-4 right-4 animate-slide-up">
+          <div className="shadow-lg alert alert-info">
             <div className="flex-1">
               <Download size={24} />
               <div>
@@ -116,12 +116,12 @@ const PWAWrapper = ({ children }) => {
 
       {/* Prompt de mise à jour */}
       {showUpdatePrompt && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down">
-          <div className="alert alert-success shadow-lg">
+        <div className="fixed z-50 transform -translate-x-1/2 top-4 left-1/2 animate-slide-down">
+          <div className="shadow-lg alert alert-success">
             <div className="flex items-center gap-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current flex-shrink-0 h-6 w-6"
+                className="flex-shrink-0 w-6 h-6 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
