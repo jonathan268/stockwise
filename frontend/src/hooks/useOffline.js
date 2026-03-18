@@ -11,12 +11,12 @@ export const useOffline = () => {
     const handleOnline = () => {
       setWasOffline(isOffline);
       setIsOffline(false);
-      console.log('📶 Connexion rétablie');
+      console.log(' Connexion rétablie');
     };
 
     const handleOffline = () => {
       setIsOffline(true);
-      console.log('📵 Connexion perdue');
+      console.log(' Connexion perdue');
     };
 
     window.addEventListener('online', handleOnline);

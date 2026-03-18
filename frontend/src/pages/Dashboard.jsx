@@ -22,6 +22,7 @@ import { DashboardService } from "../services/dashboardService";
 import ProductService from "../services/ProductService";
 import StatCard from "../components/dashboard/StatCard";
 import SubscriptionBadge from "../components/dashboard/SubscriptionBadge";
+import MobileCard, { MobileCardRow } from "../components/common/MobileCard";
 import toast from "react-hot-toast";
 
 const Dashboard = () => {
@@ -366,79 +367,114 @@ const Dashboard = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : stockAlerts.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr>
-                      <th>Produit</th>
-                      <th>Quantité</th>
-                      <th>Seuil</th>
-                      <th>Statut</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stockAlerts.map((alert) => (
-                      <tr key={alert._id} className="hover">
-                        <td>
-                          <div className="flex items-center gap-3">
-                            <div className="avatar placeholder">
-                              <div className="w-10 rounded bg-neutral-focus text-neutral-content">
-                                <Box size={18} />
+              <>
+                {/* Mobile view (Cards) */}
+                <div className="md:hidden">
+                  {stockAlerts.map((alert) => {
+                    const statusBadge = alert.status === "critical" ? "badge-error" : "badge-warning";
+                    return (
+                      <MobileCard key={alert._id} onClick={() => handleViewProduct(alert.product?._id)}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="avatar placeholder">
+                            <div className="w-10 rounded bg-neutral-focus text-neutral-content">
+                              <Box size={18} />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold">{alert.product?.name || "Produit"}</h3>
+                            <p className="text-xs text-base-content/60 font-mono">{alert.product?.sku}</p>
+                          </div>
+                          <div className={`badge badge-sm ${statusBadge}`}>
+                            {alert.status === "critical" ? "Critique" : "Attention"}
+                          </div>
+                        </div>
+                        <MobileCardRow label="Quantité" value={alert.quantity} />
+                        <MobileCardRow label="Seuil" value={alert.threshold} />
+                        <div className="flex justify-end mt-3 pt-3 border-t border-base-200">
+                           <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleNewOrder(); }}>
+                             Commander
+                           </button>
+                        </div>
+                      </MobileCard>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop view (Table) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="table w-full">
+                    <thead>
+                      <tr>
+                        <th>Produit</th>
+                        <th>Quantité</th>
+                        <th>Seuil</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stockAlerts.map((alert) => (
+                        <tr key={alert._id} className="hover">
+                          <td>
+                            <div className="flex items-center gap-3">
+                              <div className="avatar placeholder">
+                                <div className="w-10 rounded bg-neutral-focus text-neutral-content">
+                                  <Box size={18} />
+                                </div>
+                              </div>
+                              <div>
+                                <span className="font-medium">
+                                  {alert.product?.name || "Produit"}
+                                </span>
+                                {alert.product?.sku && (
+                                  <div className="font-mono text-xs text-base-content/60">
+                                    {alert.product.sku}
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <div>
-                              <span className="font-medium">
-                                {alert.product?.name || "Produit"}
-                              </span>
-                              {alert.product?.sku && (
-                                <div className="font-mono text-xs text-base-content/60">
-                                  {alert.product.sku}
-                                </div>
-                              )}
+                          </td>
+                          <td>
+                            <span className="font-bold">{alert.quantity}</span>
+                          </td>
+                          <td className="text-base-content/60">
+                            {alert.threshold}
+                          </td>
+                          <td>
+                            <div
+                              className={`badge ${alert.status === "critical" ? "badge-error" : "badge-warning"} gap-2`}
+                            >
+                              <AlertTriangle size={12} />
+                              {alert.status === "critical"
+                                ? "Critique"
+                                : "Attention"}
                             </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="font-bold">{alert.quantity}</span>
-                        </td>
-                        <td className="text-base-content/60">
-                          {alert.threshold}
-                        </td>
-                        <td>
-                          <div
-                            className={`badge ${alert.status === "critical" ? "badge-error" : "badge-warning"} gap-2`}
-                          >
-                            <AlertTriangle size={12} />
-                            {alert.status === "critical"
-                              ? "Critique"
-                              : "Attention"}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="flex gap-2">
-                            <button
-                              className="btn btn-ghost btn-xs"
-                              title="Voir détails"
-                              onClick={() =>
-                                handleViewProduct(alert.product?._id)
-                              }
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              className="btn btn-primary btn-xs"
-                              onClick={handleNewOrder}
-                            >
-                              Commander
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          </td>
+                          <td>
+                            <div className="flex gap-2">
+                              <button
+                                className="btn btn-ghost btn-xs"
+                                title="Voir détails"
+                                onClick={() =>
+                                  handleViewProduct(alert.product?._id)
+                                }
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                className="btn btn-primary btn-xs"
+                                onClick={handleNewOrder}
+                              >
+                                Commander
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="py-8 text-center text-base-content/60">
                 <AlertTriangle size={48} className="mx-auto mb-4 opacity-20" />

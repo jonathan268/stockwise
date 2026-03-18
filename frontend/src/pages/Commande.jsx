@@ -18,6 +18,7 @@ import {
 import { OrderService } from "../services/orderService";
 import OrderModal from "../components/common/Orders/orderModal";
 import OrderDetailsModal from "../components/common/Orders/orderDetailsModal";
+import MobileCard, { MobileCardRow } from "../components/common/MobileCard";
 import toast from "react-hot-toast";
 
 const Orders = () => {
@@ -357,10 +358,49 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* Orders Table */}
+      {/* Orders Table (Desktop) / Cards (Mobile) */}
       <div className="shadow-lg card bg-base-100">
-        <div className="card-body">
-          <div className="overflow-x-auto">
+        <div className="card-body p-4 md:p-8">
+          {/* Mobile view (Cards) */}
+          <div className="md:hidden">
+            {paginatedOrders.map((order) => {
+              const statusBadge = getStatusBadge(order.status);
+              return (
+                <MobileCard key={order._id} onClick={() => handleViewDetails(order)}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-mono font-bold text-primary">
+                      {order.orderNumber || "—"}
+                    </div>
+                    <div className={`badge badge-sm ${statusBadge.class}`}>
+                      {statusBadge.text}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <MobileCardRow label="Fournisseur" value={order.supplier?.name || "—"} />
+                    <MobileCardRow label="Référence" value={order.reference || "—"} />
+                    <MobileCardRow label="Montant" value={`${(order.totalAmount || 0).toLocaleString("fr-FR")} FCFA`} className="font-bold text-info" />
+                    <MobileCardRow label="Date" value={order.createdAt ? new Date(order.createdAt).toLocaleDateString("fr-FR") : "—"} />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-base-200">
+                    <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}>
+                      <Eye size={16} />
+                    </button>
+                    <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleEditOrder(order); }}>
+                      <Edit size={16} />
+                    </button>
+                    <button className="btn btn-ghost btn-xs text-error" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order._id); }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </MobileCard>
+              );
+            })}
+          </div>
+
+          {/* Desktop view (Table) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
@@ -439,31 +479,28 @@ const Orders = () => {
                 })}
               </tbody>
             </table>
-
-            {/* Empty State */}
-            {paginatedOrders.length === 0 && (
-              <div className="py-12 text-center">
-                <Package
-                  size={48}
-                  className="mx-auto mb-4 text-base-content/20"
-                />
-                <p className="text-base-content/60">
-                  {orders.length === 0
-                    ? "Aucune commande"
-                    : "Aucune commande trouvée avec ces filtres"}
-                </p>
-                {orders.length === 0 && (
-                  <button
-                    className="gap-2 mt-4 btn btn-primary"
-                    onClick={handleAddOrder}
-                  >
-                    <Plus size={20} />
-                    Créer votre première commande
-                  </button>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Empty State */}
+          {paginatedOrders.length === 0 && (
+            <div className="py-12 text-center">
+              <Package size={48} className="mx-auto mb-4 text-base-content/20" />
+              <p className="text-base-content/60">
+                {orders.length === 0
+                  ? "Aucune commande"
+                  : "Aucune commande trouvée avec ces filtres"}
+              </p>
+              {orders.length === 0 && (
+                <button
+                  className="gap-2 mt-4 btn btn-primary"
+                  onClick={handleAddOrder}
+                >
+                  <Plus size={20} />
+                  Créer votre première commande
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Pagination */}
           {filteredOrders.length > itemsPerPage && (

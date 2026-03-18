@@ -23,11 +23,14 @@ import AdminOrganizations from "./admin/components/AdminOrganizations";
 
 */
 
+import PWAWrapper from "./src/components/PWAWrapper";
+
 // Pages exemples (à créer selon vos besoins)
 
 function App() {
   return (
-    <BrowserRouter>
+    <PWAWrapper>
+      <BrowserRouter>
       <Routes>
         {/* Landing page (publique) - Page d'accueil */}
         <Route path="/" element={<Landing />} />
@@ -62,7 +65,8 @@ function App() {
         {/* Route 404 - Page non trouvée */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </PWAWrapper>
   );
 }
 

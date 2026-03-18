@@ -21,6 +21,7 @@ import ProductService from "../services/ProductService";
 import ProductModal from "../components/common/Inventory/ProductModal";
 import ProductDetailsModal from "../components/common/Inventory/ProductDetailsModal";
 import ImportExportButtons from "../components/common/Inventory/ImportExportButtons";
+import MobileCard, { MobileCardRow } from "../components/common/MobileCard";
 import toast from "react-hot-toast";
 
 const Inventory = () => {
@@ -545,10 +546,60 @@ const Inventory = () => {
         </div>
       )}
 
-      {/* Products Table */}
+      {/* Products Table (Desktop) / Cards (Mobile) */}
       <div className="shadow-lg card bg-base-100">
-        <div className="card-body">
-          <div className="overflow-x-auto">
+        <div className="card-body p-4 md:p-8">
+          {/* Mobile view (Cards) */}
+          <div className="md:hidden">
+            {paginatedProducts.map((product) => {
+               if (!product || !product._id) return null;
+               const statusBadge = getStatusBadge(product);
+               const quantity = product.stock?.quantity ?? product.quantity ?? 0;
+               const price = product.pricing?.sellingPrice ?? product.sellingPrice ?? 0;
+               
+               return (
+                 <MobileCard key={product._id} onClick={() => handleViewDetails(product)}>
+                   <div className="flex items-center gap-3 mb-3">
+                     <div className="avatar placeholder">
+                        <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
+                          {product.image?.url ? (
+                            <img src={product.image.url} alt={product.name} />
+                          ) : (
+                            <Box size={20} />
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold">{product.name}</h3>
+                        <p className="text-xs text-base-content/60 font-mono">{product.sku}</p>
+                      </div>
+                      <div className={`badge badge-sm ${statusBadge.class}`}>{statusBadge.text}</div>
+                   </div>
+                   
+                   <div className="space-y-1">
+                     <MobileCardRow label="Stock" value={`${quantity} (Seuil: ${product.stock?.minThreshold || 0})`} />
+                     <MobileCardRow label="Prix" value={`${price.toLocaleString("fr-FR")} FCFA`} />
+                     <MobileCardRow label="Valeur" value={`${(price * quantity).toLocaleString("fr-FR")} FCFA`} className="text-success font-bold" />
+                   </div>
+                   
+                   <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-base-200">
+                      <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleViewDetails(product); }}>
+                        <Eye size={16} />
+                      </button>
+                      <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleEditProduct(product); }}>
+                        <Edit size={16} />
+                      </button>
+                      <button className="btn btn-ghost btn-xs text-error" onClick={(e) => { e.stopPropagation(); handleDeleteProduct(product._id); }}>
+                        <Trash2 size={16} />
+                      </button>
+                   </div>
+                 </MobileCard>
+               );
+            })}
+          </div>
+
+          {/* Desktop view (Table) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
@@ -669,26 +720,7 @@ const Inventory = () => {
                 })}
               </tbody>
             </table>
-
-            {paginatedProducts.length === 0 && (
-              <div className="py-12 text-center">
-                <Package size={48} className="mx-auto mb-4 text-base-content/20" />
-                <p className="text-base-content/60">
-                  {products.length === 0
-                    ? "Aucun produit dans votre inventaire"
-                    : "Aucun produit trouvé avec ces filtres"}
-                </p>
-                {products.length === 0 && (
-                  <button className="gap-2 mt-4 btn btn-primary" onClick={handleAddProduct}>
-                    <Plus size={20} />
-                    Ajouter votre premier produit
-                  </button>
-                )}
-              </div>
-            )}
           </div>
-
-          {/* Pagination */}
           {filteredProducts.length > itemsPerPage && (
             <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">

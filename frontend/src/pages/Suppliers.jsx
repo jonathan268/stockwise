@@ -18,6 +18,7 @@ import {
 import { SupplierService } from "../services/suppliersService";
 import SupplierModal from "../components/common/Suppliers/SupplierModal";
 import SupplierDetailsModal from "../components/common/Suppliers/SupplierDetailsModal";
+import MobileCard, { MobileCardRow } from "../components/common/MobileCard";
 import toast from "react-hot-toast";
 
 const Suppliers = () => {
@@ -339,10 +340,64 @@ const Suppliers = () => {
         </div>
       </div>
 
-      {/* Suppliers Table */}
+      {/* Suppliers Table (Desktop) / Cards (Mobile) */}
       <div className="shadow-lg card bg-base-100">
-        <div className="card-body">
-          <div className="overflow-x-auto">
+        <div className="card-body p-4 md:p-8">
+          {/* Mobile view (Cards) */}
+          <div className="md:hidden">
+            {paginatedSuppliers.map((supplier) => {
+              const statusBadge = getStatusBadge(supplier.status);
+              return (
+                <MobileCard key={supplier._id} onClick={() => handleViewDetails(supplier)}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="avatar placeholder">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 text-primary">
+                          <Building2 size={16} />
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="font-bold">{supplier.name}</h3>
+                        <p className="text-xs text-base-content/60 font-mono">{supplier.code}</p>
+                      </div>
+                    </div>
+                    <div className={`badge badge-sm ${statusBadge.class}`}>
+                      {statusBadge.text}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <MobileCardRow label="Contact" value={supplier.phone || supplier.email || "—"} />
+                    <MobileCardRow label="Commandes" value={supplier.stats?.totalOrders || 0} />
+                    <MobileCardRow label="Total dépensé" value={`${(supplier.stats?.totalSpent || 0).toLocaleString("fr-FR")} FCFA`} className="font-bold text-success" />
+                    {supplier.rating?.overall > 0 && (
+                      <MobileCardRow label="Rating" value={
+                        <div className="flex items-center gap-1">
+                          <Star size={12} className="fill-warning text-warning" />
+                          <span>{supplier.rating.overall.toFixed(1)}</span>
+                        </div>
+                      } />
+                    )}
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-base-200">
+                    <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleViewDetails(supplier); }}>
+                      <Eye size={16} />
+                    </button>
+                    <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleEditSupplier(supplier); }}>
+                      <Edit size={16} />
+                    </button>
+                    <button className="btn btn-ghost btn-xs text-error" onClick={(e) => { e.stopPropagation(); handleDeleteSupplier(supplier._id); }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </MobileCard>
+              );
+            })}
+          </div>
+
+          {/* Desktop view (Table) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="table w-full">
               <thead>
                 <tr>
@@ -440,6 +495,7 @@ const Suppliers = () => {
                 })}
               </tbody>
             </table>
+          </div>
 
             {/* Empty State */}
             {paginatedSuppliers.length === 0 && (
@@ -464,9 +520,8 @@ const Suppliers = () => {
                 )}
               </div>
             )}
-          </div>
 
-          {/* Pagination */}
+            {/* Pagination */}
           {filteredSuppliers.length > itemsPerPage && (
             <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">
