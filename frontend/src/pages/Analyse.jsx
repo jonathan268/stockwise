@@ -24,7 +24,6 @@ import CustomPromptModal from "../components/common/Analytics/CustomPromptModal"
 import toast from "react-hot-toast";
 
 const Analytics = () => {
-  // ==================== STATE ====================
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,7 +44,6 @@ const Analytics = () => {
   const [analyzingStock, setAnalyzingStock] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
 
-  // ==================== FETCH DATA ====================
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
@@ -106,7 +104,6 @@ const Analytics = () => {
     fetchAnalytics();
   }, [selectedPeriod]);
 
-  // ==================== REFRESH ====================
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchAnalytics();
@@ -114,7 +111,6 @@ const Analytics = () => {
     toast.success("Analytics actualisées");
   };
 
-  // ==================== ANALYZE STOCK ====================
   const handleAnalyzeStock = async () => {
     setAnalyzingStock(true);
 
@@ -148,7 +144,6 @@ const Analytics = () => {
     }
   };
 
-  // ==================== DETECT ANOMALIES ====================
   const handleDetectAnomalies = async () => {
     const loadingToast = toast.loading("Détection des anomalies...");
 
@@ -177,7 +172,6 @@ const Analytics = () => {
     }
   };
 
-  // ==================== OPTIMIZE ORDERS ====================
   const handleOptimizeOrders = async () => {
     const loadingToast = toast.loading("Optimisation des commandes...");
 
@@ -206,7 +200,6 @@ const Analytics = () => {
     }
   };
 
-  // ==================== GENERATE REPORT ====================
   const handleGenerateReport = async () => {
     setGeneratingReport(true);
 
@@ -227,13 +220,11 @@ const Analytics = () => {
     }
   };
 
-  // ==================== DISMISS INSIGHT ====================
   const handleDismissInsight = (insightId) => {
     setInsights((prev) => prev.filter((i) => i.id !== insightId));
     toast.success("Insight ignoré");
   };
 
-  // ==================== RENDER LOADING ====================
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -247,7 +238,6 @@ const Analytics = () => {
     );
   }
 
-  // ==================== RENDER ERROR ====================
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -268,7 +258,6 @@ const Analytics = () => {
     );
   }
 
-  // ==================== MAIN RENDER ====================
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -311,7 +300,7 @@ const Analytics = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20">
+        <div className="border rounded-lg shadow-lg stat bg-linear-to-br from-primary/20 to-primary/5 border-primary/20">
           <div className="stat-figure text-primary">
             <Brain size={32} />
           </div>
@@ -326,7 +315,7 @@ const Analytics = () => {
           </div>
         </div>
 
-        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-success/20 to-success/5 border-success/20">
+        <div className="border rounded-lg shadow-lg stat bg-linear-to-br from-success/20 to-success/5 border-success/20">
           <div className="stat-figure text-success">
             <TrendingUp size={32} />
           </div>
@@ -337,7 +326,7 @@ const Analytics = () => {
           <div className="stat-desc">Opportunités détectées</div>
         </div>
 
-        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-warning/20 to-warning/5 border-warning/20">
+        <div className="border rounded-lg shadow-lg stat bg-linear-to-br from-warning/20 to-warning/5 border-warning/20">
           <div className="stat-figure text-warning">
             <Target size={32} />
           </div>
@@ -351,7 +340,7 @@ const Analytics = () => {
           <div className="stat-desc">À traiter</div>
         </div>
 
-        <div className="border rounded-lg shadow-lg stat bg-gradient-to-br from-info/20 to-info/5 border-info/20">
+        <div className="border rounded-lg shadow-lg stat bg-linear-to-br from-info/20 to-info/5 border-info/20">
           <div className="stat-figure text-info">
             <Zap size={32} />
           </div>
@@ -538,7 +527,7 @@ const Analytics = () => {
       </div>
 
       {/* Generate Report */}
-      <div className="border shadow-lg card bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+      <div className="border shadow-lg card bg-linear-to-br from-primary/10 to-primary/5 border-primary/20">
         <div className="card-body">
           <div className="flex items-center justify-between">
             <div>

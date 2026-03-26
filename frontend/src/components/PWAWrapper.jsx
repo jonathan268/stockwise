@@ -76,15 +76,15 @@ const PWAWrapper = ({ children }) => {
 
       {/* Prompt d'installation */}
       {showInstallPrompt && (
-        <div className="fixed z-[9999] max-w-sm bottom-6 right-6 animate-slide-up">
-          <div className="card shadow-2xl bg-base-100 border border-primary/20 backdrop-blur-lg">
-            <div className="card-body p-4">
+        <div className="fixed max-w-sm z-9999 bottom-6 right-6 animate-slide-up">
+          <div className="border shadow-2xl card bg-base-100 border-primary/20 backdrop-blur-lg">
+            <div className="p-4 card-body">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary/10 rounded-xl text-primary">
                   <Download size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-sm">Installer StockWise</h3>
+                  <h3 className="text-sm font-bold">Installer StockWise</h3>
                   <p className="text-xs opacity-70">
                     Accédez à vos stocks plus rapidement et même sans connexion.
                   </p>
@@ -96,7 +96,7 @@ const PWAWrapper = ({ children }) => {
                   <X size={16} />
                 </button>
               </div>
-              <div className="card-actions justify-end mt-2">
+              <div className="justify-end mt-2 card-actions">
                 <button
                   className="btn btn-sm btn-primary"
                   onClick={handleInstall}
@@ -112,13 +112,13 @@ const PWAWrapper = ({ children }) => {
       {/* Prompt de mise à jour / Offline Ready */}
       {(offlineReady || needRefresh) && (
         <div className="fixed z-[10000] bottom-6 left-6 animate-slide-up">
-          <div className="alert shadow-2xl bg-base-100 border border-success/20 py-2">
+          <div className="py-2 border shadow-2xl alert bg-base-100 border-success/20">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-success/10 rounded-lg text-success">
+              <div className="p-2 rounded-lg bg-success/10 text-success">
                 {needRefresh ? <RefreshCcw size={20} /> : <Download size={20} />}
               </div>
               <div>
-                <h3 className="font-bold text-sm">
+                <h3 className="text-sm font-bold">
                   {needRefresh ? 'Mise à jour disponible' : 'Prêt pour le mode hors ligne'}
                 </h3>
                 <p className="text-[10px] opacity-70">

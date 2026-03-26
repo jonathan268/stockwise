@@ -14,12 +14,12 @@ import { useAuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Header = ({ onMenuClick }) => {
-  const [theme, setTheme] = useState("corporate");
+  const [theme, setTheme] = useState("light");
   const { user, logout, loading } = useAuthContext();
   const navigate = useNavigate();
 
   const toggleTheme = () => {
-    const newTheme = theme === "corporate" ? "business" : "corporate";
+    const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };

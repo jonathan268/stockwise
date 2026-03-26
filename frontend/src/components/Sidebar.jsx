@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Package,
+  PackagePlus,
   ShoppingCart,
   AlertTriangle,
   Activity,
@@ -51,14 +52,14 @@ const Sidebar = ({ isOpen, onToggle }) => {
           {isOpen && (
             <div className="flex items-center gap-2">
               <div className="bg-primary rounded-lg p-1.5">
-                <TrendingUp size={20} className="text-primary-content" />
+                <PackagePlus size={20} className="text-primary-content" />
               </div>
               <h1 className="text-xl font-bold text-primary">StockWise</h1>
             </div>
           )}
           {!isOpen && (
             <div className="bg-primary rounded-lg p-1.5 mx-auto">
-              <TrendingUp size={20} className="text-primary-content" />
+              <PackagePlus size={20} className="text-primary-content" />
             </div>
           )}
           <button

@@ -9,7 +9,7 @@ const StockMovement = require("../models/stockMovement");
  */
 exports.runCompleteAnalysis = async (req, res) => {
   try {
-    console.log("🚀 Analyse IA optimisée démarrée...");
+    console.log(" Analyse IA optimisée démarrée...");
 
     // 1. Récupérer UNIQUEMENT les données nécessaires
     const [stocks, recentMovements] = await Promise.all([

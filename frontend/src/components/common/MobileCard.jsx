@@ -1,9 +1,5 @@
 import React from "react";
 
-/**
- * MobileCard component for displaying list items as cards on small screens.
- * Useful for replacing tables on mobile.
- */
 const MobileCard = ({ children, className = "", onClick }) => {
   return (
     <div

@@ -238,9 +238,9 @@ const Alerts = () => {
 
     // Search filter
     const matchSearch =
-      alert.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      alert.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      alert.relatedTo?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      (alert.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (alert.message || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (alert.relatedTo?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchTab && matchSearch;
   });
@@ -461,7 +461,7 @@ const Alerts = () => {
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 mt-3">
-                          {alert.relatedTo?.name && (
+                          {alert.relatedTo && alert.relatedTo.name && (
                             <div className="flex items-center gap-2">
                               <Package
                                 size={16}

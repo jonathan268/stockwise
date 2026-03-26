@@ -78,6 +78,7 @@ class AlertController {
   async getAlertsCount(req, res, next) {
     try {
       const organizationId = req.user.organization;
+      const mongoose = require("mongoose");
 
       const [total, unread, bySeverity, byType] = await Promise.all([
         Alert.countDocuments({
@@ -92,7 +93,7 @@ class AlertController {
         Alert.aggregate([
           {
             $match: {
-              organization: organizationId,
+              organization: mongoose.Types.ObjectId(organizationId),
               isRead: false,
               isDismissed: false,
             },
@@ -107,7 +108,7 @@ class AlertController {
         Alert.aggregate([
           {
             $match: {
-              organization: organizationId,
+              organization: mongoose.Types.ObjectId(organizationId),
               isRead: false,
               isDismissed: false,
             },

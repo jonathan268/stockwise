@@ -18,16 +18,21 @@ const organizationRoutes = require("./src/routes/organizationRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
 const app = express();
+
+// 1. Configuration CORS (DOIT être au tout début pour gérer les preflights)
+app.use(cors({
+  origin: ['https://stockwise-eight.vercel.app', 'http://localhost:3000', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 2. Middlewares de base
 app.use(express.json());
 app.use(passport.initialize());
 
-// Configuration CORS
-app.use(cors({
-  origin: ['https://stockwise-eight.vercel.app', 'http://localhost:3000'],
-  credentials: true,
-}));
-
-connectDB();
+// Suppression de l'appel direct pour passer à une initialisation asynchrone
+// connectDB();
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/subscriptions", subscriptionRoutes);
@@ -85,6 +90,23 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Serveur démarré sur le port ${PORT}`);
-});
+
+// Fonction de démarrage du serveur
+const startServer = async () => {
+  try {
+    // 1. Attendre la connexion à la base de données avant de démarrer le serveur
+    console.log("Tentative de connexion à MongoDB...");
+    await connectDB();
+    
+    // 2. Démarrer le serveur
+    app.listen(PORT, () => {
+      console.log(` Serveur démarré avec succès sur le port ${PORT}`);
+      console.log(` CORS autorisés pour: https://stockwise-eight.vercel.app`);
+    });
+  } catch (error) {
+    console.error(" Échec du démarrage du serveur:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

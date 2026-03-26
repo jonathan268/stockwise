@@ -160,8 +160,6 @@ class ProductController {
       let createdStock = null;
       if (req.body.stock) {
         const stockData = {
-          organization: organizationId,
-          product: product._id,
           quantity: parseFloat(req.body.stock.quantity) || 0,
           minThreshold: parseFloat(req.body.stock.minThreshold) || 0,
           maxThreshold: parseFloat(req.body.stock.maxThreshold) || 0,
@@ -170,16 +168,25 @@ class ProductController {
             type: "warehouse",
           },
         };
-        createdStock = await Stock.create(stockData);
+        
+        createdStock = await Stock.findOneAndUpdate(
+          { organization: organizationId, product: product._id },
+          { $set: stockData },
+          { upsert: true, new: true }
+        );
       } else {
-        createdStock = await Stock.create({
-          organization: organizationId,
-          product: product._id,
-          quantity: 0,
-          minThreshold: 0,
-          maxThreshold: 0,
-          location: { name: "Principal", type: "warehouse" },
-        });
+        createdStock = await Stock.findOneAndUpdate(
+          { organization: organizationId, product: product._id },
+          { 
+            $setOnInsert: {
+              quantity: 0,
+              minThreshold: 0,
+              maxThreshold: 0,
+              location: { name: "Principal", type: "warehouse" }
+            }
+          },
+          { upsert: true, new: true }
+        );
       }
 
       const productWithStock = await Product.findById(product._id)
@@ -238,45 +245,27 @@ class ProductController {
 
       let updatedStock = null;
       if (stockData) {
-        let stock = await Stock.findOne({
-          organization: organizationId,
-          product: id,
-        });
+        const updateObj = {
+          quantity: stockData.quantity !== undefined ? parseFloat(stockData.quantity) : undefined,
+          minThreshold: stockData.minThreshold !== undefined ? parseFloat(stockData.minThreshold) : undefined,
+          maxThreshold: stockData.maxThreshold !== undefined ? parseFloat(stockData.maxThreshold) : undefined,
+        };
 
-        if (stock) {
-          stock.quantity =
-            stockData.quantity !== undefined
-              ? parseFloat(stockData.quantity)
-              : stock.quantity;
-          stock.minThreshold =
-            stockData.minThreshold !== undefined
-              ? parseFloat(stockData.minThreshold)
-              : stock.minThreshold;
-          stock.maxThreshold =
-            stockData.maxThreshold !== undefined
-              ? parseFloat(stockData.maxThreshold)
-              : stock.maxThreshold;
+        // Supprimer les champs undefined pour ne pas écraser les valeurs existantes
+        Object.keys(updateObj).forEach(key => updateObj[key] === undefined && delete updateObj[key]);
 
-          if (stockData.location) {
-            stock.location = {
-              name: stockData.location || stock.location.name,
-              type: stock.location.type || "warehouse",
-            };
-          }
-          updatedStock = await stock.save();
-        } else {
-          updatedStock = await Stock.create({
-            organization: organizationId,
-            product: id,
-            quantity: parseFloat(stockData.quantity) || 0,
-            minThreshold: parseFloat(stockData.minThreshold) || 0,
-            maxThreshold: parseFloat(stockData.maxThreshold) || 0,
-            location: {
-              name: stockData.location || "Principal",
-              type: "warehouse",
-            },
-          });
+        if (stockData.location) {
+          updateObj.location = {
+            name: stockData.location,
+            type: "warehouse" 
+          };
         }
+
+        updatedStock = await Stock.findOneAndUpdate(
+          { organization: organizationId, product: id },
+          { $set: updateObj },
+          { upsert: true, new: true }
+        );
       } else {
         updatedStock = await Stock.findOne({
           organization: organizationId,

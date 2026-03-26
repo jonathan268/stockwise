@@ -62,13 +62,13 @@ class DashboardController {
       stockValue = 0;
     }
 
-    // Alertes stock bas
-    const lowStockAlerts = await Product.countDocuments({
+    // Alertes stock bas - Calcul direct depuis Stock
+    const lowStockAlerts = await Stock.countDocuments({
       organization: organizationId,
       $expr: {
         $and: [
-          { $gt: ["$stock.quantity", 0] },
-          { $lte: ["$stock.quantity", "$stock.minThreshold"] },
+          { $gt: ["$quantity", 0] },
+          { $lte: ["$quantity", "$minThreshold"] },
         ],
       },
     });
@@ -123,31 +123,31 @@ class DashboardController {
     const organizationId = req.user.organization;
     const { limit = 10 } = req.query;
 
-    const alerts = await Product.find({
+    const lowStocks = await Stock.find({
       organization: organizationId,
       $expr: {
-        $lte: ["$stock.quantity", "$stock.minThreshold"],
+        $lte: ["$quantity", "$minThreshold"],
       },
     })
       .limit(parseInt(limit))
-      .sort({ "stock.quantity": 1 })
-      .select("name sku stock")
+      .sort({ quantity: 1 })
+      .populate("product", "name sku")
       .lean();
 
     // Formater les alertes
-    const formattedAlerts = alerts.map((product) => ({
-      _id: product._id,
+    const formattedAlerts = lowStocks.map((stock) => ({
+      _id: stock.product?._id,
       product: {
-        _id: product._id,
-        name: product.name,
-        sku: product.sku,
+        _id: stock.product?._id,
+        name: stock.product?.name,
+        sku: stock.product?.sku,
       },
-      quantity: product.stock?.quantity || 0,
-      threshold: product.stock?.minThreshold || 0,
+      quantity: stock.quantity || 0,
+      threshold: stock.minThreshold || 0,
       status:
-        product.stock?.quantity === 0
+        stock.quantity === 0
           ? "critical"
-          : product.stock?.quantity <= (product.stock?.minThreshold || 0) / 2
+          : stock.quantity <= (stock.minThreshold || 0) / 2
             ? "critical"
             : "warning",
     }));

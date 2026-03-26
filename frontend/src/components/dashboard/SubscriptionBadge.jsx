@@ -22,7 +22,7 @@ const SubscriptionBadge = () => {
     } else if (subscription.status === "active") {
       // Afficher le type de plan avec un emoji approprié
       const planNames = {
-        free: "Essai gratuit",
+        free: "Essai",
         basic: "Starter",
         smart: "Pro",
         premium: "Entreprise",

@@ -382,7 +382,7 @@ const Dashboard = () => {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-bold">{alert.product?.name || "Produit"}</h3>
-                            <p className="text-xs text-base-content/60 font-mono">{alert.product?.sku}</p>
+                            <p className="font-mono text-xs text-base-content/60">{alert.product?.sku}</p>
                           </div>
                           <div className={`badge badge-sm ${statusBadge}`}>
                             {alert.status === "critical" ? "Critique" : "Attention"}
@@ -390,7 +390,7 @@ const Dashboard = () => {
                         </div>
                         <MobileCardRow label="Quantité" value={alert.quantity} />
                         <MobileCardRow label="Seuil" value={alert.threshold} />
-                        <div className="flex justify-end mt-3 pt-3 border-t border-base-200">
+                        <div className="flex justify-end pt-3 mt-3 border-t border-base-200">
                            <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleNewOrder(); }}>
                              Commander
                            </button>
@@ -401,7 +401,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Desktop view (Table) */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="hidden overflow-x-auto md:block">
                   <table className="table w-full">
                     <thead>
                       <tr>
