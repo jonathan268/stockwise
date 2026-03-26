@@ -18,9 +18,10 @@ const BottomNav = () => {
     { path: "/app/inventaire", icon: Package, label: "Stocks" },
     { path: "/app/alerts", icon: AlertTriangle, label: "Alertes" },
     { path: "/app/commande", icon: ShoppingCart, label: "Commandes" },
+    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
     { path: "/app/analytics", icon: Sparkles, label: "IA" },
     { path: "/app/settings", icon: User, label: "Profil" },
-    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
+
   ];
 
   const isActive = (path) => location.pathname === path;
