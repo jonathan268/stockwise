@@ -222,19 +222,25 @@ productSchema.pre("save", async function () {
 // Hook: Créer stock initial lors création produit
 productSchema.post("save", async function (doc) {
   if (doc.wasNew) {
-    const Stock = mongoose.model("Stock");
-    const existingStock = await Stock.findOne({
-      organization: doc.organization,
-      product: doc._id,
-    });
-
-    if (!existingStock) {
-      await Stock.create({
+    try {
+      const Stock = mongoose.model("Stock");
+      const existingStock = await Stock.findOne({
         organization: doc.organization,
         product: doc._id,
-        quantity: 0,
-        location: { name: "Principal", type: "warehouse" },
       });
+
+      if (!existingStock) {
+        await Stock.create({
+          organization: doc.organization,
+          product: doc._id,
+          quantity: 0,
+          location: { name: "Principal", type: "warehouse" },
+        });
+      }
+    } catch (error) {
+      console.error("[Product Hook] Error creating initial stock:", error);
+      // On ne jette pas l'erreur pour ne pas bloquer la création du produit
+      // car le contrôleur va aussi essayer de créer le stock
     }
   }
 });

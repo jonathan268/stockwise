@@ -140,13 +140,23 @@ class ProductController {
         );
       }
 
+      console.log("[CreateProduct] Body:", JSON.stringify(req.body, null, 2));
+
+      // Vérifier si la catégorie est un ObjectId valide
+      const mongoose = require("mongoose");
+      if (req.body.category && !mongoose.Types.ObjectId.isValid(req.body.category)) {
+        console.warn("[CreateProduct] Invalid Category ID format:", req.body.category);
+        throw new AppError("Format de catégorie invalide", 400);
+      }
+
       const category = await Category.findOne({
         _id: req.body.category,
         organization: organizationId,
       });
 
       if (!category) {
-        throw new AppError("Catégorie invalide", 400);
+        console.warn("[CreateProduct] Category not found:", req.body.category);
+        throw new AppError("Catégorie introuvable ou invalide", 400);
       }
 
       const productData = {
@@ -158,7 +168,9 @@ class ProductController {
       // Supprimer le champ virtual pour éviter les conflits lors de la création
       delete productData.stock;
 
+      console.log("[CreateProduct] Saving product...");
       const product = await Product.create(productData);
+      console.log("[CreateProduct] Product saved:", product._id);
 
       let createdStock = null;
       if (req.body.stock) {
@@ -173,12 +185,15 @@ class ProductController {
           },
         };
         
+        console.log("[CreateProduct] Creating/Updating stock...");
         createdStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: product._id },
           { $set: stockData },
           { upsert: true, new: true, runValidators: true }
         );
+        console.log("[CreateProduct] Stock handled.");
       } else {
+        console.log("[CreateProduct] Initializing default stock...");
         createdStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: product._id },
           { 
@@ -203,6 +218,7 @@ class ProductController {
 
       return successResponse(res, productObj, "Produit créé avec succès", 201);
     } catch (error) {
+      console.error("[CreateProduct] ERROR:", error);
       if (error.code === 11000) {
         return next(new AppError("Un produit avec ce SKU existe déjà", 400));
       }
