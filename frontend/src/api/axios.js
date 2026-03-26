@@ -1,7 +1,9 @@
 import axios from "axios";
 
-// Configuration du baseURL - utilise la variable d'environnement ou localhost par défaut
-const apiUrl = import.meta.env.VITE_API_LOCAL;
+// Configuration du baseURL selon l'environnement
+const apiUrl = import.meta.env.MODE === "production" 
+  ? import.meta.env.VITE_API_URL 
+  : import.meta.env.VITE_API_LOCAL;
 
 const api = axios.create({
   baseURL: apiUrl,
