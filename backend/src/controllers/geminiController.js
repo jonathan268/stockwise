@@ -338,6 +338,95 @@ exports.customQuery = async (req, res) => {
   }
 };
 
+exports.optimizeOrders = async (req, res) => {
+  try {
+    const { budgetConstraint } = req.body;
+
+    const stocks = await Stock.find()
+      .populate("product", "name reorderPoint maxStockLevel")
+      .select("product quantity")
+      .limit(50);
+
+    const lowStockProducts = stocks
+      .filter(s => s.quantity <= (s.product?.reorderPoint || 5))
+      .map(s => ({
+        name: s.product?.name,
+        currentQuantity: s.quantity,
+        reorderPoint: s.product?.reorderPoint,
+        maxStockLevel: s.product?.maxStockLevel,
+      }));
+
+    const result = await geminiService.optimizeOrders({ lowStockProducts, budgetConstraint });
+
+    res.json({ success: true, data: { result }, apiCalls: 1 });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.analyzeWaste = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.body;
+
+    const query = { type: "exit" };
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const movements = await StockMovement.find(query)
+      .populate("product", "name purchasePrice")
+      .limit(100);
+
+    const items = movements.map(m => ({
+      product: m.product?.name || "Inconnu",
+      quantity: m.quantity,
+      estimatedValue: m.quantity * (m.product?.purchasePrice || 0),
+    }));
+
+    const totalEstimatedLoss = items.reduce((sum, i) => sum + i.estimatedValue, 0);
+
+    const result = await geminiService.analyzeWaste({ items, totalEstimatedLoss });
+
+    res.json({ success: true, data: { result, totalEstimatedLoss }, apiCalls: 1 });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.generateReport = async (req, res) => {
+  try {
+    const { period = "30d" } = req.body;
+
+    const daysMap = { "7d": 7, "30d": 30, "90d": 90 };
+    const days = daysMap[period] || 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const [stocks, movements] = await Promise.all([
+      Stock.find().populate("product", "name purchasePrice").select("product quantity").limit(50),
+      StockMovement.find({ createdAt: { $gte: since } }).limit(200),
+    ]);
+
+    const summary = {
+      totalProducts: stocks.length,
+      totalStockValue: stocks
+        .reduce((sum, s) => sum + s.quantity * (s.product?.purchasePrice || 0), 0)
+        .toFixed(2),
+      totalMovements: movements.length,
+      period,
+    };
+
+    const result = await geminiService.generateReport({ period, summary });
+
+    res.json({ success: true, data: { report: result, summary }, apiCalls: 1 });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
 /**
  * Nettoyer le cache (à appeler périodiquement)
  */

@@ -4,15 +4,15 @@ const { GoogleGenAI } = require('@google/genai');
 class GeminiService {
   constructor() {
     this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    this.model = "gemini-2.0-flash"; // Modèle gratuit le plus performant
-    
+    this.model = "gemini-1.5-flash"; // Modèle gratuit stable
+
     // Limites du plan gratuit
     this.limits = {
       maxTokensPerRequest: 8000, // Limite conservative
       requestsPerMinute: 15,
       requestsPerDay: 1500
     };
-    
+
     // Cache pour éviter les requêtes répétitives
     this.cache = new Map();
     this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
@@ -48,6 +48,24 @@ class GeminiService {
   }
 
   /**
+   * Appel sécurisé à l'API Gemini avec extraction robuste du texte
+   * Compatible avec toutes les versions du SDK @google/genai
+   */
+  async _generate(prompt) {
+    const response = await this.ai.models.generateContent({
+      model: this.model,
+      contents: prompt,
+    });
+    // .text peut être un getter string ou une fonction selon la version du SDK
+    if (typeof response.text === 'string') return response.text.trim();
+    if (typeof response.text === 'function') return response.text().trim();
+    // Fallback sur les candidats bruts
+    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text) return text.trim();
+    throw new Error('Réponse Gemini invalide ou vide');
+  }
+
+  /**
    * Analyse ULTRA-RAPIDE du stock (prompt minimal)
    * Optimisé pour plan gratuit - Analyse seulement les données critiques
    */
@@ -58,10 +76,10 @@ class GeminiService {
 
     // Filtrer UNIQUEMENT les produits critiques pour économiser les tokens
     const criticalProducts = stockData.products
-      ?.filter(p => 
+      ?.filter(p =>
         p.quantity <= (p.reorderPoint || 10) || // Stock faible
         (p.batches && p.batches.some(b => {
-          const daysToExpiry = b.expirationDate 
+          const daysToExpiry = b.expirationDate
             ? Math.floor((new Date(b.expirationDate) - new Date()) / (1000 * 60 * 60 * 24))
             : 999;
           return daysToExpiry < 30; // Expire bientôt
@@ -86,12 +104,7 @@ Analyse rapide:
 Format court.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      const result = response.text.trim();
+      const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
@@ -120,12 +133,7 @@ Ventes 7j: ${JSON.stringify(simplified.d)}
 Prédis 7 prochains jours (format: J1:X, J2:Y...).`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      const result = response.text.trim();
+      const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
@@ -146,7 +154,7 @@ Prédis 7 prochains jours (format: J1:X, J2:Y...).`;
     const critical = {
       lowStock: data.products?.filter(p => p.quantity <= (p.reorderPoint || 5)).slice(0, 5).map(p => p.name),
       expiring: data.products?.filter(p => {
-        const days = p.batches?.[0]?.expirationDate 
+        const days = p.batches?.[0]?.expirationDate
           ? Math.floor((new Date(p.batches[0].expirationDate) - new Date()) / 86400000)
           : 999;
         return days < 15;
@@ -163,12 +171,7 @@ Top ventes: ${JSON.stringify(critical.topSales || [])}
 Résumé en 3 points max + 1 action prioritaire.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      const result = response.text.trim();
+      const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
@@ -181,23 +184,23 @@ Résumé en 3 points max + 1 action prioritaire.`;
    */
   async detectAnomalies(stockData) {
     const cacheKey = `anomalies_${Date.now().toString().substring(0, 10)}`;
-    
+
     // Détecter automatiquement les anomalies AVANT l'appel IA
     const anomalies = [];
-    
+
     stockData.products?.forEach(p => {
       // Stock négatif
       if (p.quantity < 0) {
         anomalies.push(`${p.name}: stock négatif (${p.quantity})`);
       }
-      
+
       // Surstock extrême (>200% du max)
       if (p.maxStockLevel && p.quantity > p.maxStockLevel * 2) {
         anomalies.push(`${p.name}: surstock (${p.quantity}/${p.maxStockLevel})`);
       }
-      
+
       // Produit dormant (pas de mouvement depuis 90j)
-      const daysSinceMovement = p.lastMovement 
+      const daysSinceMovement = p.lastMovement
         ? Math.floor((Date.now() - new Date(p.lastMovement)) / 86400000)
         : 0;
       if (daysSinceMovement > 90) {
@@ -207,7 +210,7 @@ Résumé en 3 points max + 1 action prioritaire.`;
 
     // Si peu d'anomalies, retourner direct sans appel IA
     if (anomalies.length <= 3) {
-      return anomalies.length > 0 
+      return anomalies.length > 0
         ? `Anomalies détectées:\n- ${anomalies.join('\n- ')}`
         : "✅ Aucune anomalie détectée";
     }
@@ -218,12 +221,7 @@ Résumé en 3 points max + 1 action prioritaire.`;
 Classe par priorité (critique/moyen/faible).`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      return response.text.trim();
+      return await this._generate(prompt);
     } catch (error) {
       // Fallback : retourner les anomalies sans analyse IA
       return `Anomalies (${anomalies.length}):\n- ${anomalies.slice(0, 10).join('\n- ')}`;
@@ -258,17 +256,12 @@ Budget: ${data.budgetConstraint || 'illimité'}
 Priorise + conseils courts.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      const result = response.text.trim();
+      const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
       // Fallback : retourner les recommandations calculées
-      return `Commandes recommandées:\n${recommendations.map(r => 
+      return `Commandes recommandées:\n${recommendations.map(r =>
         `- ${r.n}: ${r.commander} unités (actuel: ${r.actuel})`
       ).join('\n')}`;
     }
@@ -278,8 +271,6 @@ Priorise + conseils courts.`;
    * Analyse du gaspillage ULTRA-COMPACTE
    */
   async analyzeWaste(wasteData) {
-    const cacheKey = `waste_${Date.now().toString().substring(0, 10)}`;
-    
     // Calculer automatiquement les statistiques
     const stats = {
       total: wasteData.totalEstimatedLoss || 0,
@@ -302,14 +293,32 @@ Top produits: ${JSON.stringify(topProducts)}
 3 conseils pour réduire.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      return response.text.trim();
+      return await this._generate(prompt);
     } catch (error) {
       return `Gaspillage: ${stats.total.toFixed(2)}€ sur ${stats.items} items\nTop: ${topProducts.map(p => `${p.n} (${p.v}€)`).join(', ')}`;
+    }
+  }
+
+  /**
+   * Génération de rapport global
+   */
+  async generateReport(data) {
+    const cacheKey = `report_${data.period || '30d'}_${Date.now().toString().substring(0, 8)}`;
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    const prompt = `Génère un rapport de gestion de stock pour la période: ${data.period || '30 derniers jours'}.
+Données: ${JSON.stringify(data.summary || {})}
+
+Inclure: résumé exécutif, points clés (3 max), recommandations (3 max).
+Format structuré court.`;
+
+    try {
+      const result = await this._generate(prompt);
+      this.setCache(cacheKey, result);
+      return result;
+    } catch (error) {
+      throw new Error(`Gemini erreur: ${error.message}`);
     }
   }
 
@@ -319,18 +328,13 @@ Top produits: ${JSON.stringify(topProducts)}
   async customPrompt(userPrompt, context = {}) {
     // Limiter le contexte à 100 caractères max
     const shortContext = JSON.stringify(context).substring(0, 100);
-    
+
     const prompt = `${userPrompt}${shortContext ? `\nCtx: ${shortContext}` : ''}
 
 Réponse courte et actionnable.`;
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: prompt
-      });
-
-      return response.text.trim();
+      return await this._generate(prompt);
     } catch (error) {
       throw new Error(`Gemini erreur: ${error.message}`);
     }
@@ -348,11 +352,8 @@ Réponse courte et actionnable.`;
    */
   async testConnection() {
     try {
-      const response = await this.ai.models.generateContent({
-        model: this.model,
-        contents: "Test"
-      });
-      return response.text.trim().length > 0;
+      const text = await this._generate("Test");
+      return text.length > 0;
     } catch (error) {
       console.error("Erreur Gemini:", error.message);
       return false;

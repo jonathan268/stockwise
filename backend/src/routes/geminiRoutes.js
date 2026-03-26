@@ -69,6 +69,27 @@ router.post(
 );
 
 router.post(
+  "/optimize-orders",
+  authenticate,
+  geminiRateLimiter,
+  geminiController.optimizeOrders,
+);
+
+router.post(
+  "/analyze-waste",
+  authenticate,
+  geminiRateLimiter,
+  geminiController.analyzeWaste,
+);
+
+router.post(
+  "/generate-report",
+  authenticate,
+  geminiRateLimiter,
+  geminiController.generateReport,
+);
+
+router.post(
   "/custom-prompt",
   authenticate,
   geminiRateLimiter,
