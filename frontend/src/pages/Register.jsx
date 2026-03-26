@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import api from "../api/axios";
+import SEO from "../components/common/SEO";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -142,6 +143,10 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200 p-4">
+      <SEO 
+        title="Créer un compte" 
+        description="Inscrivez-vous sur StockWise pour démarrer votre essai gratuit et optimiser la gestion de vos stocks."
+      />
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">

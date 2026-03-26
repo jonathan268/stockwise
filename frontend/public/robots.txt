@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /app/
+Disallow: /admin/
+Disallow: /auth/callback
+
+Sitemap: https://stockwise-frontend.vercel.app/sitemap.xml

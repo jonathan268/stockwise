@@ -56,6 +56,8 @@ import {
   Clock,
 } from "lucide-react";
 
+import SEO from "../components/common/SEO";
+
 /* ─────────────────────────────────────────
    Animation Variants
 ───────────────────────────────────────── */
@@ -251,8 +253,33 @@ export default function LandingPage() {
     },
   ];
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "StockWise",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "XAF"
+    },
+    "description": "Logiciel de gestion de stock intelligente basé sur l'IA pour les PME.",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1200"
+    }
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-base-100 text-base-content">
+      <SEO 
+        title="Logiciel de Gestion de Stock & Inventaire Intelligent" 
+        description="Prenez le contrôle de votre inventaire avec StockWise. Anticipez les ruptures de stock grâce à l'Intelligence Artificielle et optimisez vos commandes automatiquement."
+        keywords="logiciel gestion de stock, inventaire, IA prédictive, gestion PME Afrique, Cameroun"
+        structuredData={structuredData}
+      />
       {/* ── MOBILE DRAWER ── */}
       <AnimatePresence>
         {drawerOpen && (

@@ -6,10 +6,14 @@ import App from '../App'
 
 
 
+import { HelmetProvider } from 'react-helmet-async';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-  <App/>
-  </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <App/>
+      </AuthProvider>
+    </HelmetProvider>
   </StrictMode>,
 )

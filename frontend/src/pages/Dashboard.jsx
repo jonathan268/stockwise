@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Calendar,
   Brain,
+  BarChart,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DashboardService } from "../services/dashboardService";
@@ -322,10 +324,10 @@ const Dashboard = () => {
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
             >
-              <option value="24h">24 heures</option>
-              <option value="7d">7 jours</option>
-              <option value="30d">30 jours</option>
-              <option value="90d">90 jours</option>
+              <option value="24h">24h</option>
+              <option value="7d">7j</option>
+              <option value="30d">30j</option>
+              <option value="90d">90j</option>
             </select>
           </div>
           <button
@@ -542,7 +544,7 @@ const Dashboard = () => {
                   <div className="shadow-lg alert alert-info">
                     <div>
                       <span className="text-sm">
-                        📊 Analysez vos tendances avec l'IA pour des
+                        <BarChart size={20} /> Analysez vos tendances avec l'IA pour des
                         recommandations personnalisées
                       </span>
                     </div>
@@ -550,7 +552,7 @@ const Dashboard = () => {
                   <div className="shadow-lg alert alert-success">
                     <div>
                       <span className="text-sm">
-                        ✨ Activez les prédictions IA pour optimiser votre stock
+                        <Sparkles size={20} /> Activez les prédictions IA pour optimiser votre stock
                       </span>
                     </div>
                   </div>

@@ -5,8 +5,9 @@ import {
   Package,
   ShoppingCart,
   AlertTriangle,
-  Activity,
-  User
+  Sparkles,
+  User,
+  TrendingUp
 } from "lucide-react";
 
 const BottomNav = () => {
@@ -15,8 +16,10 @@ const BottomNav = () => {
   const navItems = [
     { path: "/app/dashboard", icon: BarChart3, label: "Accueil" },
     { path: "/app/inventaire", icon: Package, label: "Stocks" },
-    { path: "/app/commande", icon: ShoppingCart, label: "Achats" },
-    { path: "/app/analytics", icon: Activity, label: "IA" },
+    { path: "/app/commande", icon: ShoppingCart, label: "Commandes" },
+    { path: "/app/alert", icon: AlertTriangle, label: "Alertes" },
+    { path: "/app/analytics", icon: Sparkles, label: "IA" },
+    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
     { path: "/app/settings", icon: User, label: "Profil" },
   ];
 

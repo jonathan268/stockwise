@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
+import SEO from "./common/SEO";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
@@ -13,6 +14,7 @@ const Layout = () => {
 
   return (
     <div className="h-screen bg-base-200 overflow-hidden">
+      <SEO noindex={true} title="Dashboard" />
       {/* Sidebar - Desktop */}
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
 

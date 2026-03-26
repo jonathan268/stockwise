@@ -13,6 +13,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
+import SEO from "../components/common/SEO";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -50,6 +51,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-200  p-4">
+      <SEO 
+        title="Connexion" 
+        description="Connectez-vous à votre compte StockWise pour gérer votre inventaire."
+      />
       <div className="w-full max-w-md">
         {/* Logo et Titre */}
         <div className="text-center mb-8">
