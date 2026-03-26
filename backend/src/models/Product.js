@@ -198,6 +198,12 @@ productSchema.virtual("stock", {
   justOne: true,
 });
 
+// Hook: Préparer le flag wasNew pour le post-save
+productSchema.pre("save", function (next) {
+  this.wasNew = this.isNew;
+  next();
+});
+
 // Hook: Générer SKU si non fourni
 productSchema.pre("save", async function () {
   if (!this.sku && this.isNew) {

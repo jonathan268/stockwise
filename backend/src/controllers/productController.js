@@ -163,6 +163,7 @@ class ProductController {
           quantity: parseFloat(req.body.stock.quantity) || 0,
           minThreshold: parseFloat(req.body.stock.minThreshold) || 0,
           maxThreshold: parseFloat(req.body.stock.maxThreshold) || 0,
+          reorderPoint: parseFloat(req.body.stock.reorderPoint) || undefined,
           location: {
             name: req.body.stock.location || "Principal",
             type: "warehouse",
@@ -172,7 +173,7 @@ class ProductController {
         createdStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: product._id },
           { $set: stockData },
-          { upsert: true, new: true }
+          { upsert: true, new: true, runValidators: true }
         );
       } else {
         createdStock = await Stock.findOneAndUpdate(
@@ -249,6 +250,7 @@ class ProductController {
           quantity: stockData.quantity !== undefined ? parseFloat(stockData.quantity) : undefined,
           minThreshold: stockData.minThreshold !== undefined ? parseFloat(stockData.minThreshold) : undefined,
           maxThreshold: stockData.maxThreshold !== undefined ? parseFloat(stockData.maxThreshold) : undefined,
+          reorderPoint: stockData.reorderPoint !== undefined ? parseFloat(stockData.reorderPoint) : undefined,
         };
 
         // Supprimer les champs undefined pour ne pas écraser les valeurs existantes
@@ -264,7 +266,7 @@ class ProductController {
         updatedStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: id },
           { $set: updateObj },
-          { upsert: true, new: true }
+          { upsert: true, new: true, runValidators: true }
         );
       } else {
         updatedStock = await Stock.findOne({
