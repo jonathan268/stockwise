@@ -28,6 +28,7 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [aiQuotaError, setAiQuotaError] = useState(false);
 
   // Data
   const [aiStats, setAiStats] = useState(null);
@@ -48,24 +49,31 @@ const Analytics = () => {
     try {
       setLoading(true);
       setError(null);
+      setAiQuotaError(false);
 
       const [statsRes, predictionsRes, analysisRes] = await Promise.all([
-        PredictionService.getAIStats(),
+        PredictionService.getAIStats().catch(e => ({ error: e })),
         PredictionService.getPredictionsByType("demand_forecast", {
           limit: 10,
-        }),
-        PredictionService.analyzeCombined(),
+        }).catch(e => ({ error: e })),
+        PredictionService.analyzeCombined().catch(e => ({ error: e })),
       ]);
 
-      if (statsRes.success && statsRes.data) {
+      // Handle Quota Error globally
+      const checkQuota = (res) => res?.error?.response?.status === 429;
+      if (checkQuota(statsRes) || checkQuota(predictionsRes) || checkQuota(analysisRes)) {
+        setAiQuotaError(true);
+      }
+
+      if (statsRes && !statsRes.error && statsRes.success && statsRes.data) {
         setAiStats(statsRes.data);
       }
 
-      if (predictionsRes.success && predictionsRes.data) {
+      if (predictionsRes && !predictionsRes.error && predictionsRes.success && predictionsRes.data) {
         setPredictions(predictionsRes.data);
       }
 
-      if (analysisRes.success && analysisRes.data) {
+      if (analysisRes && !analysisRes.error && analysisRes.success && analysisRes.data) {
         setCombinedAnalysis(analysisRes.data);
         // Extraire les insights de l'analyse combinée
         if (analysisRes.data.predictions?.insights) {
@@ -270,6 +278,12 @@ const Analytics = () => {
           <p className="mt-1 text-base-content/60">
             Prédictions et insights alimentés par l'intelligence artificielle
           </p>
+          {aiQuotaError && (
+            <div className="badge badge-error gap-2 mt-2 p-3 font-semibold text-white">
+              <AlertCircle size={16} />
+              Quota IA dépassé. Certaines fonctionnalités sont limitées.
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
