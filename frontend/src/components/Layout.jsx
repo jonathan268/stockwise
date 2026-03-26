@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import BottomNav from "./BottomNav";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
@@ -12,7 +13,7 @@ const Layout = () => {
 
   return (
     <div className="h-screen bg-base-200 overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar - Desktop */}
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
 
       {/* Main Content Area */}
@@ -24,11 +25,14 @@ const Layout = () => {
         {/* Header */}
         <Header onMenuClick={toggleSidebar} />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 lg:pb-6">
+        {/* Page Content - Adjust PB to leave room for Bottom Nav on mobile */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full pb-20 lg:pb-6 p-4 md:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

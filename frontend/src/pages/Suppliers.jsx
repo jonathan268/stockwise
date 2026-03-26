@@ -223,7 +223,7 @@ const Suppliers = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -341,10 +341,10 @@ const Suppliers = () => {
       </div>
 
       {/* Suppliers Table (Desktop) / Cards (Mobile) */}
-      <div className="shadow-lg card bg-base-100">
-        <div className="card-body p-4 md:p-8">
+      <div className="md:shadow-lg md:card md:bg-base-100">
+        <div className="p-0 md:card-body md:p-8">
           {/* Mobile view (Cards) */}
-          <div className="md:hidden">
+          <div className="md:hidden space-y-3">
             {paginatedSuppliers.map((supplier) => {
               const statusBadge = getStatusBadge(supplier.status);
               return (

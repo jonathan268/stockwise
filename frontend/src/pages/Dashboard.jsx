@@ -304,7 +304,7 @@ const Dashboard = () => {
 
   // ==================== MAIN RENDER ====================
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -349,9 +349,9 @@ const Dashboard = () => {
       {/* Alertes et Actions */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Alertes Stock Critique */}
-        <div className="shadow-lg card bg-base-100 lg:col-span-2">
-          <div className="card-body">
-            <div className="flex items-center justify-between mb-4">
+        <div className="md:shadow-lg md:card md:bg-base-100 lg:col-span-2">
+          <div className="p-0 md:card-body">
+            <div className="flex items-center justify-between mb-4 px-4 md:px-0 mt-4 md:mt-0">
               <h2 className="card-title">Alertes Stock Critique</h2>
               <button
                 className="gap-2 btn btn-ghost btn-sm"
@@ -369,7 +369,7 @@ const Dashboard = () => {
             ) : stockAlerts.length > 0 ? (
               <>
                 {/* Mobile view (Cards) */}
-                <div className="md:hidden">
+                <div className="md:hidden space-y-3 px-4">
                   {stockAlerts.map((alert) => {
                     const statusBadge = alert.status === "critical" ? "badge-error" : "badge-warning";
                     return (

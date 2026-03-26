@@ -54,19 +54,24 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-10 h-16 shadow-sm bg-base-100">
-      <div className="flex items-center justify-between h-full px-6">
-        {/* Menu Button - Mobile */}
+    <header className="sticky top-0 z-10 h-14 md:h-16 shadow-sm bg-base-100">
+      <div className="flex items-center justify-between h-full px-4 lg:px-6">
+        {/* Menu Button - Desktop Only */}
         <button
           onClick={onMenuClick}
-          className="btn btn-ghost btn-circle lg:hidden"
+          className="hidden lg:flex btn btn-ghost btn-circle"
           title="Menu"
         >
           <Menu size={20} />
         </button>
 
-        {/* Search Bar */}
-        <div className="flex items-center flex-1 max-w-2xl gap-4"></div>
+        {/* Brand - Mobile Only (shows when sidebar isn't visible) */}
+        <div className="lg:hidden flex items-center justify-center font-bold text-lg text-primary">
+          StockWise
+        </div>
+
+        {/* Search Bar Placeholder */}
+        <div className="hidden md:flex items-center flex-1 max-w-2xl gap-4"></div>
 
         {/* Right Section */}
         <div className="flex items-center gap-2">

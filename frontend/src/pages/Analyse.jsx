@@ -267,7 +267,7 @@ const Analytics = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -434,7 +434,51 @@ const Analytics = () => {
               <Target size={24} />
               Prédictions de demande
             </h2>
-            <div className="overflow-x-auto">
+            <div className="md:hidden space-y-3">
+              {predictions.map((pred) => (
+                <div key={pred._id} className="bg-base-100 rounded-xl shadow-sm border border-base-200 p-4 mb-3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Package size={20} className="text-primary" />
+                    <span className="font-semibold text-base">
+                      {pred.product?.name || "Produit"}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-base-content/60">Demande prévue</span>
+                      <span className="font-bold text-primary">{pred.predictions?.nextWeekDemand || "-"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-base-content/60">A commander</span>
+                      <span className="font-semibold">{pred.predictions?.recommendedOrderQty || "-"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-base-content/60">Confiance</span>
+                      <div className="flex items-center gap-2">
+                        <progress
+                          className="w-16 progress progress-success"
+                          value={(pred.output?.confidence || 0) * 100}
+                          max="100"
+                        ></progress>
+                        <span className="text-sm font-semibold">
+                          {pred.output?.confidence
+                            ? `${Math.round(pred.output.confidence * 100)}%`
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-t border-base-200 mt-2 pt-2">
+                      <span className="text-[10px] text-base-content/50">
+                        {new Date(pred.createdAt).toLocaleDateString("fr-FR")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
               <table className="table w-full">
                 <thead>
                   <tr>
