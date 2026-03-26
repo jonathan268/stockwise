@@ -22,16 +22,16 @@ const geminiRateLimiter = rateLimit({
 router.use(authenticate);
 router.use(tenantIsolation);
 router.use(checkSubscription);
-router.use(geminiRateLimiter);
+router.get(
   "/quick-analysis",
   authenticate,
   geminiRateLimiter,
   geminiController.quickAnalysis,
 );
 
-// Analyse complète (1 seul appel IA)
+// Analyse complète (1 seul appel IA) - Correspond au frontend /analyze-combined
 router.post(
-  "/complete-analysis",
+  "/analyze-combined",
   authenticate,
   restrictTo("owner", "admin", "manager"),
   geminiRateLimiter,
@@ -69,7 +69,7 @@ router.post(
 );
 
 router.post(
-  "/custom-query",
+  "/custom-prompt",
   authenticate,
   geminiRateLimiter,
   geminiController.customQuery,
@@ -83,6 +83,6 @@ router.post(
   geminiController.clearCache,
 );
 
-router.get("/usage", authenticate, geminiController.getApiUsage);
+router.get("/stats", authenticate, geminiController.getApiUsage);
 
 module.exports = router;
