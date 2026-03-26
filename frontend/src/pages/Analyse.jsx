@@ -281,7 +281,7 @@ const Analytics = () => {
           {aiQuotaError && (
             <div className="badge badge-error gap-2 mt-2 p-3 font-semibold text-white">
               <AlertCircle size={16} />
-              Quota IA dépassé. Certaines fonctionnalités sont limitées.
+              Quota IA dépassé. Fonctionnalités sont limitées.
             </div>
           )}
         </div>
