@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const connectDB = async () => {
   try {
-    const uri = process.env.MONGO_URI_LOCAL || process.env.MONGO_URI;
+    const uri = process.env.MONGO_URI || process.env.MONGO_URI_LOCAL;
 
     if (!uri) {
       throw new Error(
