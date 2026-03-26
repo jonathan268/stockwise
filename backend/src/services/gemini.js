@@ -1,18 +1,20 @@
 require("dotenv").config();
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 class GeminiService {
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    this.model = "gemini-1.5-flash"; // Modèle gratuit stable
-
+    this.apiKey = process.env.GEMINI_API_KEY;
+    this.modelName = "gemini-1.5-flash"; // Modèle gratuit stable
+    
+    // Initialisation différée pour gérer l'absence de clé au démarrage
+    this.genAI = this.apiKey ? new GoogleGenerativeAI(this.apiKey) : null;
+    
     // Limites du plan gratuit
     this.limits = {
-      maxTokensPerRequest: 8000, // Limite conservative
       requestsPerMinute: 15,
       requestsPerDay: 1500
     };
-
+    
     // Cache pour éviter les requêtes répétitives
     this.cache = new Map();
     this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
@@ -38,54 +40,59 @@ class GeminiService {
   }
 
   /**
-   * Réduit les données pour optimiser les tokens
-   */
-  optimizeData(data, maxItems = 10) {
-    if (Array.isArray(data)) {
-      return data.slice(0, maxItems);
-    }
-    return data;
-  }
-
-  /**
-   * Appel sécurisé à l'API Gemini avec extraction robuste du texte
-   * Compatible avec toutes les versions du SDK @google/genai
+   * Appel sécurisé à l'API Gemini avec le SDK stable @google/generative-ai
    */
   async _generate(prompt) {
-    const response = await this.ai.models.generateContent({
-      model: this.model,
-      contents: prompt,
-    });
-    // .text peut être un getter string ou une fonction selon la version du SDK
-    if (typeof response.text === 'string') return response.text.trim();
-    if (typeof response.text === 'function') return response.text().trim();
-    // Fallback sur les candidats bruts
-    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (text) return text.trim();
-    throw new Error('Réponse Gemini invalide ou vide');
+    if (!this.apiKey) {
+      throw new Error("Clé API Gemini manquante (GEMINI_API_KEY non configurée)");
+    }
+
+    if (!this.genAI) {
+      this.genAI = new GoogleGenerativeAI(this.apiKey);
+    }
+
+    try {
+      console.log(`[Gemini] Génération avec ${this.modelName}...`);
+      const model = this.genAI.getGenerativeModel({ model: this.modelName });
+      
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      if (!text) {
+        throw new Error("Réponse vide reçue de Gemini");
+      }
+      
+      return text.trim();
+    } catch (error) {
+      console.error("[Gemini SDK Error]:", error.message);
+      // Extraire plus de détails si disponible (ex: quota, clé invalide)
+      if (error.response?.data) {
+        console.error("[Details]:", JSON.stringify(error.response.data));
+      }
+      throw error;
+    }
   }
 
   /**
-   * Analyse ULTRA-RAPIDE du stock (prompt minimal)
-   * Optimisé pour plan gratuit - Analyse seulement les données critiques
+   * Analyse ULTRA-RAPIDE du stock
    */
   async analyzeStock(stockData) {
     const cacheKey = `stock_${JSON.stringify(stockData).substring(0, 50)}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached;
 
-    // Filtrer UNIQUEMENT les produits critiques pour économiser les tokens
-    const criticalProducts = stockData.products
-      ?.filter(p =>
-        p.quantity <= (p.reorderPoint || 10) || // Stock faible
+    const criticalProducts = (stockData.products || [])
+      .filter(p => 
+        p.quantity <= (p.reorderPoint || 10) || 
         (p.batches && p.batches.some(b => {
-          const daysToExpiry = b.expirationDate
-            ? Math.floor((new Date(b.expirationDate) - new Date()) / (1000 * 60 * 60 * 24))
+          const daysToExpiry = b.expirationDate 
+            ? Math.floor((new Date(b.expirationDate) - new Date()) / 86400000)
             : 999;
-          return daysToExpiry < 30; // Expire bientôt
+          return daysToExpiry < 30;
         }))
       )
-      .slice(0, 15) // MAX 15 produits pour économiser
+      .slice(0, 15)
       .map(p => ({
         n: p.name,
         q: p.quantity,
@@ -93,209 +100,128 @@ class GeminiService {
         exp: p.batches?.[0]?.expirationDate
       }));
 
-    // Prompt ULTRA-COURT (< 200 tokens)
     const prompt = `Stock: ${JSON.stringify(criticalProducts)}
-
-Analyse rapide:
-1. Produits < seuil
-2. Expire < 30j
-3. Actions urgentes
-
-Format court.`;
+Analyse rapide: Ruptures, Expirations < 30j, Actions. Format court.`;
 
     try {
       const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      throw new Error(`Gemini erreur: ${error.message}`);
+      throw new Error(`Erreur analyse stock: ${error.message}`);
     }
   }
 
   /**
-   * Prédiction de demande SIMPLIFIÉE
-   * Analyse seulement les 3 produits les plus vendus
+   * Prédiction de demande
    */
   async predictDemand(productHistory) {
     const cacheKey = `demand_${productHistory.productName}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached;
 
-    // Simplifier les données historiques
-    const simplified = {
-      p: productHistory.productName,
-      d: productHistory.lastWeek || productHistory.movements?.slice(-7).map(m => m.quantity)
-    };
-
-    const prompt = `Produit: ${simplified.p}
-Ventes 7j: ${JSON.stringify(simplified.d)}
-
-Prédis 7 prochains jours (format: J1:X, J2:Y...).`;
+    const prompt = `Produit: ${productHistory.productName}
+Ventes 7j: ${JSON.stringify(productHistory.lastWeek || [])}
+Prédis les 7 prochains jours. Format: J1:X, J2:Y...`;
 
     try {
       const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      throw new Error(`Gemini erreur: ${error.message}`);
+      throw new Error(`Erreur prédiction: ${error.message}`);
     }
   }
 
   /**
-   * ANALYSE COMBINÉE - 1 seul appel pour tout
-   * C'est la méthode la PLUS OPTIMISÉE pour le plan gratuit
+   * ANALYSE COMBINÉE (1 seul appel)
    */
   async analyzeCombined(data) {
     const cacheKey = `combined_${Date.now().toString().substring(0, 10)}`;
     const cached = this.getCached(cacheKey);
     if (cached) return cached;
 
-    // Extraire SEULEMENT les données critiques
     const critical = {
-      lowStock: data.products?.filter(p => p.quantity <= (p.reorderPoint || 5)).slice(0, 5).map(p => p.name),
-      expiring: data.products?.filter(p => {
-        const days = p.batches?.[0]?.expirationDate
+      lowStock: (data.products || []).filter(p => p.quantity <= (p.reorderPoint || 5)).slice(0, 5).map(p => p.name),
+      expiring: (data.products || []).filter(p => {
+        const days = p.batches?.[0]?.expirationDate 
           ? Math.floor((new Date(p.batches[0].expirationDate) - new Date()) / 86400000)
           : 999;
         return days < 15;
-      }).slice(0, 5).map(p => ({ n: p.name, d: Math.floor((new Date(p.batches[0].expirationDate) - new Date()) / 86400000) })),
-      topSales: data.topProducts?.slice(0, 3).map(p => ({ n: p.name, q: p.totalQuantity }))
+      }).slice(0, 5).map(p => p.name),
+      topSales: (data.topProducts || []).slice(0, 3).map(p => p.name)
     };
 
-    // PROMPT ULTRA-COMPACT (économise 80% de tokens)
-    const prompt = `Analyse stock:
-Stock faible: ${critical.lowStock?.join(', ') || 'aucun'}
-Expire <15j: ${JSON.stringify(critical.expiring || [])}
-Top ventes: ${JSON.stringify(critical.topSales || [])}
-
-Résumé en 3 points max + 1 action prioritaire.`;
+    const prompt = `Stock faible: ${critical.lowStock.join(', ')}
+Expire <15j: ${critical.expiring.join(', ')}
+Top ventes: ${critical.topSales.join(', ')}
+Résumé en 3 points + 1 action prioritaire.`;
 
     try {
       const result = await this._generate(prompt);
       this.setCache(cacheKey, result);
       return result;
     } catch (error) {
-      throw new Error(`Gemini erreur: ${error.message}`);
+      throw new Error(`Erreur analyse combinée: ${error.message}`);
     }
   }
 
   /**
-   * Détection d'anomalies RAPIDE
+   * Détection d'anomalies
    */
   async detectAnomalies(stockData) {
-    const cacheKey = `anomalies_${Date.now().toString().substring(0, 10)}`;
-
-    // Détecter automatiquement les anomalies AVANT l'appel IA
     const anomalies = [];
-
-    stockData.products?.forEach(p => {
-      // Stock négatif
-      if (p.quantity < 0) {
-        anomalies.push(`${p.name}: stock négatif (${p.quantity})`);
-      }
-
-      // Surstock extrême (>200% du max)
-      if (p.maxStockLevel && p.quantity > p.maxStockLevel * 2) {
-        anomalies.push(`${p.name}: surstock (${p.quantity}/${p.maxStockLevel})`);
-      }
-
-      // Produit dormant (pas de mouvement depuis 90j)
-      const daysSinceMovement = p.lastMovement
-        ? Math.floor((Date.now() - new Date(p.lastMovement)) / 86400000)
-        : 0;
-      if (daysSinceMovement > 90) {
-        anomalies.push(`${p.name}: dormant ${daysSinceMovement}j`);
-      }
+    (stockData.products || []).forEach(p => {
+      if (p.quantity < 0) anomalies.push(`${p.name}: stock négatif`);
+      if (p.maxStockLevel && p.quantity > p.maxStockLevel * 2) anomalies.push(`${p.name}: surstock`);
     });
 
-    // Si peu d'anomalies, retourner direct sans appel IA
-    if (anomalies.length <= 3) {
-      return anomalies.length > 0
-        ? `Anomalies détectées:\n- ${anomalies.join('\n- ')}`
-        : "✅ Aucune anomalie détectée";
-    }
+    if (anomalies.length === 0) return "✅ Aucune anomalie majeure détectée.";
 
-    // Sinon, utiliser l'IA seulement pour analyser
-    const prompt = `Anomalies: ${anomalies.slice(0, 10).join('; ')}
-
-Classe par priorité (critique/moyen/faible).`;
+    const prompt = `Anomalies: ${anomalies.join('; ')}
+Analyse par priorité (critique/moyen/faible).`;
 
     try {
       return await this._generate(prompt);
     } catch (error) {
-      // Fallback : retourner les anomalies sans analyse IA
-      return `Anomalies (${anomalies.length}):\n- ${anomalies.slice(0, 10).join('\n- ')}`;
+      return `Anomalies détectées: ${anomalies.join(', ')}`;
     }
   }
 
   /**
-   * Optimisation des commandes SIMPLIFIÉE
+   * Optimisation des commandes
    */
   async optimizeOrders(data) {
-    const cacheKey = `orders_${Date.now().toString().substring(0, 10)}`;
-    const cached = this.getCached(cacheKey);
-    if (cached) return cached;
+    const recommendations = (data.lowStockProducts || [])
+      .slice(0, 8)
+      .map(p => ({
+        n: p.name,
+        q: p.currentQuantity,
+        target: p.maxStockLevel || (p.reorderPoint * 3)
+      }));
 
-    // Calculer directement les quantités recommandées
-    const recommendations = data.lowStockProducts
-      ?.slice(0, 8) // Max 8 produits
-      .map(p => {
-        const toOrder = (p.maxStockLevel || p.reorderPoint * 3) - p.currentQuantity;
-        return {
-          n: p.name,
-          actuel: p.currentQuantity,
-          commander: Math.max(0, toOrder)
-        };
-      })
-      .filter(r => r.commander > 0);
-
-    const prompt = `Commander: ${JSON.stringify(recommendations)}
-
-Budget: ${data.budgetConstraint || 'illimité'}
-
-Priorise + conseils courts.`;
-
-    try {
-      const result = await this._generate(prompt);
-      this.setCache(cacheKey, result);
-      return result;
-    } catch (error) {
-      // Fallback : retourner les recommandations calculées
-      return `Commandes recommandées:\n${recommendations.map(r =>
-        `- ${r.n}: ${r.commander} unités (actuel: ${r.actuel})`
-      ).join('\n')}`;
-    }
-  }
-
-  /**
-   * Analyse du gaspillage ULTRA-COMPACTE
-   */
-  async analyzeWaste(wasteData) {
-    // Calculer automatiquement les statistiques
-    const stats = {
-      total: wasteData.totalEstimatedLoss || 0,
-      items: wasteData.items?.length || 0,
-      topWaste: wasteData.items
-        ?.reduce((acc, item) => {
-          acc[item.product] = (acc[item.product] || 0) + (item.estimatedValue || 0);
-          return acc;
-        }, {})
-    };
-
-    const topProducts = Object.entries(stats.topWaste || {})
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, value]) => ({ n: name, v: value.toFixed(2) }));
-
-    const prompt = `Gaspillage total: ${stats.total.toFixed(2)}€
-Top produits: ${JSON.stringify(topProducts)}
-
-3 conseils pour réduire.`;
+    const prompt = `Produits en rupture: ${JSON.stringify(recommendations)}
+Propose des quantités à commander en priorité.`;
 
     try {
       return await this._generate(prompt);
     } catch (error) {
-      return `Gaspillage: ${stats.total.toFixed(2)}€ sur ${stats.items} items\nTop: ${topProducts.map(p => `${p.n} (${p.v}€)`).join(', ')}`;
+      throw new Error(`Erreur optimisation: ${error.message}`);
+    }
+  }
+
+  /**
+   * Analyse du gaspillage
+   */
+  async analyzeWaste(wasteData) {
+    const prompt = `Gaspillage estimé: ${wasteData.totalEstimatedLoss}€
+Produits: ${JSON.stringify((wasteData.items || []).slice(0, 5))}
+Donne 3 conseils pour réduire ce gaspillage.`;
+
+    try {
+      return await this._generate(prompt);
+    } catch (error) {
+      return `Gaspillage total: ${wasteData.totalEstimatedLoss}€`;
     }
   }
 
@@ -303,45 +229,34 @@ Top produits: ${JSON.stringify(topProducts)}
    * Génération de rapport global
    */
   async generateReport(data) {
-    const cacheKey = `report_${data.period || '30d'}_${Date.now().toString().substring(0, 8)}`;
-    const cached = this.getCached(cacheKey);
-    if (cached) return cached;
-
-    const prompt = `Génère un rapport de gestion de stock pour la période: ${data.period || '30 derniers jours'}.
-Données: ${JSON.stringify(data.summary || {})}
-
-Inclure: résumé exécutif, points clés (3 max), recommandations (3 max).
-Format structuré court.`;
-
-    try {
-      const result = await this._generate(prompt);
-      this.setCache(cacheKey, result);
-      return result;
-    } catch (error) {
-      throw new Error(`Gemini erreur: ${error.message}`);
-    }
-  }
-
-  /**
-   * Prompt personnalisé COURT
-   */
-  async customPrompt(userPrompt, context = {}) {
-    // Limiter le contexte à 100 caractères max
-    const shortContext = JSON.stringify(context).substring(0, 100);
-
-    const prompt = `${userPrompt}${shortContext ? `\nCtx: ${shortContext}` : ''}
-
-Réponse courte et actionnable.`;
+    const prompt = `Période: ${data.period || '30j'}
+Stats: ${JSON.stringify(data.summary || {})}
+Génère un rapport de gestion de stock synthétique (Executive Summary, Points Clés).`;
 
     try {
       return await this._generate(prompt);
     } catch (error) {
-      throw new Error(`Gemini erreur: ${error.message}`);
+      throw new Error(`Erreur rapport: ${error.message}`);
     }
   }
 
   /**
-   * Nettoyer le cache périodiquement
+   * Prompt personnalisé
+   */
+  async customPrompt(userPrompt, context = {}) {
+    const prompt = `Contexte: ${JSON.stringify(context).substring(0, 200)}
+Question: ${userPrompt}
+Réponse courte et précise.`;
+
+    try {
+      return await this._generate(prompt);
+    } catch (error) {
+      throw new Error(`Erreur IA: ${error.message}`);
+    }
+  }
+
+  /**
+   * Nettoyer le cache
    */
   clearCache() {
     this.cache.clear();
@@ -352,15 +267,13 @@ Réponse courte et actionnable.`;
    */
   async testConnection() {
     try {
-      const text = await this._generate("Test");
+      const text = await this._generate("test");
       return text.length > 0;
     } catch (error) {
-      console.error("Erreur Gemini:", error.message);
       return false;
     }
   }
 }
 
-// Export singleton
 module.exports = new GeminiService();
 module.exports.GeminiService = GeminiService;

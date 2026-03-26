@@ -105,14 +105,17 @@ exports.runCompleteAnalysis = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Erreur analyse:", error);
+    console.error("❌ ERREUR ANALYSE COMPLÈTE:", error.message);
+    if (error.stack) console.error(error.stack);
+    
     const isQuotaError = error.message && error.message.includes('429');
     
     res.status(isQuotaError ? 429 : 500).json({
       success: false,
       message: isQuotaError 
-        ? "Quota d'intelligence artificielle dépassé. Veuillez réessayer plus tard ou vérifier votre clé API Gemini." 
-        : error.message,
+        ? "Quota d'intelligence artificielle dépassé. Veuillez réessayer plus tard." 
+        : error.message || "Erreur lors de l'analyse IA",
+      details: process.env.NODE_ENV !== 'production' ? error.stack : undefined
     });
   }
 };
@@ -421,7 +424,13 @@ exports.generateReport = async (req, res) => {
 
     res.json({ success: true, data: { report: result, summary }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("❌ ERREUR GÉNÉRATION RAPPORT:", error.message);
+    if (error.stack) console.error(error.stack);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || "Erreur lors de la génération du rapport",
+      details: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+    });
   }
 };
 
