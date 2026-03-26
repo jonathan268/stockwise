@@ -154,6 +154,9 @@ class ProductController {
         organization: organizationId,
         createdBy: userId,
       };
+      
+      // Supprimer le champ virtual pour éviter les conflits lors de la création
+      delete productData.stock;
 
       const product = await Product.create(productData);
 

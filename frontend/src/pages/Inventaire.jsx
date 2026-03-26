@@ -56,10 +56,6 @@ const Inventory = () => {
 
       const response = await ProductService.getAllProducts();
 
-      // DEBUG - retire ce log une fois que l'affichage fonctionne
-     
-      console.log("FULL RESPONSE:", JSON.stringify(response, null, 2));
-
       let productsData = [];
 
       if (Array.isArray(response)) {
@@ -79,8 +75,6 @@ const Inventory = () => {
         productsData = response.data.products;
       }
 
-      // DEBUG - retire ce log une fois que l'affichage fonctionne
-      console.log("Premier produit extrait:", productsData[0]);
 
       const validProducts = productsData.filter(
         (p) => p && typeof p === "object"
