@@ -16,11 +16,11 @@ const BottomNav = () => {
   const navItems = [
     { path: "/app/dashboard", icon: BarChart3, label: "Accueil" },
     { path: "/app/inventaire", icon: Package, label: "Stocks" },
+    { path: "/app/alerts", icon: AlertTriangle, label: "Alertes" },
     { path: "/app/commande", icon: ShoppingCart, label: "Commandes" },
-    { path: "/app/alert", icon: AlertTriangle, label: "Alertes" },
     { path: "/app/analytics", icon: Sparkles, label: "IA" },
-    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
     { path: "/app/settings", icon: User, label: "Profil" },
+    { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -35,9 +35,8 @@ const BottomNav = () => {
           <Link
             key={item.path}
             to={item.path}
-            className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-200 ${
-              active ? "text-primary" : "text-base-content/50 hover:text-base-content/80"
-            }`}
+            className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-200 ${active ? "text-primary" : "text-base-content/50 hover:text-base-content/80"
+              }`}
           >
             <div className={`relative flex items-center justify-center ${active ? "scale-110 mb-0.5" : ""}`}>
               <Icon size={active ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
