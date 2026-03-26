@@ -106,9 +106,13 @@ exports.runCompleteAnalysis = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Erreur analyse:", error);
-    res.status(500).json({
+    const isQuotaError = error.message && error.message.includes('429');
+    
+    res.status(isQuotaError ? 429 : 500).json({
       success: false,
-      message: error.message,
+      message: isQuotaError 
+        ? "Quota d'intelligence artificielle dépassé. Veuillez réessayer plus tard ou vérifier votre clé API Gemini." 
+        : error.message,
     });
   }
 };

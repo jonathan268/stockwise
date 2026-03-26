@@ -108,7 +108,7 @@ class AlertController {
         Alert.aggregate([
           {
             $match: {
-              organization: mongoose.Types.ObjectId(organizationId),
+              organization: new mongoose.Types.ObjectId(organizationId),
               isRead: false,
               isDismissed: false,
             },
