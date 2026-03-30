@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./src/pages/Landing";
 import Layout from "./src/components/Layout";
@@ -27,6 +27,11 @@ import PWAWrapper from "./src/components/PWAWrapper";
 // Pages exemples (à créer selon vos besoins)
 
 function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
   return (
     <PWAWrapper>
       <BrowserRouter>

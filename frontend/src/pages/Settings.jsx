@@ -126,19 +126,44 @@ const Settings = () => {
     }
   };
 
-  const handleAvatarUpdate = async () => {
-    const url = prompt("Entrez l'URL de votre nouvel avatar:", user?.avatar || "");
-    if (url !== null) {
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("L'image est trop volumineuse (max 2MB)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
       try {
         setLoading(true);
-        await api.put('/api/v1/users/me/avatar', { avatarUrl: url });
-        setUser({ ...user, avatar: url });
-        alert('Avatar mis à jour');
+        await api.put('/api/v1/users/me/avatar', { avatarUrl: base64String });
+        setUser({ ...user, avatar: base64String });
+        alert('Photo de profil mise à jour');
       } catch (error) {
-        alert('Erreur mise à jour avatar');
+        alert('Erreur mise à jour photo');
       } finally {
         setLoading(false);
       }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAppearanceUpdate = async (theme) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    try {
+      if (user) {
+        await api.put('/api/v1/users/me', { 
+          preferences: { ...user.preferences, theme } 
+        });
+        setUser({ ...user, preferences: { ...user.preferences, theme } });
+      }
+    } catch (e) { 
+      console.error("Erreur sauvegarde thème:", e); 
     }
   };
 
@@ -256,8 +281,17 @@ const Settings = () => {
                   </div>
                 </div>
                 <div>
-                  <button type="button" onClick={handleAvatarUpdate} className="btn btn-primary btn-sm">Changer l'avatar (URL)</button>
-                  <p className="text-sm text-base-content/60 mt-2">Collez une URL vers une image JPG, PNG.</p>
+                  <label htmlFor="avatar-upload" className="btn btn-primary btn-sm cursor-pointer">
+                    Importer depuis l'appareil
+                  </label>
+                  <input 
+                    id="avatar-upload" 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                  />
+                  <p className="text-sm text-base-content/60 mt-2">JPG, PNG ou GIF. Max 2MB.</p>
                 </div>
               </div>
 
@@ -611,14 +645,17 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Thème de l'interface</span>
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['light', 'synthwave', 'cupcake', 'corporate', 'luxury', 'dracula'].map((theme) => (
+                <div className="grid grid-cols-2 gap-4 max-w-sm">
+                  {['light', 'dark'].map((theme) => (
                     <button 
                       key={theme}
-                      className={`btn btn-outline capitalize ${user.preferences?.theme === theme ? 'btn-active' : ''}`}
-                      onClick={() => handleAppearanceUpdate('theme', theme)}
+                      className={`btn btn-outline capitalize py-8 h-auto flex flex-col gap-2 ${
+                        (user?.preferences?.theme || localStorage.getItem('theme')) === theme ? 'btn-primary' : ''
+                      }`}
+                      onClick={() => handleAppearanceUpdate(theme)}
                     >
-                      {theme}
+                      <div className={`w-full h-8 rounded ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
+                      {theme === 'light' ? 'Mode Clair' : 'Mode Sombre'}
                     </button>
                   ))}
                 </div>
