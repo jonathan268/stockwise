@@ -82,12 +82,10 @@ app.use((err, req, res, next) => {
   console.error("ERREUR NON GÉRÉE:", err.stack);
   res.status(500).json({
     success: false,
-    message: "Erreur interne du serveur",
+    message: err.message || "Erreur interne du serveur",
     statusCode: 500,
-    ...(process.env.NODE_ENV === "development" && {
-      stack: err.stack,
-      error: err.message,
-    }),
+    stack: err.stack,
+    error: err.message,
   });
 });
 
