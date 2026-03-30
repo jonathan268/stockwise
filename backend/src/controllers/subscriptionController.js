@@ -8,6 +8,13 @@ class SubscriptionController {
   // GET /api/v1/subscriptions/my-subscription
   async getCurrentSubscription(req, res, next) {
     try {
+      if (!req.organization || !req.organization._id) {
+        throw new AppError(
+          "Aucune organisation associée à ce compte. Veuillez en créer une ou rejoindre une organisation.",
+          403,
+        );
+      }
+
       const organizationId = req.organization._id;
 
       const subscription = await Subscription.findOne({

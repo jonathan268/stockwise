@@ -359,9 +359,15 @@ subscriptionSchema.post("save", async function (doc) {
 // Méthode: Vérifier si actif
 subscriptionSchema.methods.isActive = function () {
   if (this.isInTrial) return true;
-  return (
-    ["active"].includes(this.status) && this.currentPeriod.end > new Date()
-  );
+
+  // Défense pour les anciennes données incomplètes
+  const status = this?.status;
+  const periodEnd = this?.currentPeriod?.end;
+  const endDate = periodEnd ? new Date(periodEnd) : null;
+  const hasValidEndDate =
+    endDate instanceof Date && !Number.isNaN(endDate.getTime());
+
+  return status === "active" && hasValidEndDate && endDate > new Date();
 };
 
 // Méthode: Vérifier feature disponible

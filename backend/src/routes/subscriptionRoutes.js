@@ -13,7 +13,9 @@ router.use(authenticate);
 router.use(tenantIsolation);
 
 // Obtenir l'abonnement actuel de l'organisation
-router.get("/my-subscription", checkSubscription, subscriptionController.getCurrentSubscription);
+// NOTE: ne pas bloquer ici sur checkSubscription (active uniquement),
+// sinon impossible d'afficher l'état d'un abonnement expiré/trial en settings.
+router.get("/my-subscription", subscriptionController.getCurrentSubscription);
 
 // Récupérer les plans disponibles
 router.get("/plans", subscriptionController.getAvailablePlans);
