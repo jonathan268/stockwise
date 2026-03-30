@@ -12,51 +12,61 @@ class DashboardController {
    */
   getDashboardSummary = catchAsync(async (req, res, next) => {
     const organizationId = req.user.organization;
-    const mongoose = require("mongoose");
 
     // Stats produits
     const totalProducts = await Product.countDocuments({
       organization: organizationId,
     });
 
-    // Valeur totale du stock - calcul direct depuis la collection Stock
+    // Valeur totale du stock - calcul robuste via aggregation + lookup produit
     let stockValue = 0;
     try {
-      console.log(
-        `DEBUG Dashboard - organizationId: ${organizationId}, type: ${typeof organizationId}`,
-      );
+      const valueAgg = await Stock.aggregate([
+        {
+          $match: {
+            organization: organizationId,
+          },
+        },
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "productDoc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$productDoc",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            lineValue: {
+              $multiply: [
+                { $ifNull: ["$quantity", 0] },
+                {
+                  $ifNull: [
+                    "$productDoc.pricing.cost",
+                    {
+                      $ifNull: ["$productDoc.purchasePrice", 0],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$lineValue" },
+          },
+        },
+      ]);
 
-      // Vérifier d'abord combien de stocks existent
-      const stockCount = await Stock.countDocuments({
-        organization: organizationId,
-      });
-      console.log(`DEBUG Dashboard - Found ${stockCount} stock records`);
-
-      // Récupérer tous les stocks avec les données de produit
-      const stocks = await Stock.find({
-        organization: organizationId,
-      })
-        .populate("product", "pricing")
-        .lean();
-
-      console.log(
-        `DEBUG Dashboard - After .find(), got ${stocks.length} stocks:`,
-        JSON.stringify(stocks.slice(0, 2), null, 2),
-      );
-
-      stockValue = stocks.reduce((sum, stock) => {
-        const quantity = stock.quantity || 0;
-        const cost = stock.product?.pricing?.cost || 0;
-        const value = quantity * cost;
-        console.log(
-          `DEBUG Dashboard - Stock calculation: qty=${quantity}, cost=${cost}, result=${value}`,
-        );
-        return sum + value;
-      }, 0);
-
-      console.log(
-        `DEBUG Dashboard - Final stockValue calculated: ${stockValue}`,
-      );
+      stockValue = valueAgg?.[0]?.total || 0;
     } catch (error) {
       console.error("Error calculating stock value:", error);
       stockValue = 0;

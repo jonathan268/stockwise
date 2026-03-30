@@ -19,7 +19,7 @@ class SubscriptionController {
 
       const subscription = await Subscription.findOne({
         organization: organizationId,
-      }).populate("organization", "name email");
+      });
 
       if (!subscription) {
         throw new AppError("Abonnement introuvable", 404);

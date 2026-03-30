@@ -171,6 +171,14 @@ const productSchema = Joi.object({
       .max(100)
       .default(0)
   }).required(),
+
+  stock: Joi.object({
+    quantity: Joi.number().min(0).default(0),
+    minThreshold: Joi.number().min(0).default(0),
+    maxThreshold: Joi.number().min(0).default(0),
+    reorderPoint: Joi.number().min(0).allow(null),
+    location: Joi.string().max(100).allow("", null).default("Principal"),
+  }).optional(),
   
   supplier: Joi.string()
     .custom((value, helpers) => {

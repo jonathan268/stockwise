@@ -67,10 +67,21 @@ exports.runCompleteAnalysis = async (req, res) => {
     }));
 
     // 3. UN SEUL APPEL IA pour tout analyser
-    const combinedAnalysis = await geminiService.analyzeCombined({
-      products: productsData,
-      topProducts: topProducts,
-    });
+    // Fallback local si le service IA est indisponible (clé manquante/quota/réseau)
+    let combinedAnalysis = null;
+    let aiFallback = false;
+    let aiErrorMessage = null;
+    try {
+      combinedAnalysis = await geminiService.analyzeCombined({
+        products: productsData,
+        topProducts: topProducts,
+      });
+    } catch (aiError) {
+      aiFallback = true;
+      aiErrorMessage = aiError?.message || "Service IA indisponible";
+      combinedAnalysis =
+        "Analyse IA indisponible temporairement. Consultez les statistiques locales et réessayez plus tard.";
+    }
 
     // 4. Ajouter des statistiques calculées localement (sans IA)
     const stats = {
@@ -96,12 +107,19 @@ exports.runCompleteAnalysis = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Analyse optimisée effectuée (1 appel IA)",
+      message: aiFallback
+        ? "Analyse partielle effectuée (fallback sans IA)"
+        : "Analyse optimisée effectuée (1 appel IA)",
       data: {
         timestamp: new Date(),
         stats,
         aiAnalysis: combinedAnalysis,
-        apiCalls: 1, // Important : tracker les appels
+        apiCalls: aiFallback ? 0 : 1, // Important : tracker les appels
+        ...(aiFallback && {
+          warning:
+            "Service IA indisponible (configuration, quota ou réseau). Résultat local renvoyé.",
+          aiError: aiErrorMessage,
+        }),
       },
     });
   } catch (error) {

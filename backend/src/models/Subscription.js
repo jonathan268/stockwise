@@ -210,7 +210,7 @@ subscriptionSchema.index({ "trial.endDate": 1 });
 
 // Virtual: Jours restants dans période
 subscriptionSchema.virtual("daysRemaining").get(function () {
-  if (!this.currentPeriod.end) return 0;
+  if (!this?.currentPeriod?.end) return 0;
   const days = Math.ceil(
     (this.currentPeriod.end - new Date()) / (1000 * 60 * 60 * 24),
   );
@@ -219,14 +219,16 @@ subscriptionSchema.virtual("daysRemaining").get(function () {
 
 // Virtual: Est en période d'essai
 subscriptionSchema.virtual("isInTrial").get(function () {
-  if (!this.trial.endDate) return false;
+  if (!this?.trial?.endDate) return false;
   return this.status === "trial" && this.trial.endDate > new Date();
 });
 
 // Virtual: Montant après réduction
 subscriptionSchema.virtual("discountedAmount").get(function () {
-  const discount = (this.pricing.amount * this.pricing.discount) / 100;
-  return this.pricing.amount - discount;
+  const amount = this?.pricing?.amount || 0;
+  const discountPct = this?.pricing?.discount || 0;
+  const discount = (amount * discountPct) / 100;
+  return amount - discount;
 });
 
 // Hook: Définir features selon plan

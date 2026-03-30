@@ -67,20 +67,10 @@ const Dashboard = () => {
           DashboardService.getAIInsights(),
         ]);
 
-      console.log("DEBUG - Summary Response:", summaryRes);
-
       // Traiter le résumé
       if (summaryRes.status === "fulfilled" && summaryRes.value?.success) {
-        console.log(
-          "DEBUG - Setting stats from summary:",
-          summaryRes.value.data,
-        );
         setStats(summaryRes.value.data || {});
       } else {
-        console.warn(
-          "DEBUG - Summary failed, using fallback. Error:",
-          summaryRes.reason,
-        );
         // Fallback : récupérer les stats basiques
         await fetchBasicStats();
       }
@@ -145,13 +135,6 @@ const Dashboard = () => {
         const price = p.pricing?.cost || 0;
         return sum + qty * price;
       }, 0);
-
-      console.log("DEBUG - Fallback Stats:", {
-        totalProducts,
-        stockValue,
-        productsCount: products.length,
-        sampleProduct: products[0],
-      });
 
       const lowStockAlerts = products.filter((p) => {
         const qty = p.stock?.quantity || 0;
