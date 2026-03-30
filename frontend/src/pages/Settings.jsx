@@ -55,13 +55,13 @@ const Settings = () => {
         api.get('/api/v1/subscriptions/my-subscription'),
         api.get('/api/v1/subscriptions/usage')
       ]);
-      
+
       const userData = userRes.data.data;
       setUser(userData);
       setOrganization(orgRes.data.data);
       setSubscription(subRes.data.data);
       setUsage(usageRes.data.data);
-      
+
       // Sync notifications state with user preferences
       if (userData?.preferences?.notifications) {
         setNotifications(userData.preferences.notifications);
@@ -126,44 +126,19 @@ const Settings = () => {
     }
   };
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert("L'image est trop volumineuse (max 2MB)");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result;
+  const handleAvatarUpdate = async () => {
+    const url = prompt("Entrez l'URL de votre nouvel avatar:", user?.avatar || "");
+    if (url !== null) {
       try {
         setLoading(true);
-        await api.put('/api/v1/users/me/avatar', { avatarUrl: base64String });
-        setUser({ ...user, avatar: base64String });
-        alert('Photo de profil mise à jour');
+        await api.put('/api/v1/users/me/avatar', { avatarUrl: url });
+        setUser({ ...user, avatar: url });
+        alert('Avatar mis à jour');
       } catch (error) {
-        alert('Erreur mise à jour photo');
+        alert('Erreur mise à jour avatar');
       } finally {
         setLoading(false);
       }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleAppearanceUpdate = async (theme) => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    try {
-      if (user) {
-        await api.put('/api/v1/users/me', { 
-          preferences: { ...user.preferences, theme } 
-        });
-        setUser({ ...user, preferences: { ...user.preferences, theme } });
-      }
-    } catch (e) { 
-      console.error("Erreur sauvegarde thème:", e); 
     }
   };
 
@@ -269,7 +244,7 @@ const Settings = () => {
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Informations personnelles</h2>
-              
+
               <div className="flex items-center gap-6 mb-6">
                 <div className="avatar placeholder">
                   <div className="bg-primary text-primary-content rounded-full w-24 h-24 overflow-hidden">
@@ -281,17 +256,8 @@ const Settings = () => {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="avatar-upload" className="btn btn-primary btn-sm cursor-pointer">
-                    Importer depuis l'appareil
-                  </label>
-                  <input 
-                    id="avatar-upload" 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                  />
-                  <p className="text-sm text-base-content/60 mt-2">JPG, PNG ou GIF. Max 2MB.</p>
+                  <button type="button" onClick={handleAvatarUpdate} className="btn btn-primary btn-sm">Changer l'avatar (URL)</button>
+                  <p className="text-sm text-base-content/60 mt-2">Collez une URL vers une image JPG, PNG.</p>
                 </div>
               </div>
 
@@ -300,11 +266,11 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Prénom</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className="input input-bordered" 
+                  <input
+                    type="text"
+                    className="input input-bordered"
                     value={user.firstName}
-                    onChange={(e) => setUser({...user, firstName: e.target.value})}
+                    onChange={(e) => setUser({ ...user, firstName: e.target.value })}
                   />
                 </div>
 
@@ -312,11 +278,11 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Nom</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className="input input-bordered" 
+                  <input
+                    type="text"
+                    className="input input-bordered"
                     value={user.lastName}
-                    onChange={(e) => setUser({...user, lastName: e.target.value})}
+                    onChange={(e) => setUser({ ...user, lastName: e.target.value })}
                   />
                 </div>
 
@@ -324,9 +290,9 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Email</span>
                   </label>
-                  <input 
-                    type="email" 
-                    className="input input-bordered opacity-70" 
+                  <input
+                    type="email"
+                    className="input input-bordered opacity-70"
                     value={user.email}
                     disabled
                   />
@@ -337,11 +303,11 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Téléphone</span>
                   </label>
-                  <input 
-                    type="tel" 
-                    className="input input-bordered" 
+                  <input
+                    type="tel"
+                    className="input input-bordered"
                     value={user.phone || ""}
-                    onChange={(e) => setUser({...user, phone: e.target.value})}
+                    onChange={(e) => setUser({ ...user, phone: e.target.value })}
                   />
                 </div>
               </div>
@@ -361,17 +327,17 @@ const Settings = () => {
         <form onSubmit={handleOrgUpdate} className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Informations entreprise</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control md:col-span-2">
                 <label className="label">
                   <span className="label-text font-semibold">Nom de l'entreprise</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
+                <input
+                  type="text"
+                  className="input input-bordered"
                   value={organization.name || ""}
-                  onChange={(e) => setOrganization({...organization, name: e.target.value})}
+                  onChange={(e) => setOrganization({ ...organization, name: e.target.value })}
                 />
               </div>
 
@@ -379,10 +345,10 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Secteur d'activité</span>
                 </label>
-                <select 
+                <select
                   className="select select-bordered"
                   value={organization.industry || "other"}
-                  onChange={(e) => setOrganization({...organization, industry: e.target.value})}
+                  onChange={(e) => setOrganization({ ...organization, industry: e.target.value })}
                 >
                   <option value="agriculture">Agriculture</option>
                   <option value="retail">Commerce de détail</option>
@@ -398,12 +364,12 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Adresse</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
+                <input
+                  type="text"
+                  className="input input-bordered"
                   value={organization.address?.street || ""}
                   onChange={(e) => setOrganization({
-                    ...organization, 
+                    ...organization,
                     address: { ...organization.address, street: e.target.value }
                   })}
                 />
@@ -413,12 +379,12 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Ville</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
+                <input
+                  type="text"
+                  className="input input-bordered"
                   value={organization.address?.city || ""}
                   onChange={(e) => setOrganization({
-                    ...organization, 
+                    ...organization,
                     address: { ...organization.address, city: e.target.value }
                   })}
                 />
@@ -428,11 +394,11 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Pays</span>
                 </label>
-                <select 
+                <select
                   className="select select-bordered"
                   value={organization.address?.country || "Cameroun"}
                   onChange={(e) => setOrganization({
-                    ...organization, 
+                    ...organization,
                     address: { ...organization.address, country: e.target.value }
                   })}
                 >
@@ -446,11 +412,11 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">N° Fiscal / TVA</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
+                <input
+                  type="text"
+                  className="input input-bordered"
                   value={organization.taxId || ""}
-                  onChange={(e) => setOrganization({...organization, taxId: e.target.value})}
+                  onChange={(e) => setOrganization({ ...organization, taxId: e.target.value })}
                 />
               </div>
             </div>
@@ -470,7 +436,7 @@ const Settings = () => {
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Préférences de notifications</h2>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
                   <div className="flex items-center gap-4">
@@ -480,9 +446,9 @@ const Settings = () => {
                       <div className="text-sm text-base-content/60">Recevoir des emails pour les événements importants</div>
                     </div>
                   </div>
-                  <input 
-                    type="checkbox" 
-                    className="toggle toggle-primary" 
+                  <input
+                    type="checkbox"
+                    className="toggle toggle-primary"
                     checked={notifications.email}
                     onChange={(e) => handleNotificationChange('email', e.target.checked)}
                   />
@@ -496,8 +462,8 @@ const Settings = () => {
                       <div className="text-sm text-base-content/60">Recevoir des notifications dans le navigateur</div>
                     </div>
                   </div>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="toggle toggle-primary"
                     checked={notifications.push}
                     onChange={(e) => handleNotificationChange('push', e.target.checked)}
@@ -514,8 +480,8 @@ const Settings = () => {
                       <div className="text-sm text-base-content/60">Être notifié quand le stock est en dessous du seuil</div>
                     </div>
                   </div>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="toggle toggle-warning"
                     checked={notifications.lowStock}
                     onChange={(e) => handleNotificationChange('lowStock', e.target.checked)}
@@ -530,8 +496,8 @@ const Settings = () => {
                       <div className="text-sm text-base-content/60">Recevoir les recommandations et prédictions IA</div>
                     </div>
                   </div>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="toggle toggle-info"
                     checked={notifications.aiInsights}
                     onChange={(e) => handleNotificationChange('aiInsights', e.target.checked)}
@@ -553,21 +519,21 @@ const Settings = () => {
           <div className="card bg-base-100 shadow-lg">
             <form onSubmit={handleChangePassword} className="card-body">
               <h2 className="card-title mb-4">Changer le mot de passe</h2>
-              
+
               <div className="space-y-4">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Mot de passe actuel</span>
                   </label>
                   <div className="relative">
-                    <input 
+                    <input
                       name="currentPassword"
-                      type={showPassword ? 'text' : 'password'} 
-                      placeholder="••••••••" 
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
                       className="input input-bordered w-full pr-10"
                       required
                     />
-                    <button 
+                    <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       onClick={() => setShowPassword(!showPassword)}
@@ -639,23 +605,20 @@ const Settings = () => {
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Personnalisation de l'apparence</h2>
-            
+
             <div className="space-y-6">
               <div>
                 <label className="label">
                   <span className="label-text font-semibold">Thème de l'interface</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4 max-w-sm">
-                  {['light', 'dark'].map((theme) => (
-                    <button 
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {['light', 'synthwave', 'cupcake', 'corporate', 'luxury', 'dracula'].map((theme) => (
+                    <button
                       key={theme}
-                      className={`btn btn-outline capitalize py-8 h-auto flex flex-col gap-2 ${
-                        (user?.preferences?.theme || localStorage.getItem('theme')) === theme ? 'btn-primary' : ''
-                      }`}
-                      onClick={() => handleAppearanceUpdate(theme)}
+                      className={`btn btn-outline capitalize ${user.preferences?.theme === theme ? 'btn-active' : ''}`}
+                      onClick={() => handleAppearanceUpdate('theme', theme)}
                     >
-                      <div className={`w-full h-8 rounded ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
-                      {theme === 'light' ? 'Mode Clair' : 'Mode Sombre'}
+                      {theme}
                     </button>
                   ))}
                 </div>
@@ -665,10 +628,10 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Langue (Organisation)</span>
                 </label>
-                <select 
+                <select
                   className="select select-bordered w-full max-w-xs"
                   value={organization.settings?.language || "fr"}
-                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, language: e.target.value}})}
+                  onChange={(e) => setOrganization({ ...organization, settings: { ...organization.settings, language: e.target.value } })}
                 >
                   <option value="fr">Français</option>
                   <option value="en">English</option>
@@ -679,10 +642,10 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Devise</span>
                 </label>
-                <select 
+                <select
                   className="select select-bordered w-full max-w-xs"
                   value={organization.settings?.currency || "XAF"}
-                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, currency: e.target.value}})}
+                  onChange={(e) => setOrganization({ ...organization, settings: { ...organization.settings, currency: e.target.value } })}
                 >
                   <option value="XAF">Franc CFA (FCFA)</option>
                   <option value="EUR">Euro (€)</option>
@@ -725,9 +688,9 @@ const Settings = () => {
                         )}
                       </div>
                       <p className={subscription?.status === 'trial' ? 'text-primary-content/80' : 'text-base-content/60'}>
-                        {subscription?.status === 'trial' 
-                          ? `Votre essai gratuit se termine dans ${subscription?.trial?.daysRemaining || 0} jours.` 
-                          : subscription?.status === 'active' 
+                        {subscription?.status === 'trial'
+                          ? `Votre essai gratuit se termine dans ${subscription?.trial?.daysRemaining || 0} jours.`
+                          : subscription?.status === 'active'
                             ? `Votre abonnement est actif jusqu'au ${new Date(subscription?.currentPeriod?.end).toLocaleDateString()}.`
                             : 'Votre abonnement est expiré.'}
                       </p>
@@ -756,9 +719,9 @@ const Settings = () => {
                           {item.used} / {item.limit === -1 ? '∞' : item.limit}
                         </span>
                       </div>
-                      <progress 
-                        className={`progress w-full ${item.pct > 90 ? 'progress-error' : item.pct > 70 ? 'progress-warning' : 'progress-primary'}`} 
-                        value={item.pct} 
+                      <progress
+                        className={`progress w-full ${item.pct > 90 ? 'progress-error' : item.pct > 70 ? 'progress-warning' : 'progress-primary'}`}
+                        value={item.pct}
                         max="100"
                       />
                     </div>
@@ -779,7 +742,7 @@ const Settings = () => {
                         <span className="text-3xl font-black">{p.price}</span>
                         <span className="text-sm opacity-60">XAF / mois</span>
                       </div>
-                      <button 
+                      <button
                         disabled={subscription?.plan === p.id}
                         onClick={() => handleUpgrade(p.id)}
                         className={`btn btn-${p.color} w-full mt-4 ${subscription?.plan === p.id ? 'btn-disabled' : ''}`}
