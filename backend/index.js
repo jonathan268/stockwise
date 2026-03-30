@@ -18,6 +18,7 @@ const predictionRoutes = require("./src/routes/predictionRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const organizationRoutes = require("./src/routes/organizationRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const cronService = require("./src/services/cronService");
 
 const app = express();
 
@@ -104,6 +105,9 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(` Serveur démarré avec succès sur le port ${PORT}`);
       console.log(` CORS autorisés pour: https://stockwise-eight.vercel.app`);
+      
+      // Démarrer les tâches planifiées
+      cronService.start();
     });
   } catch (error) {
     console.error(" Échec du démarrage du serveur:", error.message);

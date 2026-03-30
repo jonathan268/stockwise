@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../api/axios';
 import {
   Settings as SettingsIcon,
   User,
@@ -18,7 +19,13 @@ import {
   Phone,
   MapPin,
   CreditCard,
-  Zap
+  Zap,
+  Info,
+  Calendar,
+  CheckCircle,
+  Crown,
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 
 const Settings = () => {
@@ -31,6 +38,42 @@ const Settings = () => {
     orders: true,
     aiInsights: false
   });
+  const [subscription, setSubscription] = useState(null);
+  const [loadingSub, setLoadingSub] = useState(false);
+  const [usage, setUsage] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      setLoadingSub(true);
+      const [subRes, usageRes] = await Promise.all([
+        api.get('/api/v1/subscriptions/my-subscription'),
+        api.get('/api/v1/subscriptions/usage')
+      ]);
+      setSubscription(subRes.data.data);
+      setUsage(usageRes.data.data);
+    } catch (error) {
+      console.error("Erreur chargement abonnement:", error);
+    } finally {
+      setLoadingSub(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'subscription') {
+      fetchData();
+    }
+  }, [activeTab]);
+
+  const handleUpgrade = async (plan) => {
+    try {
+      const response = await api.post('/api/v1/subscriptions/checkout', { plan });
+      if (response.data.data.authorization_url) {
+        window.location.href = response.data.data.authorization_url;
+      }
+    } catch (error) {
+      alert("Erreur lors de l'initialisation du paiement: " + (error.response?.data?.message || error.message));
+    }
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
@@ -38,6 +81,7 @@ const Settings = () => {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Sécurité', icon: Shield },
     { id: 'appearance', label: 'Apparence', icon: Palette },
+    { id: 'subscription', label: 'Abonnement', icon: CreditCard },
     { id: 'ai', label: 'IA & Automatisation', icon: Zap },
   ];
 
@@ -562,6 +606,99 @@ const Settings = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Subscription Tab */}
+      {activeTab === 'subscription' && (
+        <div className="space-y-6">
+          {loadingSub ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="animate-spin text-primary" size={48} />
+            </div>
+          ) : (
+            <>
+              {/* Current Subscription Status */}
+              <div className={`card shadow-lg ${subscription?.status === 'trial' ? 'bg-primary text-primary-content' : 'bg-base-100'}`}>
+                <div className="card-body">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Crown size={24} />
+                        <h2 className="text-2xl font-bold uppercase tracking-wider">Plan {subscription?.plan}</h2>
+                        {subscription?.status === 'trial' && (
+                          <div className="badge badge-secondary font-bold">ESSAI GRATUIT</div>
+                        )}
+                      </div>
+                      <p className={subscription?.status === 'trial' ? 'text-primary-content/80' : 'text-base-content/60'}>
+                        {subscription?.status === 'trial' 
+                          ? `Votre essai gratuit se termine dans ${subscription?.trial?.daysRemaining || 0} jours.` 
+                          : subscription?.status === 'active' 
+                            ? `Votre abonnement est actif jusqu'au ${new Date(subscription?.currentPeriod?.end).toLocaleDateString()}.`
+                            : 'Votre abonnement est expiré.'}
+                      </p>
+                    </div>
+                    {subscription?.status === 'trial' && (
+                      <button onClick={() => fetchData()} className="btn btn-secondary border-none">
+                        Gérer mon plan
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Usage Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { label: 'Produits', used: usage?.current?.productsCount, limit: usage?.limits?.maxProducts, pct: usage?.percentages?.products },
+                  { label: 'Utilisateurs', used: usage?.current?.usersCount, limit: usage?.limits?.maxUsers, pct: usage?.percentages?.users },
+                  { label: 'Prédictions IA', used: usage?.current?.aiPredictionsUsed, limit: usage?.limits?.aiPredictionsPerMonth, pct: usage?.percentages?.aiPredictions },
+                ].map((item) => (
+                  <div key={item.label} className="card bg-base-100 shadow-md">
+                    <div className="card-body p-5">
+                      <div className="flex justify-between items-end mb-2">
+                        <span className="text-sm font-semibold opacity-70">{item.label}</span>
+                        <span className="text-lg font-bold">
+                          {item.used} / {item.limit === -1 ? '∞' : item.limit}
+                        </span>
+                      </div>
+                      <progress 
+                        className={`progress w-full ${item.pct > 90 ? 'progress-error' : item.pct > 70 ? 'progress-warning' : 'progress-primary'}`} 
+                        value={item.pct} 
+                        max="100"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Plans Comparison */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                {[
+                  { id: 'basic', name: 'Pro', price: '15,000', color: 'primary' },
+                  { id: 'smart', name: 'Entreprise', price: '45,000', color: 'secondary' },
+                  { id: 'premium', name: 'Elite', price: '95,000', color: 'accent' },
+                ].map((p) => (
+                  <div key={p.id} className={`card bg-base-100 shadow-lg border-2 ${subscription?.plan === p.id ? `border-${p.color}` : 'border-transparent'}`}>
+                    <div className="card-body">
+                      <h3 className="text-xl font-bold">{p.name}</h3>
+                      <div className="flex items-baseline gap-1 my-4">
+                        <span className="text-3xl font-black">{p.price}</span>
+                        <span className="text-sm opacity-60">XAF / mois</span>
+                      </div>
+                      <button 
+                        disabled={subscription?.plan === p.id}
+                        onClick={() => handleUpgrade(p.id)}
+                        className={`btn btn-${p.color} w-full mt-4`}
+                      >
+                        {subscription?.plan === p.id ? 'Plan actuel' : 'Choisir ce plan'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

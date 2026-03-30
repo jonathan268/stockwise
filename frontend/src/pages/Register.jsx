@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -10,12 +10,18 @@ import {
   UserPlus,
   AlertCircle,
   CheckCircle,
+  Crown,
+  Zap,
+  Coffee,
 } from "lucide-react";
 import api from "../api/axios";
 import SEO from "../components/common/SEO";
 
 const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialPlan = queryParams.get("plan") || "free";
 
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -24,11 +30,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
     password: "",
+    plan: initialPlan,
   });
 
   const [errors, setErrors] = useState({});
@@ -114,6 +117,7 @@ const Register = () => {
         email: formData.email.trim(),
         phone: formData.phone.trim() || undefined,
         password: formData.password,
+        plan: formData.plan,
       });
 
       const { accessToken, refreshToken } = response.data.data.tokens;
@@ -350,6 +354,35 @@ const Register = () => {
                     </a>
                   </span>
                 </label>
+              </div>
+
+              {/* Plan Selection */}
+              <div className="space-y-3 pb-4">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/70">Choisis ton plan de départ (14 jours d'essai gratuit)</span>
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "free", name: "Gratuit", icon: <Coffee size={16} />, activeColor: "border-neutral bg-neutral/5" },
+                    { id: "basic", name: "Pro", icon: <Zap size={16} />, activeColor: "border-primary bg-primary/5" },
+                    { id: "smart", name: "Entreprise", icon: <Crown size={16} />, activeColor: "border-secondary bg-secondary/5" },
+                  ].map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => setFormData({ ...formData, plan: p.id })}
+                      className={`cursor-pointer border-2 rounded-xl p-3 flex flex-col items-center gap-2 transition-all ${
+                        formData.plan === p.id 
+                          ? p.activeColor
+                          : "border-base-200 hover:border-base-300"
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${formData.plan === p.id ? 'bg-white shadow-sm' : 'bg-base-200'}`}>
+                        {p.icon}
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${formData.plan === p.id ? 'text-base-content' : 'text-base-content/60'}`}>{p.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Button */}

@@ -79,7 +79,7 @@ class AuthController {
   // POST /api/v1/auth/register
   async register(req, res, next) {
     try {
-      const { firstName, lastName, email, password, phone } = req.body;
+      const { firstName, lastName, email, password, phone, plan = "free" } = req.body;
 
       // 1. Vérifier si email existe
       const existingUser = await User.findOne({ email });
@@ -126,7 +126,7 @@ class AuthController {
         email: email,
         phone: phone,
         owner: user._id,
-        status: "active",
+        status: plan === "free" ? "active" : "trial",
       });
 
       // 4. Mettre à jour utilisateur avec l'organisation
@@ -138,11 +138,11 @@ class AuthController {
       const verificationToken = user.createEmailVerificationToken();
       await user.save({ validateBeforeSave: false });
 
-      // 6. Créer abonnement FREE par défaut
+      // 6. Créer abonnement (par défaut FREE si non spécifié, sinon TRIAL du plan choisi)
       await Subscription.create({
         organization: organization._id,
-        plan: "free",
-        status: "active",
+        plan: plan,
+        status: plan === "free" ? "active" : "trial",
       });
 
       // 7. Envoyer email de vérification (async - ne pas bloquer)
@@ -543,7 +543,7 @@ class AuthController {
   async setupOrganization(req, res, next) {
     try {
       const userId = req.user._id;
-      const { organizationName, phone } = req.body;
+      const { organizationName, phone, plan = "free" } = req.body;
 
       // 1. Vérifier si user a déjà une organisation
       const user = await User.findById(userId);
@@ -565,7 +565,7 @@ class AuthController {
         email: user.email,
         phone: phone || user.phone,
         owner: userId,
-        status: "active",
+        status: plan === "free" ? "active" : "trial",
       });
 
       // 4. Mettre à jour user
@@ -574,11 +574,11 @@ class AuthController {
       user.role = "owner";
       await user.save({ validateBeforeSave: false });
 
-      // 5. Créer abonnement FREE par défaut
+      // 5. Créer abonnement (par défaut FREE si non spécifié, sinon TRIAL du plan choisi)
       await Subscription.create({
         organization: organization._id,
-        plan: "free",
-        status: "active",
+        plan: plan,
+        status: plan === "free" ? "active" : "trial",
       });
 
       return successResponse(

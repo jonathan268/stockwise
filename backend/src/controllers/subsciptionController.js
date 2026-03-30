@@ -2,6 +2,7 @@ const Subscription = require("../models/Subscription");
 const Organization = require("../models/Organization");
 const { AppError } = require("../utils/appError");
 const { successResponse } = require("../utils/apiResponse");
+const notchpayService = require("../services/notchpayService");
 
 class SubscriptionController {
   // GET /api/v1/subscription
@@ -370,6 +371,83 @@ class SubscriptionController {
       return successResponse(res, usage, "Utilisation récupérée");
     } catch (error) {
       next(error);
+    }
+  }
+
+  // POST /api/v1/subscription/checkout
+  async initializeCheckout(req, res, next) {
+    try {
+      const { plan, interval = "monthly" } = req.body;
+      const organizationId = req.organization._id;
+      const user = req.user;
+
+      const subscription = await Subscription.findOne({ organization: organizationId });
+      if (!subscription) throw new AppError("Abonnement introuvable", 404);
+
+      // Définir le montant selon le plan
+      const pricing = {
+        basic: 15000,
+        smart: 45000,
+        premium: 95000,
+      };
+
+      const amount = pricing[plan];
+      if (!amount) throw new AppError("Plan invalide pour le paiement", 400);
+
+      const callback_url = `${process.env.FRONTEND_URL}/settings/subscription/callback`;
+      
+      const payment = await notchpayService.initializePayment({
+        amount,
+        email: user.email,
+        currency: "XAF",
+        description: `Abonnement StockWise - Plan ${plan} (${interval})`,
+        customer_name: `${user.firstName} ${user.lastName}`,
+        callback_url,
+        reference: `sub_${subscription._id}_${Date.now()}`,
+      });
+
+      return successResponse(res, payment, "Paiement initialisé avec succès");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // POST /api/v1/subscription/webhook
+  async handleWebhook(req, res, next) {
+    try {
+      const signature = req.headers["x-notchpay-signature"];
+      const payload = req.body;
+
+      // Vérifier la signature (Optionnel mais recommandé)
+      // if (!notchpayService.verifyWebhookSignature(payload, signature)) {
+      //   return res.status(400).send("Invalid signature");
+      // }
+
+      if (payload.event === "payment.complete") {
+        const reference = payload.data.reference;
+        // La référence est au format sub_IDSUBSCRIPTION_TIMESTAMP
+        const subscriptionId = reference.split("_")[1];
+
+        const subscription = await Subscription.findById(subscriptionId);
+        if (subscription) {
+          await subscription.recordPayment(
+            payload.data.amount,
+            payload.data.type || "notchpay",
+            reference
+          );
+          await subscription.save();
+          
+          // Mettre également à jour le statut de l'organisation
+          await Organization.findByIdAndUpdate(subscription.organization, {
+            status: "active"
+          });
+        }
+      }
+
+      return res.status(200).json({ status: "success" });
+    } catch (error) {
+      console.error("Erreur Webhook NotchPay:", error);
+      return res.status(500).json({ status: "error" });
     }
   }
 }
