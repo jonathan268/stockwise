@@ -72,6 +72,7 @@ export const useAuth = () => {
     user,
     loading,
     isAuthenticated,
+    isSuperAdmin: user?.role === "superadmin",
     error,
     logout,
     refreshToken,

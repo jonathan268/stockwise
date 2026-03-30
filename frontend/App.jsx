@@ -14,14 +14,13 @@ import Analytics from "./src/pages/Analyse";
 import Suppliers from "./src/pages/Suppliers";
 import AuthCallback from "./src/pages/AuthCallback";
 
-/* Admin Pages
-import AdminLayout from "./admin/components/AdminLayout";
-import AdminDashboard from "./admin/components/AdminDashboard";
-import AdminUsers from "./admin/components/AdminUsers";
-import AdminSubscriptions from "./admin/components/AdminSubscriptions";
-import AdminOrganizations from "./admin/components/AdminOrganizations";
-
-*/
+// Admin Pages
+import AdminLayout from "./src/admin/components/AdminLayout";
+import AdminDashboard from "./src/admin/pages/Admindashboard";
+import AdminUsers from "./src/admin/pages/Adminusers";
+import AdminSubscriptions from "./src/admin/pages/Adminsubscribtions";
+import AdminOrganizations from "./src/admin/pages/Adminorganizations";
+import { AdminRoute } from "./src/components/AdminRoute";
 
 import PWAWrapper from "./src/components/PWAWrapper";
 
@@ -60,6 +59,22 @@ function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
           <Route path="suppliers" element={<Suppliers />} />
+        </Route>
+
+        {/* Routes d'administration */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="organizations" element={<AdminOrganizations />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
         </Route>
 
         {/* Route 404 - Page non trouvée */}

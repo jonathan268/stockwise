@@ -71,7 +71,7 @@ const userSchema = new mongoose.Schema(
     // Rôle dans l'organisation (géré aussi dans Organization.members)
     role: {
       type: String,
-      enum: ["owner", "admin", "manager", "staff", "viewer"],
+      enum: ["owner", "admin", "manager", "staff", "viewer", "superadmin"],
       default: "owner",
     },
 

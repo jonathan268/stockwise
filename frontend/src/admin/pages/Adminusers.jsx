@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import adminService from '../../services/adminService';
 import {
   Users,
   Search,
@@ -16,124 +17,73 @@ import {
   CheckCircle,
   X,
   Clock,
-  MapPin
+  MapPin,
+  Building
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  // Données utilisateurs
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+237 6 90 12 34 56',
-      plan: 'Pro',
-      status: 'active',
-      joinDate: '2024-01-15',
-      lastLogin: '2024-02-13 14:30',
-      organization: 'TechCorp',
-      location: 'Douala, CM',
-      storage: 15.5,
-      storageLimit: 50,
-      users: 5,
-      usersLimit: 10
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phone: '+33 1 23 45 67 89',
-      plan: 'Enterprise',
-      status: 'active',
-      joinDate: '2023-11-20',
-      lastLogin: '2024-02-13 09:15',
-      organization: 'MegaCorp SA',
-      location: 'Paris, FR',
-      storage: 145.2,
-      storageLimit: 500,
-      users: 45,
-      usersLimit: 100
-    },
-    {
-      id: 3,
-      name: 'Bob Johnson',
-      email: 'bob@startup.io',
-      phone: '+1 555 123 4567',
-      plan: 'Free',
-      status: 'active',
-      joinDate: '2024-02-10',
-      lastLogin: '2024-02-12 18:45',
-      organization: 'StartupIO',
-      location: 'New York, US',
-      storage: 2.1,
-      storageLimit: 5,
-      users: 1,
-      usersLimit: 3
-    },
-    {
-      id: 4,
-      name: 'Alice Brown',
-      email: 'alice.brown@company.com',
-      phone: '+44 20 1234 5678',
-      plan: 'Pro',
-      status: 'suspended',
-      joinDate: '2023-08-05',
-      lastLogin: '2024-01-28 11:20',
-      organization: 'AliceCo Ltd',
-      location: 'London, UK',
-      storage: 28.7,
-      storageLimit: 50,
-      users: 7,
-      usersLimit: 10
-    },
-    {
-      id: 5,
-      name: 'Charlie Wilson',
-      email: 'charlie@example.com',
-      phone: '+237 6 99 88 77 66',
-      plan: 'Starter',
-      status: 'pending',
-      joinDate: '2024-02-13',
-      lastLogin: 'Jamais',
-      organization: 'WilsonCo',
-      location: 'Yaoundé, CM',
-      storage: 0.5,
-      storageLimit: 10,
-      users: 1,
-      usersLimit: 5
-    },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const plans = ['all', 'Free', 'Starter', 'Pro', 'Enterprise'];
-  const statuses = ['all', 'active', 'pending', 'suspended'];
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getAllUsers();
+      setUsers(data);
+      setError(null);
+    } catch (err) {
+      console.error("Erreur chargement utilisateurs:", err);
+      setError("Impossible de charger les utilisateurs.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  // Données utilisateurs
+  const plans = ['all', 'free', 'basic', 'smart', 'premium'];
+  const statuses = ['all', 'active', 'pending', 'suspended', 'inactive'];
 
   const getStatusBadge = (status) => {
     const badges = {
       active: { class: 'badge-success', text: 'Actif', icon: CheckCircle },
       pending: { class: 'badge-warning', text: 'En attente', icon: Clock },
-      suspended: { class: 'badge-error', text: 'Suspendu', icon: Ban }
+      suspended: { class: 'badge-error', text: 'Suspendu', icon: Ban },
+      inactive: { class: 'badge-neutral', text: 'Inactif', icon: X }
     };
-    return badges[status] || badges.active;
+    return badges[status] || { class: 'badge-ghost', text: status, icon: Clock };
   };
 
   const getPlanBadge = (plan) => {
     const badges = {
-      Enterprise: { class: 'badge-error', text: 'Enterprise' },
-      Pro: { class: 'badge-warning', text: 'Pro' },
-      Starter: { class: 'badge-info', text: 'Starter' },
-      Free: { class: 'badge-ghost', text: 'Free' }
+      premium: { class: 'badge-error', text: 'Premium' },
+      smart: { class: 'badge-warning', text: 'Smart' },
+      basic: { class: 'badge-info', text: 'Basic' },
+      free: { class: 'badge-ghost', text: 'Free' }
     };
-    return badges[plan] || badges.Free;
+    return badges[plan?.toLowerCase()] || badges.free;
   };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedUsers(filteredUsers.map(u => u.id));
+      setSelectedUsers(filteredUsers.map(u => u._id));
     } else {
       setSelectedUsers([]);
     }
@@ -148,19 +98,24 @@ const AdminUsers = () => {
   };
 
   const filteredUsers = users.filter(user => {
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     const matchSearch = 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fullName.includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.organization.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchPlan = selectedPlan === 'all' || user.plan === selectedPlan;
+      (user.organization?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Pour le plan, c'est un peu plus complexe car c'est dans organization.subscription
+    // mais on va simplifier pour l'instant si le backend ne le renvoie pas directement
+    const matchPlan = selectedPlan === 'all'; 
     const matchStatus = selectedStatus === 'all' || user.status === selectedStatus;
+    
     return matchSearch && matchPlan && matchStatus;
   });
 
-  const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.status === 'active').length;
-  const pendingUsers = users.filter(u => u.status === 'pending').length;
-  const suspendedUsers = users.filter(u => u.status === 'suspended').length;
+  const totalUsersCount = users.length;
+  const activeUsersCount = users.filter(u => u.status === 'active').length;
+  const pendingUsersCount = users.filter(u => u.status === 'pending').length;
+  const suspendedUsersCount = users.filter(u => u.status === 'suspended').length;
 
   return (
     <div className="space-y-6">
@@ -194,7 +149,7 @@ const AdminUsers = () => {
             <Users size={32} />
           </div>
           <div className="stat-title">Total Utilisateurs</div>
-          <div className="stat-value text-primary">{totalUsers}</div>
+          <div className="stat-value text-primary">{totalUsersCount}</div>
           <div className="stat-desc">Sur la plateforme</div>
         </div>
         
@@ -203,8 +158,8 @@ const AdminUsers = () => {
             <CheckCircle size={32} />
           </div>
           <div className="stat-title">Actifs</div>
-          <div className="stat-value text-success">{activeUsers}</div>
-          <div className="stat-desc">{Math.round(activeUsers / totalUsers * 100)}% du total</div>
+          <div className="stat-value text-success">{activeUsersCount}</div>
+          <div className="stat-desc">{totalUsersCount > 0 ? Math.round(activeUsersCount / totalUsersCount * 100) : 0}% du total</div>
         </div>
         
         <div className="stat bg-base-100 shadow-lg rounded-lg">
@@ -212,7 +167,7 @@ const AdminUsers = () => {
             <Clock size={32} />
           </div>
           <div className="stat-title">En attente</div>
-          <div className="stat-value text-warning">{pendingUsers}</div>
+          <div className="stat-value text-warning">{pendingUsersCount}</div>
           <div className="stat-desc">À valider</div>
         </div>
         
@@ -221,7 +176,7 @@ const AdminUsers = () => {
             <Ban size={32} />
           </div>
           <div className="stat-title">Suspendus</div>
-          <div className="stat-value text-error">{suspendedUsers}</div>
+          <div className="stat-value text-error">{suspendedUsersCount}</div>
           <div className="stat-desc">Action requise</div>
         </div>
       </div>
@@ -367,43 +322,43 @@ const AdminUsers = () => {
               <tbody>
                 {filteredUsers.map((user) => {
                   const statusBadge = getStatusBadge(user.status);
-                  const planBadge = getPlanBadge(user.plan);
+                  const planBadge = getPlanBadge(user.organization?.subscription?.plan || 'free');
                   const StatusIcon = statusBadge.icon;
+                  const fullName = `${user.firstName} ${user.lastName}`;
                   
                   return (
-                    <tr key={user.id} className="hover">
+                    <tr key={user._id} className="hover">
                       <td>
                         <input
                           type="checkbox"
                           className="checkbox checkbox-sm"
-                          checked={selectedUsers.includes(user.id)}
-                          onChange={() => handleSelectUser(user.id)}
+                          checked={selectedUsers.includes(user._id)}
+                          onChange={() => handleSelectUser(user._id)}
                         />
                       </td>
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="avatar placeholder">
                             <div className="bg-neutral-focus text-neutral-content rounded-full w-12">
-                              <span>{user.name.split(' ').map(n => n[0]).join('')}</span>
+                              <span>{user.firstName[0]}{user.lastName[0]}</span>
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">{user.name}</div>
+                            <div className="font-bold">{fullName}</div>
                             <div className="text-sm text-base-content/60 flex items-center gap-1">
                               <Mail size={12} />
                               {user.email}
                             </div>
-                            <div className="text-xs text-base-content/50 flex items-center gap-1 mt-1">
-                              <MapPin size={10} />
-                              {user.location}
+                            <div className="text-xs text-base-content/40 mt-1 uppercase tracking-tighter font-semibold">
+                              Rôle: {user.role}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <div className="font-semibold">{user.organization}</div>
-                        <div className="text-sm text-base-content/60">
-                          {user.users}/{user.usersLimit} utilisateurs
+                        <div className="font-semibold">{user.organization?.name || "Sans organisation"}</div>
+                        <div className="text-xs text-base-content/60 mt-1 italic">
+                          ID: {user.organization?._id?.substring(0, 8)}...
                         </div>
                       </td>
                       <td>
@@ -413,16 +368,9 @@ const AdminUsers = () => {
                       </td>
                       <td>
                         <div className="space-y-1">
-                          <div className="text-xs text-base-content/60">Stockage</div>
-                          <div className="flex items-center gap-2">
-                            <progress 
-                              className="progress progress-primary w-20" 
-                              value={user.storage} 
-                              max={user.storageLimit}
-                            ></progress>
-                            <span className="text-xs font-semibold">
-                              {user.storage}/{user.storageLimit} GB
-                            </span>
+                          <div className="text-xs text-base-content/60">Limit / Usage</div>
+                          <div className="text-xs font-medium">
+                            {user.organization?.usage?.usersCount || 0} / {user.organization?.limits?.maxUsers || 0} membres
                           </div>
                         </div>
                       </td>
@@ -433,9 +381,11 @@ const AdminUsers = () => {
                         </div>
                       </td>
                       <td>
-                        <div className="text-sm flex items-center gap-1">
-                          <Calendar size={12} className="text-base-content/60" />
-                          {user.lastLogin}
+                        <div className="text-sm flex flex-col gap-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={12} className="text-base-content/60" />
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </td>
                       <td>
@@ -443,11 +393,8 @@ const AdminUsers = () => {
                           <button className="btn btn-ghost btn-xs" title="Voir">
                             <Eye size={16} />
                           </button>
-                          <button className="btn btn-ghost btn-xs" title="Modifier">
-                            <Edit size={16} />
-                          </button>
-                          <button className="btn btn-ghost btn-xs text-error" title="Supprimer">
-                            <Trash2 size={16} />
+                          <button className="btn btn-ghost btn-xs text-error" title="Désactiver">
+                            <Ban size={16} />
                           </button>
                         </div>
                       </td>

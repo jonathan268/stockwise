@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import adminService from '../../services/adminService';
 import {
   Package,
   Search,
@@ -15,131 +16,93 @@ import {
   Database,
   X,
   Activity,
+  ShieldAlert,
+  ShieldCheck,
   Globe
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminOrganizations = () => {
+  const [organizations, setOrganizations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('all');
 
-  // Données des organisations
-  const organizations = [
-    {
-      id: 1,
-      name: 'TechCorp',
-      owner: 'John Doe',
-      email: 'contact@techcorp.com',
-      plan: 'Pro',
-      users: 5,
-      usersLimit: 10,
-      storage: 15.5,
-      storageLimit: 50,
-      createdDate: '2024-01-15',
-      lastActivity: '2024-02-13',
-      revenue: 245,
-      products: 1247,
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'MegaCorp SA',
-      owner: 'Jane Smith',
-      email: 'contact@megacorp.com',
-      plan: 'Enterprise',
-      users: 45,
-      usersLimit: 100,
-      storage: 145.2,
-      storageLimit: 500,
-      createdDate: '2023-11-20',
-      lastActivity: '2024-02-13',
-      revenue: 5988,
-      products: 8942,
-      status: 'active'
-    },
-    {
-      id: 3,
-      name: 'StartupIO',
-      owner: 'Bob Johnson',
-      email: 'bob@startup.io',
-      plan: 'Free',
-      users: 1,
-      usersLimit: 3,
-      storage: 2.1,
-      storageLimit: 5,
-      createdDate: '2024-02-10',
-      lastActivity: '2024-02-12',
-      revenue: 0,
-      products: 156,
-      status: 'active'
-    },
-    {
-      id: 4,
-      name: 'AliceCo Ltd',
-      owner: 'Alice Brown',
-      email: 'contact@aliceco.com',
-      plan: 'Pro',
-      users: 7,
-      usersLimit: 10,
-      storage: 28.7,
-      storageLimit: 50,
-      createdDate: '2023-08-05',
-      lastActivity: '2024-01-28',
-      revenue: 294,
-      products: 3421,
-      status: 'inactive'
-    },
-    {
-      id: 5,
-      name: 'WilsonCo',
-      owner: 'Charlie Wilson',
-      email: 'contact@wilsonco.cm',
-      plan: 'Starter',
-      users: 1,
-      usersLimit: 5,
-      storage: 0.5,
-      storageLimit: 10,
-      createdDate: '2024-02-13',
-      lastActivity: '2024-02-13',
-      revenue: 0,
-      products: 24,
-      status: 'trial'
-    },
-  ];
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
 
-  const plans = ['all', 'Free', 'Starter', 'Pro', 'Enterprise'];
+  const fetchOrganizations = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getAllOrganizations();
+      setOrganizations(data);
+      setError(null);
+    } catch (err) {
+      console.error("Erreur chargement orgs:", err);
+      setError("Impossible de charger les organisations.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      await adminService.updateOrganizationStatus(id, newStatus);
+      toast.success("Statut mis à jour");
+      fetchOrganizations();
+    } catch (err) {
+      toast.error("Échec de la mise à jour");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  // Données des organisations
+  const plans = ['all', 'free', 'basic', 'smart', 'premium'];
 
   const getPlanBadge = (plan) => {
     const badges = {
-      Enterprise: { class: 'badge-error', text: 'Enterprise' },
-      Pro: { class: 'badge-warning', text: 'Pro' },
-      Starter: { class: 'badge-info', text: 'Starter' },
-      Free: { class: 'badge-ghost', text: 'Free' }
+      premium: { class: 'badge-error', text: 'Premium' },
+      smart: { class: 'badge-warning', text: 'Smart' },
+      basic: { class: 'badge-info', text: 'Basic' },
+      free: { class: 'badge-ghost', text: 'Free' }
     };
-    return badges[plan] || badges.Free;
+    return badges[plan?.toLowerCase()] || badges.free;
   };
 
   const getStatusBadge = (status) => {
     const badges = {
       active: { class: 'badge-success', text: 'Actif' },
       trial: { class: 'badge-info', text: 'Essai' },
-      inactive: { class: 'badge-ghost', text: 'Inactif' }
+      inactive: { class: 'badge-neutral', text: 'Inactif' },
+      suspended: { class: 'badge-error', text: 'Suspendu' }
     };
-    return badges[status] || badges.active;
+    return badges[status] || { class: 'badge-ghost', text: status };
   };
 
   const filteredOrganizations = organizations.filter(org => {
     const matchSearch = 
       org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      org.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      org.owner?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      org.owner?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       org.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchPlan = selectedPlan === 'all' || org.plan === selectedPlan;
+    const matchPlan = selectedPlan === 'all' || org.subscription?.plan === selectedPlan;
     return matchSearch && matchPlan;
   });
 
   const totalOrgs = organizations.length;
   const activeOrgs = organizations.filter(o => o.status === 'active').length;
-  const totalRevenue = organizations.reduce((sum, o) => sum + o.revenue, 0);
-  const totalProducts = organizations.reduce((sum, o) => sum + o.products, 0);
+  // Note: Revenu total and total products info will come from stats in dashboard usually
+  // but we can calculate from items if they are all loaded
+  const totalProducts = organizations.reduce((sum, o) => sum + (o.usage?.productsCount || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -179,31 +142,33 @@ const AdminOrganizations = () => {
         
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-success">
-            <DollarSign size={32} />
+            <TrendingUp size={32} />
           </div>
-          <div className="stat-title">Revenus Total</div>
-          <div className="stat-value text-success">{totalRevenue.toLocaleString()} €</div>
-          <div className="stat-desc">Toutes organisations</div>
+          <div className="stat-title">Utilisateurs</div>
+          <div className="stat-value text-success">
+            {organizations.reduce((sum, o) => sum + (o.usage?.usersCount || 0), 0)}
+          </div>
+          <div className="stat-desc">Plateforme</div>
         </div>
         
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-primary">
-            <Users size={32} />
+            <Database size={32} />
           </div>
-          <div className="stat-title">Utilisateurs</div>
+          <div className="stat-title">Stockage Estimé</div>
           <div className="stat-value text-primary">
-            {organizations.reduce((sum, o) => sum + o.users, 0)}
+            {organizations.reduce((sum, o) => sum + (o.usage?.storageUsed || 0), 0).toFixed(1)} MB
           </div>
-          <div className="stat-desc">Au total</div>
+          <div className="stat-desc text-xs">Utilisé par tous</div>
         </div>
         
         <div className="stat bg-base-100 shadow-lg rounded-lg">
           <div className="stat-figure text-info">
-            <Database size={32} />
+            <Package size={32} />
           </div>
           <div className="stat-title">Produits</div>
           <div className="stat-value text-info">{totalProducts.toLocaleString()}</div>
-          <div className="stat-desc">Dans tous les stocks</div>
+          <div className="stat-desc">Total inventaire</div>
         </div>
       </div>
 
@@ -257,13 +222,18 @@ const AdminOrganizations = () => {
       {/* Organizations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredOrganizations.map((org) => {
-          const planBadge = getPlanBadge(org.plan);
+          const planBadge = getPlanBadge(org.subscription?.plan || 'free');
           const statusBadge = getStatusBadge(org.status);
-          const storagePercent = (org.storage / org.storageLimit) * 100;
-          const usersPercent = (org.users / org.usersLimit) * 100;
+          const storageLimit = org.limits?.maxStorage || 50; // Default 50MB
+          const usersLimit = org.limits?.maxUsers || 2;
+          const productsLimit = org.limits?.maxProducts || 50;
+          
+          const storagePercent = (org.usage?.storageUsed / storageLimit) * 100;
+          const usersPercent = (org.usage?.usersCount / usersLimit) * 100;
+          const productsPercent = (org.usage?.productsCount / productsLimit) * 100;
           
           return (
-            <div key={org.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+            <div key={org._id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow border border-base-200">
               <div className="card-body">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -277,11 +247,12 @@ const AdminOrganizations = () => {
                       <h3 className="text-xl font-bold">{org.name}</h3>
                       <p className="text-sm text-base-content/60 flex items-center gap-1">
                         <Users size={12} />
-                        {org.owner}
+                        {org.owner ? `${org.owner.firstName} ${org.owner.lastName}` : 'Inconnu'}
                       </p>
+                      <p className="text-xs text-base-content/40 italic">{org.email}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col items-end gap-2">
                     <div className={`badge ${planBadge.class}`}>{planBadge.text}</div>
                     <div className={`badge ${statusBadge.class}`}>{statusBadge.text}</div>
                   </div>
@@ -290,12 +261,14 @@ const AdminOrganizations = () => {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="stat bg-base-200 rounded-lg p-3">
-                    <div className="stat-title text-xs">Produits</div>
-                    <div className="stat-value text-2xl text-primary">{org.products.toLocaleString()}</div>
+                    <div className="stat-title text-xs uppercase tracking-wider">Produits</div>
+                    <div className="stat-value text-xl text-primary">{org.usage?.productsCount || 0}</div>
+                    <div className="stat-desc text-[10px]">Limite: {productsLimit === -1 ? '∞' : productsLimit}</div>
                   </div>
                   <div className="stat bg-base-200 rounded-lg p-3">
-                    <div className="stat-title text-xs">Revenus</div>
-                    <div className="stat-value text-2xl text-success">{org.revenue} €</div>
+                    <div className="stat-title text-xs uppercase tracking-wider">Membres</div>
+                    <div className="stat-value text-xl text-secondary">{org.usage?.usersCount || 0}</div>
+                    <div className="stat-desc text-[10px]">Limite: {usersLimit === -1 ? '∞' : usersLimit}</div>
                   </div>
                 </div>
 
@@ -303,29 +276,14 @@ const AdminOrganizations = () => {
                 <div className="space-y-3 mt-4">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-base-content/70 flex items-center gap-1">
-                        <Users size={14} />
-                        Utilisateurs
-                      </span>
-                      <span className="text-sm font-semibold">{org.users}/{org.usersLimit}</span>
-                    </div>
-                    <progress 
-                      className={`progress ${usersPercent > 80 ? 'progress-warning' : 'progress-primary'} w-full`} 
-                      value={usersPercent} 
-                      max="100"
-                    ></progress>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-base-content/70 flex items-center gap-1">
+                      <span className="text-xs text-base-content/70 flex items-center gap-1">
                         <Database size={14} />
-                        Stockage
+                        Stockage utilisé
                       </span>
-                      <span className="text-sm font-semibold">{org.storage}/{org.storageLimit} GB</span>
+                      <span className="text-xs font-semibold">{(org.usage?.storageUsed || 0).toFixed(1)} / {storageLimit} MB</span>
                     </div>
                     <progress 
-                      className={`progress ${storagePercent > 80 ? 'progress-error' : 'progress-success'} w-full`} 
+                      className={`progress ${storagePercent > 80 ? 'progress-error' : 'progress-success'} w-full h-2`} 
                       value={storagePercent} 
                       max="100"
                     ></progress>
@@ -333,36 +291,38 @@ const AdminOrganizations = () => {
                 </div>
 
                 {/* Info */}
-                <div className="space-y-2 mt-4 text-sm">
+                <div className="space-y-2 mt-4 text-xs border-t border-base-200 pt-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-base-content/60">Création</span>
+                    <span className="text-base-content/60">Date de création</span>
                     <span className="font-semibold flex items-center gap-1">
                       <Calendar size={12} />
-                      {org.createdDate}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-base-content/60">Dernière activité</span>
-                    <span className="font-semibold flex items-center gap-1">
-                      <Activity size={12} />
-                      {org.lastActivity}
+                      {new Date(org.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="card-actions justify-end mt-4">
-                  <button className="btn btn-ghost btn-sm gap-2">
+                {/* Actions Admin Spécifiques */}
+                <div className="card-actions justify-end mt-6 gap-2">
+                  {org.status === 'active' ? (
+                    <button 
+                      onClick={() => handleStatusUpdate(org._id, 'suspended')}
+                      className="btn btn-warning btn-sm gap-2"
+                    >
+                      <ShieldAlert size={16} />
+                      Suspendre
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => handleStatusUpdate(org._id, 'active')}
+                      className="btn btn-success btn-sm gap-2"
+                    >
+                      <ShieldCheck size={16} />
+                      Activer
+                    </button>
+                  )}
+                  <button className="btn btn-outline btn-sm gap-2">
                     <Eye size={16} />
-                    Voir
-                  </button>
-                  <button className="btn btn-ghost btn-sm gap-2">
-                    <Edit size={16} />
-                    Modifier
-                  </button>
-                  <button className="btn btn-ghost btn-sm text-error gap-2">
-                    <Trash2 size={16} />
-                    Supprimer
+                    Détails
                   </button>
                 </div>
               </div>

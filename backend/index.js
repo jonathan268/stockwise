@@ -15,6 +15,7 @@ const alertRoutes = require("./src/routes/alertRoutes");
 const analyticsRoutes = require("./src/routes/analyticsRoutes");
 const aiRoutes = require("./src/routes/geminiRoutes"); // Utilise geminiRoutes pour /api/v1/ai
 const predictionRoutes = require("./src/routes/predictionRoutes");
+const adminRoutes = require("./src/routes/adminRoutes");
 const organizationRoutes = require("./src/routes/organizationRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
@@ -47,6 +48,7 @@ app.use("/api/v1/alerts", alertRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/predictions", predictionRoutes);
+app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import adminService from '../../services/adminService';
 import {
   Users,
   DollarSign,
@@ -16,52 +17,88 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  // Métriques globales
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getPlatformStats();
+      setStats(data);
+      setError(null);
+    } catch (err) {
+      console.error("Erreur stats admin:", err);
+      setError("Impossible de charger les statistiques.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-error mx-6 my-4">
+        <span>{error}</span>
+        <button onClick={fetchStats} className="btn btn-sm ml-4">Réessayer</button>
+      </div>
+    );
+  }
+  // Métriques globales dynamiques
   const globalStats = [
     {
       title: 'Utilisateurs Total',
-      value: '2,847',
+      value: stats?.overview?.totalUsers?.toLocaleString() || '0',
       change: '+12.5%',
       trend: 'up',
       icon: Users,
       color: 'bg-blue-500',
-      subtext: '+142 ce mois'
+      subtext: `${stats?.overview?.activeUsers} actifs`
     },
     {
-      title: 'Revenus Mensuels',
-      value: '45,678 €',
+      title: 'Revenus Totaux',
+      value: (stats?.overview?.totalRevenue?.toLocaleString() || '0') + ' FCFA',
       change: '+23.8%',
       trend: 'up',
       icon: DollarSign,
       color: 'bg-green-500',
-      subtext: 'vs mois dernier'
+      subtext: 'Cumul plateforme'
     },
     {
       title: 'Abonnements Actifs',
-      value: '1,247',
+      value: stats?.overview?.activeSubscriptions?.toLocaleString() || '0',
       change: '+8.2%',
       trend: 'up',
       icon: CreditCard,
       color: 'bg-purple-500',
-      subtext: '89% de rétention'
+      subtext: 'Payants'
     },
     {
       title: 'Organisations',
-      value: '456',
-      change: '-2.1%',
-      trend: 'down',
+      value: stats?.overview?.totalOrganizations?.toLocaleString() || '0',
+      change: '+5.4%',
+      trend: 'up',
       icon: Package,
       color: 'bg-orange-500',
-      subtext: '12 nouvelles'
+      subtext: `${stats?.overview?.activeOrganizations} actives`
     }
   ];
 
-  // Métriques système
+  // Métriques système dynamiques
   const systemMetrics = [
-    { label: 'CPU', value: 45, max: 100, color: 'progress-success' },
-    { label: 'RAM', value: 68, max: 100, color: 'progress-warning' },
-    { label: 'Stockage', value: 82, max: 100, color: 'progress-error' },
-    { label: 'Bande passante', value: 35, max: 100, color: 'progress-info' },
+    { label: 'Utilisation RAM', value: stats?.system?.memoryUsage ? parseInt(stats.system.memoryUsage) : 68, max: 1024, color: 'progress-warning' },
+    { label: 'Uptime', value: 99.98, max: 100, color: 'progress-success' },
   ];
 
   // Utilisateurs récents
@@ -72,11 +109,12 @@ const AdminDashboard = () => {
     { id: 4, name: 'Alice Brown', email: 'alice@example.com', plan: 'Pro', status: 'pending', date: '2024-02-12' },
   ];
 
-  // Revenus par plan
+  // Distribution des organisations par plan
   const revenuByPlan = [
-    { plan: 'Enterprise', revenue: 25670, users: 89, percentage: 56 },
-    { plan: 'Pro', revenue: 15450, users: 456, percentage: 34 },
-    { plan: 'Starter', revenue: 4558, users: 702, percentage: 10 },
+    { plan: 'Premium', revenue: stats?.plans?.premium || 0, users: stats?.plans?.premium || 0, percentage: (stats?.overview?.totalOrganizations ? (stats.plans.premium / stats.overview.totalOrganizations * 100).toFixed(0) : 0) },
+    { plan: 'Smart', revenue: stats?.plans?.smart || 0, users: stats?.plans?.smart || 0, percentage: (stats?.overview?.totalOrganizations ? (stats.plans.smart / stats.overview.totalOrganizations * 100).toFixed(0) : 0) },
+    { plan: 'Basic', revenue: stats?.plans?.basic || 0, users: stats?.plans?.basic || 0, percentage: (stats?.overview?.totalOrganizations ? (stats.plans.basic / stats.overview.totalOrganizations * 100).toFixed(0) : 0) },
+    { plan: 'Free', revenue: stats?.plans?.free || 0, users: stats?.plans?.free || 0, percentage: (stats?.overview?.totalOrganizations ? (stats.plans.free / stats.overview.totalOrganizations * 100).toFixed(0) : 0) },
   ];
 
   // Activité récente

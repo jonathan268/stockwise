@@ -12,11 +12,13 @@ import {
   Menu,
   TrendingUp,
   Clock,
+  Shield,
 } from "lucide-react";
 import { useAuthContext } from "../context/AuthContext";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
+  const { logout, isSuperAdmin } = useAuthContext();
 
   const menuItems = [
     { path: "/app/dashboard", icon: BarChart3, label: "Tableau de bord" },
@@ -26,8 +28,12 @@ const Sidebar = ({ isOpen, onToggle }) => {
     { path: "/app/analytics", icon: Activity, label: "Analytiques IA" },
     { path: "/app/suppliers", icon: TrendingUp, label: "Fournisseurs" },
   ];
+
+  if (isSuperAdmin) {
+    menuItems.push({ path: "/admin/dashboard", icon: Shield, label: "Administration" });
+  }
+
   const isActive = (path) => location.pathname === path;
-  const {  logout } = useAuthContext();
 
   return (
     <>
