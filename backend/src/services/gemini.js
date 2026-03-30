@@ -4,7 +4,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 class GeminiService {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
-    this.modelName = "gemini-1.5-flash"; // Modèle gratuit stable
+    this.modelName = "gemini-2.5-flash"; // Modèle rapide et équilibré (2026)
     
     // Initialisation différée pour gérer l'absence de clé au démarrage
     this.genAI = this.apiKey ? new GoogleGenerativeAI(this.apiKey) : null;
@@ -42,7 +42,7 @@ class GeminiService {
   /**
    * Appel sécurisé à l'API Gemini avec le SDK stable @google/generative-ai
    */
-  async _generate(prompt) {
+  async _generate(prompt, retryCount = 0) {
     if (!this.apiKey) {
       throw new Error("Clé API Gemini manquante (GEMINI_API_KEY non configurée)");
     }
@@ -52,7 +52,7 @@ class GeminiService {
     }
 
     try {
-      console.log(`[Gemini] Génération avec ${this.modelName}...`);
+      console.log(`[Gemini] Génération avec ${this.modelName} (essai ${retryCount + 1})...`);
       const model = this.genAI.getGenerativeModel({ model: this.modelName });
       
       const result = await model.generateContent(prompt);
@@ -65,8 +65,16 @@ class GeminiService {
       
       return text.trim();
     } catch (error) {
+      const isQuotaError = error.message?.includes("429") || error.message?.includes("Quota");
+      
+      if (isQuotaError && retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 2000;
+        console.warn(`[Gemini Quota] Rate limit atteint. Nouvel essai dans ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this._generate(prompt, retryCount + 1);
+      }
+
       console.error("[Gemini SDK Error]:", error.message);
-      // Extraire plus de détails si disponible (ex: quota, clé invalide)
       if (error.response?.data) {
         console.error("[Details]:", JSON.stringify(error.response.data));
       }

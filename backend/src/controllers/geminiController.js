@@ -222,9 +222,11 @@ exports.runSelectiveAnalysis = async (req, res) => {
       data: results,
     });
   } catch (error) {
-    res.status(500).json({
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({
       success: false,
-      message: error.message,
+      message: isQuotaError ? "Quota IA dépassé. Réessayez dans 1 minute." : error.message,
+      fallback: "Analyse partielle disponible."
     });
   }
 };
@@ -269,9 +271,14 @@ exports.quickAnalysis = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({
       success: false,
-      message: error.message,
+      message: isQuotaError ? "Quota IA dépassé (Quick Advice)" : error.message,
+      data: {
+        advice: "Conseil IA temporairement indisponible. Vérifiez vos niveaux de stock manuellement.",
+        apiCalls: 0
+      }
     });
   }
 };
@@ -294,7 +301,12 @@ exports.analyzeStock = async (req, res) => {
 
     res.json({ success: true, data: { analysis }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({ 
+      success: false, 
+      message: isQuotaError ? "Quota IA dépassé" : error.message,
+      fallback: "Analyse automatique indisponible. Vérifiez vos niveaux de stock."
+    });
   }
 };
 
@@ -318,7 +330,12 @@ exports.predictDemand = async (req, res) => {
 
     res.json({ success: true, data: { prediction }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({ 
+      success: false, 
+      message: isQuotaError ? "Quota IA dépassé" : error.message,
+      prediction: "Calcul de prédiction impossible temporairement."
+    });
   }
 };
 
@@ -336,7 +353,11 @@ exports.detectAnomalies = async (req, res) => {
 
     res.json({ success: true, data: { anomalies }, apiCalls: 0.5 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(200).json({ 
+      success: true, 
+      data: { anomalies: "Détection IA indisponible. Vérifiez les stocks négatifs manuellement." },
+      apiCalls: 0 
+    });
   }
 };
 
@@ -355,7 +376,11 @@ exports.customQuery = async (req, res) => {
 
     res.json({ success: true, data: { response }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 400).json({ 
+      success: false, 
+      message: isQuotaError ? "Quota IA dépassé" : "Erreur lors du traitement du prompt."
+    });
   }
 };
 
@@ -381,7 +406,12 @@ exports.optimizeOrders = async (req, res) => {
 
     res.json({ success: true, data: { result }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({ 
+      success: false, 
+      message: isQuotaError ? "Quota IA dépassé" : error.message,
+      data: { result: "Optimisation des commandes indisponible." }
+    });
   }
 };
 
@@ -412,7 +442,12 @@ exports.analyzeWaste = async (req, res) => {
 
     res.json({ success: true, data: { result, totalEstimatedLoss }, apiCalls: 1 });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({ 
+      success: false, 
+      message: isQuotaError ? "Quota IA dépassé" : error.message,
+      data: { result: "Analyse du gaspillage indisponible." }
+    });
   }
 };
 
@@ -442,17 +477,14 @@ exports.generateReport = async (req, res) => {
 
     res.json({ success: true, data: { report: result, summary }, apiCalls: 1 });
   } catch (error) {
-    console.error("❌ ERREUR GÉNÉRATION RAPPORT:", error.message);
-    if (error.stack) console.error(error.stack);
-    res.status(500).json({ 
+    const isQuotaError = error.message?.includes('429');
+    res.status(isQuotaError ? 429 : 500).json({ 
       success: false, 
-      message: error.message || "Erreur lors de la génération du rapport",
-      details: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+      message: isQuotaError ? "Quota IA dépassé" : (error.message || "Erreur lors de la génération du rapport"),
+      summary: "Données synthétiques indisponibles."
     });
   }
 };
-
-
 
 /**
  * Nettoyer le cache (à appeler périodiquement)
