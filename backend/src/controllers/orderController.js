@@ -1,6 +1,7 @@
 const Order = require("../models/Orders");
 const Product = require("../models/Product");
 const Supplier = require("../models/Suppliers");
+const Stock = require("../models/Stock");
 const { AppError } = require("../utils/appError");
 const { successResponse, paginatedResponse } = require("../utils/apiResponse");
 const { getPaginationParams } = require("../utils/helpers");
@@ -28,7 +29,7 @@ class OrderController {
   // GET /api/v1/orders
   async getOrders(req, res, next) {
     try {
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const {
         type,
         status,
@@ -106,7 +107,7 @@ class OrderController {
   async getOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
 
       const order = await Order.findOne({
         _id: id,
@@ -132,7 +133,7 @@ class OrderController {
   // POST /api/v1/orders
   async createOrder(req, res, next) {
     try {
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       const {
@@ -249,7 +250,7 @@ class OrderController {
   async updateOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       const order = await Order.findOne({
@@ -308,7 +309,7 @@ class OrderController {
   async deleteOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
 
       const order = await Order.findOne({
         _id: id,
@@ -340,7 +341,7 @@ class OrderController {
     try {
       const { id } = req.params;
       const { status, notes } = req.body;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       // Validation statut
@@ -397,7 +398,7 @@ class OrderController {
   async confirmOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       const order = await Order.findOne({
@@ -429,7 +430,7 @@ class OrderController {
   async completeOrder(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       const order = await Order.findOne({
@@ -454,8 +455,6 @@ class OrderController {
 
       // Vérifier stock disponible pour ventes
       if (order.type === "sale") {
-        const Stock = require("../inventory/stock.model");
-
         for (const item of order.items) {
           const stock = await Stock.findOne({
             organization: organizationId,
@@ -489,7 +488,7 @@ class OrderController {
     try {
       const { id } = req.params;
       const { reason } = req.body;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const userId = req.user._id;
 
       const order = await Order.findOne({
@@ -522,7 +521,7 @@ class OrderController {
     try {
       const { id } = req.params;
       const { amount, method, transactionId } = req.body;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
 
       if (!amount || amount <= 0) {
         throw new AppError("Montant invalide", 400);
@@ -579,7 +578,7 @@ class OrderController {
   // GET /api/v1/orders/stats
   async getOrderStats(req, res, next) {
     try {
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
       const { startDate, endDate } = req.query;
 
       const stats = await Order.getOrderStats(
@@ -642,7 +641,7 @@ class OrderController {
   async generatePDF(req, res, next) {
     try {
       const { id } = req.params;
-      const organizationId = req.user.organization;
+      const organizationId = req.organization._id;
 
       const order = await Order.findOne({
         _id: id,
