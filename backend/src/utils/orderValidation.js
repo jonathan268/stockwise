@@ -74,7 +74,8 @@ const createOrderSchema = Joi.object({
       otherwise: Joi.forbidden(),
     })
     .custom((value, helpers) => {
-      if (value && !isValidObjectId(value)) {
+      // Refuse les chaînes vides : sinon Mongoose jette un CastError => 500
+      if (!isValidObjectId(value)) {
         return helpers.error("any.invalid");
       }
       return value;

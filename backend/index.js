@@ -71,6 +71,34 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error("ERREUR:", err);
 
+  // Erreurs Mongoose fréquentes -> éviter un 500 (CastError/Validation/duplicate)
+  // pour renvoyer un message exploitable au client.
+  if (err && err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: err.message || "Requête invalide",
+      statusCode: 400,
+    });
+  }
+
+  if (err && err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: "Données de commande invalides",
+      statusCode: 400,
+      ...(err.errors && { errors: err.errors }),
+    });
+  }
+
+  // Duplicate key (ex: unique index orderNumber)
+  if (err && err.code === 11000) {
+    return res.status(409).json({
+      success: false,
+      message: "Conflit lors de la création (doublon)",
+      statusCode: 409,
+    });
+  }
+
   // Erreur opérationnelle attendue
   if (err.isOperational) {
     return res.status(err.statusCode || 500).json({

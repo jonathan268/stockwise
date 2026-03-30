@@ -55,7 +55,7 @@ const emailTemplates = {
   welcome: (data) => ({
     subject: `Bienvenue ${data.name} !`,
     html: `
-      <h2>Bienvenue ${data.name} ! 🎉</h2>
+      <h2>Bienvenue ${data.name} ! </h2>
       <p>Votre compte a été créé avec succès.</p>
       <p>Commencez dès maintenant à gérer votre stock intelligemment avec notre IA.</p>
       <a href="${process.env.FRONTEND_URL}/dashboard">Accéder au tableau de bord</a>
@@ -72,7 +72,7 @@ const sendEmail = async ({ to, subject, template, data, html, text }) => {
     
     // Si mode dev, juste logger
     if (!transporter) {
-      console.log('📧 EMAIL (DEV MODE):');
+      console.log(' EMAIL (DEV MODE):');
       console.log('To:', to);
       console.log('Subject:', subject || emailTemplates[template](data).subject);
       console.log('Data:', data);
