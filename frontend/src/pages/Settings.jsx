@@ -25,12 +25,15 @@ import {
   CheckCircle,
   Crown,
   ChevronRight,
-  Loader2
+  Loader2,
+  RefreshCcw
 } from 'lucide-react';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -39,30 +42,40 @@ const Settings = () => {
     aiInsights: false
   });
   const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [loadingSub, setLoadingSub] = useState(false);
   const [usage, setUsage] = useState(null);
 
   const fetchData = async () => {
     try {
-      setLoadingSub(true);
-      const [subRes, usageRes] = await Promise.all([
+      setLoading(true);
+      const [userRes, orgRes, subRes, usageRes] = await Promise.all([
+        api.get('/api/v1/users/me'),
+        api.get('/api/v1/organizations'),
         api.get('/api/v1/subscriptions/my-subscription'),
         api.get('/api/v1/subscriptions/usage')
       ]);
+      
+      const userData = userRes.data.data;
+      setUser(userData);
+      setOrganization(orgRes.data.data);
       setSubscription(subRes.data.data);
       setUsage(usageRes.data.data);
+      
+      // Sync notifications state with user preferences
+      if (userData?.preferences?.notifications) {
+        setNotifications(userData.preferences.notifications);
+      }
     } catch (error) {
-      console.error("Erreur chargement abonnement:", error);
+      console.error("Erreur chargement paramètres:", error);
     } finally {
-      setLoadingSub(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (activeTab === 'subscription') {
-      fetchData();
-    }
-  }, [activeTab]);
+    fetchData();
+  }, []);
 
   const handleUpgrade = async (plan) => {
     try {
@@ -75,6 +88,108 @@ const Settings = () => {
     }
   };
 
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await api.put('/api/v1/users/me', user);
+      alert('Profil mis à jour avec succès');
+    } catch (error) {
+      alert('Erreur mise à jour profil');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOrgUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await api.put('/api/v1/organizations', organization);
+      alert('Organisation mise à jour avec succès');
+    } catch (error) {
+      alert('Erreur mise à jour organisation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotificationChange = async (key, value) => {
+    const updated = { ...notifications, [key]: value };
+    setNotifications(updated);
+    try {
+      await api.put('/api/v1/users/me', {
+        preferences: { ...user.preferences, notifications: updated }
+      });
+    } catch (error) {
+      console.error("Erreur sync notifications:", error);
+    }
+  };
+
+  const handleAvatarUpdate = async () => {
+    const url = prompt("Entrez l'URL de votre nouvel avatar:", user?.avatar || "");
+    if (url !== null) {
+      try {
+        setLoading(true);
+        await api.put('/api/v1/users/me/avatar', { avatarUrl: url });
+        setUser({ ...user, avatar: url });
+        alert('Avatar mis à jour');
+      } catch (error) {
+        alert('Erreur mise à jour avatar');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    const currentPassword = e.target.currentPassword.value;
+    const newPassword = e.target.newPassword.value;
+    const newPasswordConfirm = e.target.newPasswordConfirm.value;
+
+    if (newPassword !== newPasswordConfirm) return alert("Les mots de passe ne correspondent pas");
+
+    try {
+      setLoading(true);
+      await api.put('/api/v1/users/me/password', { currentPassword, newPassword, newPasswordConfirm });
+      alert('Mot de passe changé ! Reconnectez-vous.');
+      // Optionnel: logout
+    } catch (error) {
+      alert(error.response?.data?.message || 'Erreur changement mot de passe');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const password = prompt("Confirmez votre mot de passe pour supprimer le compte :");
+    if (!password) return;
+    const confirmation = prompt("Tapez 'DELETE' pour confirmer la suppression définitive :");
+    if (confirmation !== "DELETE") return;
+
+    try {
+      setLoading(true);
+      await api.delete('/api/v1/users/me', { data: { password, confirmation } });
+      alert('Compte supprimé.');
+      window.location.href = '/login';
+    } catch (error) {
+      alert(error.response?.data?.message || 'Erreur suppression compte');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppearanceUpdate = async (key, value) => {
+    if (key === 'theme') {
+      document.documentElement.setAttribute('data-theme', value);
+      try {
+        await api.put('/api/v1/users/me', { preferences: { ...user.preferences, theme: value } });
+      } catch (e) { console.error(e); }
+    }
+    // Langue, devise, etc. pourraient être gérés ici
+  };
+
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'company', label: 'Entreprise', icon: Building },
@@ -82,11 +197,18 @@ const Settings = () => {
     { id: 'security', label: 'Sécurité', icon: Shield },
     { id: 'appearance', label: 'Apparence', icon: Palette },
     { id: 'subscription', label: 'Abonnement', icon: CreditCard },
-    { id: 'ai', label: 'IA & Automatisation', icon: Zap },
   ];
 
+  if (loading && !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 md:p-8 max-w-6xl">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -117,79 +239,92 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Profile Tab */}
-      {activeTab === 'profile' && (
-        <div className="space-y-6">
+      {activeTab === 'profile' && user && (
+        <form onSubmit={handleProfileUpdate} className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Informations personnelles</h2>
               
-              {/* Avatar */}
               <div className="flex items-center gap-6 mb-6">
                 <div className="avatar placeholder">
-                  <div className="bg-primary text-primary-content rounded-full w-24 h-24">
-                    <span className="text-3xl"></span>
+                  <div className="bg-primary text-primary-content rounded-full w-24 h-24 overflow-hidden">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl">{user.initials || user.firstName?.[0]}</span>
+                    )}
                   </div>
                 </div>
                 <div>
-                  <button className="btn btn-primary btn-sm" type="file" >Changer la photo</button>
-                  <p className="text-sm text-base-content/60 mt-2">JPG, PNG ou GIF. Max 2MB.</p>
+                  <button type="button" onClick={handleAvatarUpdate} className="btn btn-primary btn-sm">Changer l'avatar (URL)</button>
+                  <p className="text-sm text-base-content/60 mt-2">Collez une URL vers une image JPG, PNG.</p>
                 </div>
               </div>
 
-              {/* Form */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Prénom</span>
                   </label>
-                  <input type="text" placeholder="John" className="input input-bordered" defaultValue="John" />
+                  <input 
+                    type="text" 
+                    className="input input-bordered" 
+                    value={user.firstName}
+                    onChange={(e) => setUser({...user, firstName: e.target.value})}
+                  />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Nom</span>
                   </label>
-                  <input type="text" placeholder="Doe" className="input input-bordered" defaultValue="Doe" />
+                  <input 
+                    type="text" 
+                    className="input input-bordered" 
+                    value={user.lastName}
+                    onChange={(e) => setUser({...user, lastName: e.target.value})}
+                  />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Email</span>
                   </label>
-                  <input type="email" placeholder="john.doe@example.com" className="input input-bordered" defaultValue="john.doe@example.com" />
+                  <input 
+                    type="email" 
+                    className="input input-bordered opacity-70" 
+                    value={user.email}
+                    disabled
+                  />
+                  <span className="text-xs text-info mt-1 italic">Utilisez l'onglet Sécurité pour changer l'email.</span>
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Téléphone</span>
                   </label>
-                  <input type="tel" placeholder="+237 6 XX XX XX XX" className="input input-bordered" defaultValue="+237 6 90 12 34 56" />
-                </div>
-
-                <div className="form-control md:col-span-2">
-                  <label className="label">
-                    <span className="label-text font-semibold">Poste</span>
-                  </label>
-                  <input type="text" placeholder="Responsable Stock" className="input input-bordered" defaultValue="Gestionnaire d'inventaire" />
+                  <input 
+                    type="tel" 
+                    className="input input-bordered" 
+                    value={user.phone || ""}
+                    onChange={(e) => setUser({...user, phone: e.target.value})}
+                  />
                 </div>
               </div>
 
               <div className="card-actions justify-end mt-6">
-                <button className="btn btn-ghost">Annuler</button>
-                <button className="btn btn-primary gap-2">
-                  <Save size={20} />
+                <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
+                  {loading ? <span className="loading loading-spinner"></span> : <Save size={20} />}
                   Enregistrer
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* Company Tab */}
-      {activeTab === 'company' && (
-        <div className="card bg-base-100 shadow-lg">
+      {activeTab === 'company' && organization && (
+        <form onSubmit={handleOrgUpdate} className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Informations entreprise</h2>
             
@@ -198,88 +333,104 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Nom de l'entreprise</span>
                 </label>
-                <input type="text" placeholder="Mon Entreprise" className="input input-bordered" defaultValue="StockAI Solutions" />
+                <input 
+                  type="text" 
+                  className="input input-bordered" 
+                  value={organization.name || ""}
+                  onChange={(e) => setOrganization({...organization, name: e.target.value})}
+                />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Secteur d'activité</span>
                 </label>
-                <select className="select select-bordered">
-                  <option>Distribution électronique</option>
-                  <option>Retail</option>
-                  <option>E-commerce</option>
-                  <option>Logistique</option>
-                  <option>Autre</option>
+                <select 
+                  className="select select-bordered"
+                  value={organization.industry || "other"}
+                  onChange={(e) => setOrganization({...organization, industry: e.target.value})}
+                >
+                  <option value="agriculture">Agriculture</option>
+                  <option value="retail">Commerce de détail</option>
+                  <option value="wholesale">Commerce de gros</option>
+                  <option value="manufacturing">Manufacture</option>
+                  <option value="food_service">Restauration</option>
+                  <option value="logistics">Logistique</option>
+                  <option value="other">Autre</option>
                 </select>
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">Taille de l'entreprise</span>
-                </label>
-                <select className="select select-bordered">
-                  <option>1-10 employés</option>
-                  <option>11-50 employés</option>
-                  <option>51-200 employés</option>
-                  <option>201-500 employés</option>
-                  <option>500+ employés</option>
-                </select>
-              </div>
-
-              <div className="form-control md:col-span-2">
-                <label className="label">
                   <span className="label-text font-semibold">Adresse</span>
                 </label>
-                <input type="text" placeholder="123 Rue de la République" className="input input-bordered" />
+                <input 
+                  type="text" 
+                  className="input input-bordered" 
+                  value={organization.address?.street || ""}
+                  onChange={(e) => setOrganization({
+                    ...organization, 
+                    address: { ...organization.address, street: e.target.value }
+                  })}
+                />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Ville</span>
                 </label>
-                <input type="text" placeholder="Douala" className="input input-bordered" />
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">Code postal</span>
-                </label>
-                <input type="text" placeholder="12345" className="input input-bordered" />
+                <input 
+                  type="text" 
+                  className="input input-bordered" 
+                  value={organization.address?.city || ""}
+                  onChange={(e) => setOrganization({
+                    ...organization, 
+                    address: { ...organization.address, city: e.target.value }
+                  })}
+                />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Pays</span>
                 </label>
-                <select className="select select-bordered">
-                  <option>Cameroun</option>
-                  <option>France</option>
-                  <option>Belgique</option>
-                  <option>Suisse</option>
+                <select 
+                  className="select select-bordered"
+                  value={organization.address?.country || "Cameroun"}
+                  onChange={(e) => setOrganization({
+                    ...organization, 
+                    address: { ...organization.address, country: e.target.value }
+                  })}
+                >
+                  <option value="Cameroun">Cameroun</option>
+                  <option value="France">France</option>
+                  <option value="Autre">Autre</option>
                 </select>
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">N° TVA</span>
+                  <span className="label-text font-semibold">N° Fiscal / TVA</span>
                 </label>
-                <input type="text" placeholder="FR12345678901" className="input input-bordered" />
+                <input 
+                  type="text" 
+                  className="input input-bordered" 
+                  value={organization.taxId || ""}
+                  onChange={(e) => setOrganization({...organization, taxId: e.target.value})}
+                />
               </div>
             </div>
 
             <div className="card-actions justify-end mt-6">
-              <button className="btn btn-ghost">Annuler</button>
-              <button className="btn btn-primary gap-2">
-                <Save size={20} />
+              <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
+                {loading ? <span className="loading loading-spinner"></span> : <Save size={20} />}
                 Enregistrer
               </button>
             </div>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* Notifications Tab */}
       {activeTab === 'notifications' && (
         <div className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
@@ -299,7 +450,7 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-primary" 
                     checked={notifications.email}
-                    onChange={(e) => setNotifications({...notifications, email: e.target.checked})}
+                    onChange={(e) => handleNotificationChange('email', e.target.checked)}
                   />
                 </div>
 
@@ -315,7 +466,7 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-primary"
                     checked={notifications.push}
-                    onChange={(e) => setNotifications({...notifications, push: e.target.checked})}
+                    onChange={(e) => handleNotificationChange('push', e.target.checked)}
                   />
                 </div>
 
@@ -333,23 +484,7 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-warning"
                     checked={notifications.lowStock}
-                    onChange={(e) => setNotifications({...notifications, lowStock: e.target.checked})}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <CreditCard size={24} className="text-success" />
-                    <div>
-                      <div className="font-semibold">Mises à jour des commandes</div>
-                      <div className="text-sm text-base-content/60">Recevoir les confirmations et mises à jour</div>
-                    </div>
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    className="toggle toggle-success"
-                    checked={notifications.orders}
-                    onChange={(e) => setNotifications({...notifications, orders: e.target.checked})}
+                    onChange={(e) => handleNotificationChange('lowStock', e.target.checked)}
                   />
                 </div>
 
@@ -365,16 +500,13 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-info"
                     checked={notifications.aiInsights}
-                    onChange={(e) => setNotifications({...notifications, aiInsights: e.target.checked})}
+                    onChange={(e) => handleNotificationChange('aiInsights', e.target.checked)}
                   />
                 </div>
               </div>
 
-              <div className="card-actions justify-end mt-6">
-                <button className="btn btn-primary gap-2">
-                  <Save size={20} />
-                  Enregistrer les préférences
-                </button>
+              <div className="card-actions justify-center mt-6">
+                <span className="text-sm italic opacity-60">Synchronisation automatique activée</span>
               </div>
             </div>
           </div>
@@ -385,7 +517,7 @@ const Settings = () => {
       {activeTab === 'security' && (
         <div className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
+            <form onSubmit={handleChangePassword} className="card-body">
               <h2 className="card-title mb-4">Changer le mot de passe</h2>
               
               <div className="space-y-4">
@@ -395,11 +527,14 @@ const Settings = () => {
                   </label>
                   <div className="relative">
                     <input 
+                      name="currentPassword"
                       type={showPassword ? 'text' : 'password'} 
                       placeholder="••••••••" 
                       className="input input-bordered w-full pr-10"
+                      required
                     />
                     <button 
+                      type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -412,33 +547,34 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Nouveau mot de passe</span>
                   </label>
-                  <input type="password" placeholder="••••••••" className="input input-bordered" />
+                  <input name="newPassword" type="password" placeholder="••••••••" className="input input-bordered" required />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Confirmer le mot de passe</span>
                   </label>
-                  <input type="password" placeholder="••••••••" className="input input-bordered" />
+                  <input name="newPasswordConfirm" type="password" placeholder="••••••••" className="input input-bordered" required />
                 </div>
               </div>
 
               <div className="card-actions justify-end mt-6">
-                <button className="btn btn-primary gap-2">
+                <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
+                  {loading && <span className="loading loading-spinner"></span>}
                   <Lock size={20} />
                   Changer le mot de passe
                 </button>
               </div>
-            </div>
+            </form>
           </div>
 
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Authentification à deux facteurs</h2>
-              <p className="text-base-content/70 mb-4">
-                Ajoutez une couche de sécurité supplémentaire à votre compte
+              <p className="text-base-content/70 mb-4 font-bold text-info italic">
+                Bientôt disponible
               </p>
-              <button className="btn btn-outline btn-success gap-2">
+              <button className="btn btn-outline btn-disabled gap-2">
                 <Shield size={20} />
                 Activer l'authentification à deux facteurs
               </button>
@@ -454,7 +590,7 @@ const Settings = () => {
                     <div className="font-semibold">Supprimer le compte</div>
                     <div className="text-sm text-base-content/60">Action irréversible</div>
                   </div>
-                  <button className="btn btn-error btn-outline gap-2">
+                  <button onClick={handleDeleteAccount} className="btn btn-error btn-outline gap-2" disabled={loading}>
                     <Trash2 size={20} />
                     Supprimer le compte
                   </button>
@@ -465,8 +601,7 @@ const Settings = () => {
         </div>
       )}
 
-      {/* Appearance Tab */}
-      {activeTab === 'appearance' && (
+      {activeTab === 'appearance' && user && organization && (
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Personnalisation de l'apparence</h2>
@@ -474,14 +609,14 @@ const Settings = () => {
             <div className="space-y-6">
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Thème</span>
+                  <span className="label-text font-semibold">Thème de l'interface</span>
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['light', 'synthwave', 'cupcake', 'corporate'].map((theme) => (
+                  {['light', 'synthwave', 'cupcake', 'corporate', 'luxury', 'dracula'].map((theme) => (
                     <button 
                       key={theme}
-                      className="btn btn-outline capitalize"
-                      onClick={() => document.documentElement.setAttribute('data-theme', theme)}
+                      className={`btn btn-outline capitalize ${user.preferences?.theme === theme ? 'btn-active' : ''}`}
+                      onClick={() => handleAppearanceUpdate('theme', theme)}
                     >
                       {theme}
                     </button>
@@ -491,24 +626,15 @@ const Settings = () => {
 
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Langue</span>
+                  <span className="label-text font-semibold">Langue (Organisation)</span>
                 </label>
-                <select className="select select-bordered w-full max-w-xs">
-                  <option>Français</option>
-                  <option>English</option>
-                  <option>Español</option>
-                  <option>Deutsch</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="label">
-                  <span className="label-text font-semibold">Format de date</span>
-                </label>
-                <select className="select select-bordered w-full max-w-xs">
-                  <option>JJ/MM/AAAA</option>
-                  <option>MM/JJ/AAAA</option>
-                  <option>AAAA-MM-JJ</option>
+                <select 
+                  className="select select-bordered w-full max-w-xs"
+                  value={organization.settings?.language || "fr"}
+                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, language: e.target.value}})}
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
                 </select>
               </div>
 
@@ -516,98 +642,29 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Devise</span>
                 </label>
-                <select className="select select-bordered w-full max-w-xs">
-                  <option>Euro (€)</option>
-                  <option>Dollar ($)</option>
-                  <option>Franc CFA (FCFA)</option>
+                <select 
+                  className="select select-bordered w-full max-w-xs"
+                  value={organization.settings?.currency || "XAF"}
+                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, currency: e.target.value}})}
+                >
+                  <option value="XAF">Franc CFA (FCFA)</option>
+                  <option value="EUR">Euro (€)</option>
+                  <option value="USD">Dollar ($)</option>
                 </select>
               </div>
             </div>
 
             <div className="card-actions justify-end mt-6">
-              <button className="btn btn-primary gap-2">
+              <button onClick={handleOrgUpdate} className="btn btn-primary gap-2" disabled={loading}>
+                {loading && <span className="loading loading-spinner"></span>}
                 <Save size={20} />
-                Enregistrer
+                Enregistrer les paramètres globaux
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* AI Tab */}
-      {activeTab === 'ai' && (
-        <div className="space-y-6">
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <h2 className="card-title mb-4">
-                <Zap className="text-primary" size={24} />
-                Paramètres IA
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
-                  <div>
-                    <div className="font-semibold">Prédictions automatiques</div>
-                    <div className="text-sm text-base-content/60">Générer des prédictions de demande quotidiennes</div>
-                  </div>
-                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
-                  <div>
-                    <div className="font-semibold">Recommandations de commande</div>
-                    <div className="text-sm text-base-content/60">Suggérer automatiquement les produits à commander</div>
-                  </div>
-                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
-                  <div>
-                    <div className="font-semibold">Détection d'anomalies</div>
-                    <div className="text-sm text-base-content/60">Identifier les comportements inhabituels dans les ventes</div>
-                  </div>
-                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
-                </div>
-
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Niveau de confiance minimum</span>
-                  </label>
-                  <input type="range" min="50" max="100" defaultValue="75" className="range range-primary" step="5" />
-                  <div className="w-full flex justify-between text-xs px-2 mt-2">
-                    <span>50%</span>
-                    <span>75%</span>
-                    <span>100%</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card-actions justify-end mt-6">
-                <button className="btn btn-primary gap-2">
-                  <Save size={20} />
-                  Enregistrer
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <h2 className="card-title mb-4">Maintenance</h2>
-              <div className="space-y-3">
-                <button className="btn btn-outline w-full justify-start gap-2">
-                  <RefreshCw size={20} />
-                  Réentraîner les modèles IA
-                </button>
-                <button className="btn btn-outline w-full justify-start gap-2">
-                  <Database size={20} />
-                  Exporter les données d'entraînement
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Subscription Tab */}
       {activeTab === 'subscription' && (
@@ -677,7 +734,6 @@ const Settings = () => {
                 {[
                   { id: 'basic', name: 'Pro', price: '15,000', color: 'primary' },
                   { id: 'smart', name: 'Entreprise', price: '45,000', color: 'secondary' },
-                  { id: 'premium', name: 'Elite', price: '95,000', color: 'accent' },
                 ].map((p) => (
                   <div key={p.id} className={`card bg-base-100 shadow-lg border-2 ${subscription?.plan === p.id ? `border-${p.color}` : 'border-transparent'}`}>
                     <div className="card-body">
@@ -689,7 +745,7 @@ const Settings = () => {
                       <button 
                         disabled={subscription?.plan === p.id}
                         onClick={() => handleUpgrade(p.id)}
-                        className={`btn btn-${p.color} w-full mt-4`}
+                        className={`btn btn-${p.color} w-full mt-4 ${subscription?.plan === p.id ? 'btn-disabled' : ''}`}
                       >
                         {subscription?.plan === p.id ? 'Plan actuel' : 'Choisir ce plan'}
                       </button>
