@@ -32,8 +32,6 @@ import {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
-  const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -42,40 +40,30 @@ const Settings = () => {
     aiInsights: false
   });
   const [subscription, setSubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [loadingSub, setLoadingSub] = useState(false);
   const [usage, setUsage] = useState(null);
 
   const fetchData = async () => {
     try {
-      setLoading(true);
-      const [userRes, orgRes, subRes, usageRes] = await Promise.all([
-        api.get('/api/v1/users/me'),
-        api.get('/api/v1/organizations'),
+      setLoadingSub(true);
+      const [subRes, usageRes] = await Promise.all([
         api.get('/api/v1/subscriptions/my-subscription'),
         api.get('/api/v1/subscriptions/usage')
       ]);
-      
-      const userData = userRes.data.data;
-      setUser(userData);
-      setOrganization(orgRes.data.data);
       setSubscription(subRes.data.data);
       setUsage(usageRes.data.data);
-      
-      // Sync notifications state with user preferences
-      if (userData?.preferences?.notifications) {
-        setNotifications(userData.preferences.notifications);
-      }
     } catch (error) {
-      console.error("Erreur chargement paramètres:", error);
+      console.error("Erreur chargement abonnement:", error);
     } finally {
-      setLoading(false);
+      setLoadingSub(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (activeTab === 'subscription') {
+      fetchData();
+    }
+  }, [activeTab]);
 
   const handleUpgrade = async (plan) => {
     try {
@@ -88,133 +76,6 @@ const Settings = () => {
     }
   };
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      await api.put('/api/v1/users/me', user);
-      alert('Profil mis à jour avec succès');
-    } catch (error) {
-      alert('Erreur mise à jour profil');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOrgUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      await api.put('/api/v1/organizations', organization);
-      alert('Organisation mise à jour avec succès');
-    } catch (error) {
-      alert('Erreur mise à jour organisation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNotificationChange = async (key, value) => {
-    const updated = { ...notifications, [key]: value };
-    setNotifications(updated);
-    try {
-      await api.put('/api/v1/users/me', {
-        preferences: { ...user.preferences, notifications: updated }
-      });
-    } catch (error) {
-      console.error("Erreur sync notifications:", error);
-    }
-  };
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert("L'image est trop volumineuse (max 2MB)");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result;
-      try {
-        setLoading(true);
-        await api.put('/api/v1/users/me/avatar', { avatarUrl: base64String });
-        setUser({ ...user, avatar: base64String });
-        alert('Photo de profil mise à jour');
-      } catch (error) {
-        alert('Erreur mise à jour photo');
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleAppearanceUpdate = async (theme) => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    try {
-      if (user) {
-        await api.put('/api/v1/users/me', { 
-          preferences: { ...user.preferences, theme } 
-        });
-        setUser({ ...user, preferences: { ...user.preferences, theme } });
-      }
-    } catch (e) { 
-      console.error("Erreur sauvegarde thème:", e); 
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    const currentPassword = e.target.currentPassword.value;
-    const newPassword = e.target.newPassword.value;
-    const newPasswordConfirm = e.target.newPasswordConfirm.value;
-
-    if (newPassword !== newPasswordConfirm) return alert("Les mots de passe ne correspondent pas");
-
-    try {
-      setLoading(true);
-      await api.put('/api/v1/users/me/password', { currentPassword, newPassword, newPasswordConfirm });
-      alert('Mot de passe changé ! Reconnectez-vous.');
-      // Optionnel: logout
-    } catch (error) {
-      alert(error.response?.data?.message || 'Erreur changement mot de passe');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    const password = prompt("Confirmez votre mot de passe pour supprimer le compte :");
-    if (!password) return;
-    const confirmation = prompt("Tapez 'DELETE' pour confirmer la suppression définitive :");
-    if (confirmation !== "DELETE") return;
-
-    try {
-      setLoading(true);
-      await api.delete('/api/v1/users/me', { data: { password, confirmation } });
-      alert('Compte supprimé.');
-      window.location.href = '/login';
-    } catch (error) {
-      alert(error.response?.data?.message || 'Erreur suppression compte');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppearanceUpdate = async (key, value) => {
-    if (key === 'theme') {
-      document.documentElement.setAttribute('data-theme', value);
-      try {
-        await api.put('/api/v1/users/me', { preferences: { ...user.preferences, theme: value } });
-      } catch (e) { console.error(e); }
-    }
-    // Langue, devise, etc. pourraient être gérés ici
-  };
-
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'company', label: 'Entreprise', icon: Building },
@@ -222,18 +83,11 @@ const Settings = () => {
     { id: 'security', label: 'Sécurité', icon: Shield },
     { id: 'appearance', label: 'Apparence', icon: Palette },
     { id: 'subscription', label: 'Abonnement', icon: CreditCard },
+    { id: 'ai', label: 'IA & Automatisation', icon: Zap },
   ];
 
-  if (loading && !user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-6xl">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -264,101 +118,79 @@ const Settings = () => {
         </div>
       </div>
 
-      {activeTab === 'profile' && user && (
-        <form onSubmit={handleProfileUpdate} className="space-y-6">
+      {/* Profile Tab */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Informations personnelles</h2>
               
+              {/* Avatar */}
               <div className="flex items-center gap-6 mb-6">
                 <div className="avatar placeholder">
-                  <div className="bg-primary text-primary-content rounded-full w-24 h-24 overflow-hidden">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-3xl">{user.initials || user.firstName?.[0]}</span>
-                    )}
+                  <div className="bg-primary text-primary-content rounded-full w-24 h-24">
+                    <span className="text-3xl"></span>
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="avatar-upload" className="btn btn-primary btn-sm cursor-pointer">
-                    Importer depuis l'appareil
-                  </label>
-                  <input 
-                    id="avatar-upload" 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                  />
+                  <button className="btn btn-primary btn-sm" type="file" >Changer la photo</button>
                   <p className="text-sm text-base-content/60 mt-2">JPG, PNG ou GIF. Max 2MB.</p>
                 </div>
               </div>
 
+              {/* Form */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Prénom</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className="input input-bordered" 
-                    value={user.firstName}
-                    onChange={(e) => setUser({...user, firstName: e.target.value})}
-                  />
+                  <input type="text" placeholder="John" className="input input-bordered" defaultValue="John" />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Nom</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className="input input-bordered" 
-                    value={user.lastName}
-                    onChange={(e) => setUser({...user, lastName: e.target.value})}
-                  />
+                  <input type="text" placeholder="Doe" className="input input-bordered" defaultValue="Doe" />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Email</span>
                   </label>
-                  <input 
-                    type="email" 
-                    className="input input-bordered opacity-70" 
-                    value={user.email}
-                    disabled
-                  />
-                  <span className="text-xs text-info mt-1 italic">Utilisez l'onglet Sécurité pour changer l'email.</span>
+                  <input type="email" placeholder="john.doe@example.com" className="input input-bordered" defaultValue="john.doe@example.com" />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Téléphone</span>
                   </label>
-                  <input 
-                    type="tel" 
-                    className="input input-bordered" 
-                    value={user.phone || ""}
-                    onChange={(e) => setUser({...user, phone: e.target.value})}
-                  />
+                  <input type="tel" placeholder="+237 6 XX XX XX XX" className="input input-bordered" defaultValue="+237 6 90 12 34 56" />
+                </div>
+
+                <div className="form-control md:col-span-2">
+                  <label className="label">
+                    <span className="label-text font-semibold">Poste</span>
+                  </label>
+                  <input type="text" placeholder="Responsable Stock" className="input input-bordered" defaultValue="Gestionnaire d'inventaire" />
                 </div>
               </div>
 
               <div className="card-actions justify-end mt-6">
-                <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
-                  {loading ? <span className="loading loading-spinner"></span> : <Save size={20} />}
+                <button className="btn btn-ghost">Annuler</button>
+                <button className="btn btn-primary gap-2">
+                  <Save size={20} />
                   Enregistrer
                 </button>
               </div>
             </div>
           </div>
-        </form>
+        </div>
       )}
 
-      {activeTab === 'company' && organization && (
-        <form onSubmit={handleOrgUpdate} className="card bg-base-100 shadow-lg">
+      {/* Company Tab */}
+      {activeTab === 'company' && (
+        <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Informations entreprise</h2>
             
@@ -367,104 +199,88 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Nom de l'entreprise</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
-                  value={organization.name || ""}
-                  onChange={(e) => setOrganization({...organization, name: e.target.value})}
-                />
+                <input type="text" placeholder="Mon Entreprise" className="input input-bordered" defaultValue="StockAI Solutions" />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Secteur d'activité</span>
                 </label>
-                <select 
-                  className="select select-bordered"
-                  value={organization.industry || "other"}
-                  onChange={(e) => setOrganization({...organization, industry: e.target.value})}
-                >
-                  <option value="agriculture">Agriculture</option>
-                  <option value="retail">Commerce de détail</option>
-                  <option value="wholesale">Commerce de gros</option>
-                  <option value="manufacturing">Manufacture</option>
-                  <option value="food_service">Restauration</option>
-                  <option value="logistics">Logistique</option>
-                  <option value="other">Autre</option>
+                <select className="select select-bordered">
+                  <option>Distribution électronique</option>
+                  <option>Retail</option>
+                  <option>E-commerce</option>
+                  <option>Logistique</option>
+                  <option>Autre</option>
                 </select>
               </div>
 
               <div className="form-control">
                 <label className="label">
+                  <span className="label-text font-semibold">Taille de l'entreprise</span>
+                </label>
+                <select className="select select-bordered">
+                  <option>1-10 employés</option>
+                  <option>11-50 employés</option>
+                  <option>51-200 employés</option>
+                  <option>201-500 employés</option>
+                  <option>500+ employés</option>
+                </select>
+              </div>
+
+              <div className="form-control md:col-span-2">
+                <label className="label">
                   <span className="label-text font-semibold">Adresse</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
-                  value={organization.address?.street || ""}
-                  onChange={(e) => setOrganization({
-                    ...organization, 
-                    address: { ...organization.address, street: e.target.value }
-                  })}
-                />
+                <input type="text" placeholder="123 Rue de la République" className="input input-bordered" />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Ville</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
-                  value={organization.address?.city || ""}
-                  onChange={(e) => setOrganization({
-                    ...organization, 
-                    address: { ...organization.address, city: e.target.value }
-                  })}
-                />
+                <input type="text" placeholder="Douala" className="input input-bordered" />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Code postal</span>
+                </label>
+                <input type="text" placeholder="12345" className="input input-bordered" />
               </div>
 
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-semibold">Pays</span>
                 </label>
-                <select 
-                  className="select select-bordered"
-                  value={organization.address?.country || "Cameroun"}
-                  onChange={(e) => setOrganization({
-                    ...organization, 
-                    address: { ...organization.address, country: e.target.value }
-                  })}
-                >
-                  <option value="Cameroun">Cameroun</option>
-                  <option value="France">France</option>
-                  <option value="Autre">Autre</option>
+                <select className="select select-bordered">
+                  <option>Cameroun</option>
+                  <option>France</option>
+                  <option>Belgique</option>
+                  <option>Suisse</option>
                 </select>
               </div>
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text font-semibold">N° Fiscal / TVA</span>
+                  <span className="label-text font-semibold">N° TVA</span>
                 </label>
-                <input 
-                  type="text" 
-                  className="input input-bordered" 
-                  value={organization.taxId || ""}
-                  onChange={(e) => setOrganization({...organization, taxId: e.target.value})}
-                />
+                <input type="text" placeholder="FR12345678901" className="input input-bordered" />
               </div>
             </div>
 
             <div className="card-actions justify-end mt-6">
-              <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
-                {loading ? <span className="loading loading-spinner"></span> : <Save size={20} />}
+              <button className="btn btn-ghost">Annuler</button>
+              <button className="btn btn-primary gap-2">
+                <Save size={20} />
                 Enregistrer
               </button>
             </div>
           </div>
-        </form>
+        </div>
       )}
 
+      {/* Notifications Tab */}
       {activeTab === 'notifications' && (
         <div className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
@@ -484,7 +300,7 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-primary" 
                     checked={notifications.email}
-                    onChange={(e) => handleNotificationChange('email', e.target.checked)}
+                    onChange={(e) => setNotifications({...notifications, email: e.target.checked})}
                   />
                 </div>
 
@@ -500,7 +316,7 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-primary"
                     checked={notifications.push}
-                    onChange={(e) => handleNotificationChange('push', e.target.checked)}
+                    onChange={(e) => setNotifications({...notifications, push: e.target.checked})}
                   />
                 </div>
 
@@ -518,7 +334,23 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-warning"
                     checked={notifications.lowStock}
-                    onChange={(e) => handleNotificationChange('lowStock', e.target.checked)}
+                    onChange={(e) => setNotifications({...notifications, lowStock: e.target.checked})}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <CreditCard size={24} className="text-success" />
+                    <div>
+                      <div className="font-semibold">Mises à jour des commandes</div>
+                      <div className="text-sm text-base-content/60">Recevoir les confirmations et mises à jour</div>
+                    </div>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    className="toggle toggle-success"
+                    checked={notifications.orders}
+                    onChange={(e) => setNotifications({...notifications, orders: e.target.checked})}
                   />
                 </div>
 
@@ -534,13 +366,16 @@ const Settings = () => {
                     type="checkbox" 
                     className="toggle toggle-info"
                     checked={notifications.aiInsights}
-                    onChange={(e) => handleNotificationChange('aiInsights', e.target.checked)}
+                    onChange={(e) => setNotifications({...notifications, aiInsights: e.target.checked})}
                   />
                 </div>
               </div>
 
-              <div className="card-actions justify-center mt-6">
-                <span className="text-sm italic opacity-60">Synchronisation automatique activée</span>
+              <div className="card-actions justify-end mt-6">
+                <button className="btn btn-primary gap-2">
+                  <Save size={20} />
+                  Enregistrer les préférences
+                </button>
               </div>
             </div>
           </div>
@@ -551,7 +386,7 @@ const Settings = () => {
       {activeTab === 'security' && (
         <div className="space-y-6">
           <div className="card bg-base-100 shadow-lg">
-            <form onSubmit={handleChangePassword} className="card-body">
+            <div className="card-body">
               <h2 className="card-title mb-4">Changer le mot de passe</h2>
               
               <div className="space-y-4">
@@ -561,14 +396,11 @@ const Settings = () => {
                   </label>
                   <div className="relative">
                     <input 
-                      name="currentPassword"
                       type={showPassword ? 'text' : 'password'} 
                       placeholder="••••••••" 
                       className="input input-bordered w-full pr-10"
-                      required
                     />
                     <button 
-                      type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -581,34 +413,33 @@ const Settings = () => {
                   <label className="label">
                     <span className="label-text font-semibold">Nouveau mot de passe</span>
                   </label>
-                  <input name="newPassword" type="password" placeholder="••••••••" className="input input-bordered" required />
+                  <input type="password" placeholder="••••••••" className="input input-bordered" />
                 </div>
 
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Confirmer le mot de passe</span>
                   </label>
-                  <input name="newPasswordConfirm" type="password" placeholder="••••••••" className="input input-bordered" required />
+                  <input type="password" placeholder="••••••••" className="input input-bordered" />
                 </div>
               </div>
 
               <div className="card-actions justify-end mt-6">
-                <button type="submit" className="btn btn-primary gap-2" disabled={loading}>
-                  {loading && <span className="loading loading-spinner"></span>}
+                <button className="btn btn-primary gap-2">
                   <Lock size={20} />
                   Changer le mot de passe
                 </button>
               </div>
-            </form>
+            </div>
           </div>
 
           <div className="card bg-base-100 shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4">Authentification à deux facteurs</h2>
-              <p className="text-base-content/70 mb-4 font-bold text-info italic">
-                Bientôt disponible
+              <p className="text-base-content/70 mb-4">
+                Ajoutez une couche de sécurité supplémentaire à votre compte
               </p>
-              <button className="btn btn-outline btn-disabled gap-2">
+              <button className="btn btn-outline btn-success gap-2">
                 <Shield size={20} />
                 Activer l'authentification à deux facteurs
               </button>
@@ -624,7 +455,7 @@ const Settings = () => {
                     <div className="font-semibold">Supprimer le compte</div>
                     <div className="text-sm text-base-content/60">Action irréversible</div>
                   </div>
-                  <button onClick={handleDeleteAccount} className="btn btn-error btn-outline gap-2" disabled={loading}>
+                  <button className="btn btn-error btn-outline gap-2">
                     <Trash2 size={20} />
                     Supprimer le compte
                   </button>
@@ -635,7 +466,8 @@ const Settings = () => {
         </div>
       )}
 
-      {activeTab === 'appearance' && user && organization && (
+      {/* Appearance Tab */}
+      {activeTab === 'appearance' && (
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Personnalisation de l'apparence</h2>
@@ -643,19 +475,16 @@ const Settings = () => {
             <div className="space-y-6">
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Thème de l'interface</span>
+                  <span className="label-text font-semibold">Thème</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4 max-w-sm">
-                  {['light', 'dark'].map((theme) => (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {['light', 'synthwave', 'cupcake', 'corporate'].map((theme) => (
                     <button 
                       key={theme}
-                      className={`btn btn-outline capitalize py-8 h-auto flex flex-col gap-2 ${
-                        (user?.preferences?.theme || localStorage.getItem('theme')) === theme ? 'btn-primary' : ''
-                      }`}
-                      onClick={() => handleAppearanceUpdate(theme)}
+                      className="btn btn-outline capitalize"
+                      onClick={() => document.documentElement.setAttribute('data-theme', theme)}
                     >
-                      <div className={`w-full h-8 rounded ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-200'}`}></div>
-                      {theme === 'light' ? 'Mode Clair' : 'Mode Sombre'}
+                      {theme}
                     </button>
                   ))}
                 </div>
@@ -663,15 +492,24 @@ const Settings = () => {
 
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Langue (Organisation)</span>
+                  <span className="label-text font-semibold">Langue</span>
                 </label>
-                <select 
-                  className="select select-bordered w-full max-w-xs"
-                  value={organization.settings?.language || "fr"}
-                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, language: e.target.value}})}
-                >
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
+                <select className="select select-bordered w-full max-w-xs">
+                  <option>Français</option>
+                  <option>English</option>
+                  <option>Español</option>
+                  <option>Deutsch</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold">Format de date</span>
+                </label>
+                <select className="select select-bordered w-full max-w-xs">
+                  <option>JJ/MM/AAAA</option>
+                  <option>MM/JJ/AAAA</option>
+                  <option>AAAA-MM-JJ</option>
                 </select>
               </div>
 
@@ -679,29 +517,98 @@ const Settings = () => {
                 <label className="label">
                   <span className="label-text font-semibold">Devise</span>
                 </label>
-                <select 
-                  className="select select-bordered w-full max-w-xs"
-                  value={organization.settings?.currency || "XAF"}
-                  onChange={(e) => setOrganization({...organization, settings: {...organization.settings, currency: e.target.value}})}
-                >
-                  <option value="XAF">Franc CFA (FCFA)</option>
-                  <option value="EUR">Euro (€)</option>
-                  <option value="USD">Dollar ($)</option>
+                <select className="select select-bordered w-full max-w-xs">
+                  <option>Euro (€)</option>
+                  <option>Dollar ($)</option>
+                  <option>Franc CFA (FCFA)</option>
                 </select>
               </div>
             </div>
 
             <div className="card-actions justify-end mt-6">
-              <button onClick={handleOrgUpdate} className="btn btn-primary gap-2" disabled={loading}>
-                {loading && <span className="loading loading-spinner"></span>}
+              <button className="btn btn-primary gap-2">
                 <Save size={20} />
-                Enregistrer les paramètres globaux
+                Enregistrer
               </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* AI Tab */}
+      {activeTab === 'ai' && (
+        <div className="space-y-6">
+          <div className="card bg-base-100 shadow-lg">
+            <div className="card-body">
+              <h2 className="card-title mb-4">
+                <Zap className="text-primary" size={24} />
+                Paramètres IA
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                  <div>
+                    <div className="font-semibold">Prédictions automatiques</div>
+                    <div className="text-sm text-base-content/60">Générer des prédictions de demande quotidiennes</div>
+                  </div>
+                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                  <div>
+                    <div className="font-semibold">Recommandations de commande</div>
+                    <div className="text-sm text-base-content/60">Suggérer automatiquement les produits à commander</div>
+                  </div>
+                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-base-200 rounded-lg">
+                  <div>
+                    <div className="font-semibold">Détection d'anomalies</div>
+                    <div className="text-sm text-base-content/60">Identifier les comportements inhabituels dans les ventes</div>
+                  </div>
+                  <input type="checkbox" className="toggle toggle-primary" defaultChecked />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Niveau de confiance minimum</span>
+                  </label>
+                  <input type="range" min="50" max="100" defaultValue="75" className="range range-primary" step="5" />
+                  <div className="w-full flex justify-between text-xs px-2 mt-2">
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-actions justify-end mt-6">
+                <button className="btn btn-primary gap-2">
+                  <Save size={20} />
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-base-100 shadow-lg">
+            <div className="card-body">
+              <h2 className="card-title mb-4">Maintenance</h2>
+              <div className="space-y-3">
+                <button className="btn btn-outline w-full justify-start gap-2">
+                  <RefreshCw size={20} />
+                  Réentraîner les modèles IA
+                </button>
+                <button className="btn btn-outline w-full justify-start gap-2">
+                  <Database size={20} />
+                  Exporter les données d'entraînement
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Subscription Tab */}
       {activeTab === 'subscription' && (
