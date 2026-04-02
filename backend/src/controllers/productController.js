@@ -144,8 +144,14 @@ class ProductController {
 
       // Vérifier si la catégorie est un ObjectId valide
       const mongoose = require("mongoose");
-      if (req.body.category && !mongoose.Types.ObjectId.isValid(req.body.category)) {
-        console.warn("[CreateProduct] Invalid Category ID format:", req.body.category);
+      if (
+        req.body.category &&
+        !mongoose.Types.ObjectId.isValid(req.body.category)
+      ) {
+        console.warn(
+          "[CreateProduct] Invalid Category ID format:",
+          req.body.category,
+        );
         throw new AppError("Format de catégorie invalide", 400);
       }
 
@@ -164,7 +170,7 @@ class ProductController {
         organization: organizationId,
         createdBy: userId,
       };
-      
+
       // Supprimer le champ virtual pour éviter les conflits lors de la création
       delete productData.stock;
 
@@ -174,37 +180,52 @@ class ProductController {
 
       let createdStock = null;
       if (req.body.stock) {
+        // Valider et nettoyer les données de stock
+        const quantity = parseFloat(req.body.stock.quantity);
+        const minThreshold = parseFloat(req.body.stock.minThreshold);
+        const maxThreshold = parseFloat(req.body.stock.maxThreshold);
+        const reorderPoint = req.body.stock.reorderPoint
+          ? parseFloat(req.body.stock.reorderPoint)
+          : undefined;
+
         const stockData = {
-          quantity: parseFloat(req.body.stock.quantity) || 0,
-          minThreshold: parseFloat(req.body.stock.minThreshold) || 0,
-          maxThreshold: parseFloat(req.body.stock.maxThreshold) || 0,
-          reorderPoint: parseFloat(req.body.stock.reorderPoint) || undefined,
+          quantity: isNaN(quantity) ? 0 : Math.max(0, quantity),
+          minThreshold: isNaN(minThreshold) ? 0 : Math.max(0, minThreshold),
+          maxThreshold: isNaN(maxThreshold) ? 0 : Math.max(0, maxThreshold),
+          reorderPoint:
+            !isNaN(reorderPoint) && reorderPoint > 0 ? reorderPoint : undefined,
           location: {
             name: req.body.stock.location || "Principal",
             type: "warehouse",
           },
         };
-        
-        console.log("[CreateProduct] Creating/Updating stock...");
+
+        console.log(
+          "[CreateProduct] Creating/Updating stock with:",
+          JSON.stringify(stockData, null, 2),
+        );
         createdStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: product._id },
           { $set: stockData },
-          { upsert: true, new: true, runValidators: true }
+          { upsert: true, new: true, runValidators: true },
         );
-        console.log("[CreateProduct] Stock handled.");
+        console.log(
+          "[CreateProduct] Stock saved with quantity:",
+          createdStock.quantity,
+        );
       } else {
         console.log("[CreateProduct] Initializing default stock...");
         createdStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: product._id },
-          { 
+          {
             $setOnInsert: {
               quantity: 0,
               minThreshold: 0,
               maxThreshold: 0,
-              location: { name: "Principal", type: "warehouse" }
-            }
+              location: { name: "Principal", type: "warehouse" },
+            },
           },
-          { upsert: true, new: true }
+          { upsert: true, new: true },
         );
       }
 
@@ -265,27 +286,50 @@ class ProductController {
 
       let updatedStock = null;
       if (stockData) {
-        const updateObj = {
-          quantity: stockData.quantity !== undefined ? parseFloat(stockData.quantity) : undefined,
-          minThreshold: stockData.minThreshold !== undefined ? parseFloat(stockData.minThreshold) : undefined,
-          maxThreshold: stockData.maxThreshold !== undefined ? parseFloat(stockData.maxThreshold) : undefined,
-          reorderPoint: stockData.reorderPoint !== undefined ? parseFloat(stockData.reorderPoint) : undefined,
-        };
+        const updateObj = {};
 
-        // Supprimer les champs undefined pour ne pas écraser les valeurs existantes
-        Object.keys(updateObj).forEach(key => updateObj[key] === undefined && delete updateObj[key]);
+        // Valider et nettoyer chaque champ stock
+        if (stockData.quantity !== undefined) {
+          const qty = parseFloat(stockData.quantity);
+          updateObj.quantity = isNaN(qty) ? 0 : Math.max(0, qty);
+        }
+        if (stockData.minThreshold !== undefined) {
+          const min = parseFloat(stockData.minThreshold);
+          updateObj.minThreshold = isNaN(min) ? 0 : Math.max(0, min);
+        }
+        if (stockData.maxThreshold !== undefined) {
+          const max = parseFloat(stockData.maxThreshold);
+          updateObj.maxThreshold = isNaN(max) ? 0 : Math.max(0, max);
+        }
+        if (
+          stockData.reorderPoint !== undefined &&
+          stockData.reorderPoint !== null &&
+          stockData.reorderPoint !== ""
+        ) {
+          const reorder = parseFloat(stockData.reorderPoint);
+          updateObj.reorderPoint =
+            !isNaN(reorder) && reorder > 0 ? reorder : undefined;
+        }
 
         if (stockData.location) {
           updateObj.location = {
             name: stockData.location,
-            type: "warehouse" 
+            type: "warehouse",
           };
         }
 
+        console.log(
+          "[UpdateProduct] Stock update with:",
+          JSON.stringify(updateObj, null, 2),
+        );
         updatedStock = await Stock.findOneAndUpdate(
           { organization: organizationId, product: id },
           { $set: updateObj },
-          { upsert: true, new: true, runValidators: true }
+          { upsert: true, new: true, runValidators: true },
+        );
+        console.log(
+          "[UpdateProduct] Stock updated with quantity:",
+          updatedStock.quantity,
         );
       } else {
         updatedStock = await Stock.findOne({
@@ -401,7 +445,12 @@ class ProductController {
       const newProduct = await Product.create(duplicate);
       await newProduct.populate("category");
 
-      return successResponse(res, newProduct, "Produit dupliqué avec succès", 201);
+      return successResponse(
+        res,
+        newProduct,
+        "Produit dupliqué avec succès",
+        201,
+      );
     } catch (error) {
       next(error);
     }

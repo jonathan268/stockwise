@@ -155,24 +155,41 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
       newErrors.name = "Le nom est requis";
     }
 
-    if (!formData.pricing.cost || formData.pricing.cost < 0) {
+    const cost = parseFloat(formData.pricing.cost);
+    const sellingPrice = parseFloat(formData.pricing.sellingPrice);
+    const quantity = parseFloat(formData.stock.quantity);
+    const minThreshold = parseFloat(formData.stock.minThreshold);
+    const maxThreshold = parseFloat(formData.stock.maxThreshold);
+
+    if (!cost || cost < 0 || isNaN(cost)) {
       newErrors["pricing.cost"] = "Prix d'achat invalide";
     }
 
-    if (!formData.pricing.sellingPrice || formData.pricing.sellingPrice < 0) {
+    if (!sellingPrice || sellingPrice < 0 || isNaN(sellingPrice)) {
       newErrors["pricing.sellingPrice"] = "Prix de vente invalide";
     }
 
-    if (
-      parseFloat(formData.pricing.sellingPrice) <
-      parseFloat(formData.pricing.cost)
-    ) {
+    if (cost > 0 && sellingPrice > 0 && sellingPrice < cost) {
       newErrors["pricing.sellingPrice"] =
         "Le prix de vente doit être supérieur au prix d'achat";
     }
 
-    if (formData.stock.quantity && formData.stock.quantity < 0) {
+    if (formData.stock.quantity && (isNaN(quantity) || quantity < 0)) {
       newErrors["stock.quantity"] = "Quantité invalide";
+    }
+
+    if (
+      formData.stock.minThreshold &&
+      (isNaN(minThreshold) || minThreshold < 0)
+    ) {
+      newErrors["stock.minThreshold"] = "Seuil minimum invalide";
+    }
+
+    if (
+      formData.stock.maxThreshold &&
+      (isNaN(maxThreshold) || maxThreshold < 0)
+    ) {
+      newErrors["stock.maxThreshold"] = "Seuil maximum invalide";
     }
 
     setErrors(newErrors);
@@ -216,21 +233,24 @@ const ProductModal = ({ isOpen, onClose, product, onSuccess }) => {
         category: categoryId || undefined, // Envoyer undefined si pas de catégorie
         pricing: {
           ...formData.pricing,
-          cost: parseFloat(formData.pricing.cost),
-          sellingPrice: parseFloat(formData.pricing.sellingPrice),
+          cost: parseFloat(formData.pricing.cost) || 0,
+          sellingPrice: parseFloat(formData.pricing.sellingPrice) || 0,
           taxRate: parseFloat(formData.pricing.taxRate) || 0,
         },
         stock: {
           ...formData.stock,
-          quantity: formData.stock.quantity
-            ? parseFloat(formData.stock.quantity)
-            : 0,
-          minThreshold: formData.stock.minThreshold
-            ? parseFloat(formData.stock.minThreshold)
-            : 0,
-          maxThreshold: formData.stock.maxThreshold
-            ? parseFloat(formData.stock.maxThreshold)
-            : 0,
+          quantity:
+            formData.stock.quantity !== ""
+              ? parseFloat(formData.stock.quantity) || 0
+              : 0,
+          minThreshold:
+            formData.stock.minThreshold !== ""
+              ? parseFloat(formData.stock.minThreshold) || 0
+              : 0,
+          maxThreshold:
+            formData.stock.maxThreshold !== ""
+              ? parseFloat(formData.stock.maxThreshold) || 0
+              : 0,
         },
         metadata: {
           perishable: formData.metadata.perishable,

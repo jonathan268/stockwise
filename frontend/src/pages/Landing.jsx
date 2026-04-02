@@ -49,8 +49,6 @@ import {
   FileBarChart,
   BellRing,
   Layers,
-  LucidePackageSearch,
-  LucidePackagePlus,
   PackagePlus,
   Sparkles,
   Clock,
@@ -256,26 +254,27 @@ export default function LandingPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "StockWise",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web browser",
-    "offers": {
+    name: "StockWise",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web browser",
+    offers: {
       "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "XAF"
+      price: "0",
+      priceCurrency: "XAF",
     },
-    "description": "Logiciel de gestion de stock intelligente basé sur l'IA pour les PME.",
-    "aggregateRating": {
+    description:
+      "Logiciel de gestion de stock intelligente basé sur l'IA pour les PME.",
+    aggregateRating: {
       "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "1200"
-    }
+      ratingValue: "4.8",
+      ratingCount: "1200",
+    },
   };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-base-100 text-base-content">
-      <SEO 
-        title="Logiciel de Gestion de Stock & Inventaire Intelligent" 
+      <SEO
+        title="Logiciel de Gestion de Stock & Inventaire Intelligent"
         description="Prenez le contrôle de votre inventaire avec StockWise. Anticipez les ruptures de stock grâce à l'Intelligence Artificielle et optimisez vos commandes automatiquement."
         keywords="logiciel gestion de stock, inventaire, IA prédictive, gestion PME Afrique, Cameroun"
         structuredData={structuredData}
@@ -303,7 +302,7 @@ export default function LandingPage() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
                 <div className="flex items-center gap-2">
-                  <LucidePackagePlus className="text-primary" size={22} />
+                  <PackagePlus className="text-primary" size={22} />
                   <span className="text-lg font-bold tracking-tight">
                     StockWise
                   </span>
@@ -421,8 +420,7 @@ export default function LandingPage() {
           <AnimatedSection custom={2}>
             <p className="max-w-2xl mx-auto mb-10 text-lg leading-relaxed sm:text-xl text-base-content/70">
               StockWise analyse votre inventaire en temps réel, anticipe vos
-              ruptures et vous dit exactement quoi commander avant que ça
-              coûte.
+              ruptures et vous dit exactement quoi commander avant que ça coûte.
             </p>
           </AnimatedSection>
           <AnimatedSection custom={3}>
@@ -445,7 +443,10 @@ export default function LandingPage() {
                 { icon: <Clock size={15} />, text: "Configuration en 5 min" },
                 { icon: <Lock size={15} />, text: "Données sécurisées" },
               ].map((item) => (
-                <div key={item.text} className="flex items-center gap-1.5 badge badge-success text-white">
+                <div
+                  key={item.text}
+                  className="flex items-center gap-1.5 badge badge-success text-white"
+                >
                   {item.icon}
                   <span>{item.text}</span>
                 </div>
@@ -535,8 +536,8 @@ export default function LandingPage() {
               <AnimatedSection variants={slideLeft} custom={2}>
                 <p className="mb-8 leading-relaxed text-base-content/70">
                   StockWise connecte votre inventaire, analyse vos tendances et
-                  vous donne des recommandations précises pas des rapports,
-                  des décisions prêtes à exécuter.
+                  vous donne des recommandations précises pas des rapports, des
+                  décisions prêtes à exécuter.
                 </p>
               </AnimatedSection>
               <div className="flex flex-col gap-3">
@@ -796,7 +797,8 @@ export default function LandingPage() {
               <span className="text-primary">rien de superflu</span>
             </h2>
             <p className="max-w-xl mx-auto mt-3 text-sm text-base-content/60">
-              Chaque fonctionnalité est pensée pour les réalités du marché local pas copiée d'un SaaS occidental.
+              Chaque fonctionnalité est pensée pour les réalités du marché local
+              pas copiée d'un SaaS occidental.
             </p>
           </AnimatedSection>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -1294,7 +1296,10 @@ export default function LandingPage() {
                   href="/register"
                   className="gap-2 mx-auto font-bold border-0 btn btn-lg bg-base-100 text-base-content hover:bg-base-200"
                 >
-                  Commencer gratuitement <span className="animate-pulse"><ArrowRight size={18} /></span> 
+                  Commencer gratuitement{" "}
+                  <span className="animate-pulse">
+                    <ArrowRight size={18} />
+                  </span>
                 </a>
                 <p className="text-sm text-primary-content/60">
                   Sans engagement. Sans carte bancaire. Configuration en moins
