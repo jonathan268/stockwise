@@ -7,90 +7,106 @@ import {
 } from "react-router-dom";
 import { HelmetAsync, HelmetProvider } from "react-helmet-async";
 import { Toaster } from "react-hot-toast";
-import ErrorBoundary from "./components/ErrorBoundary";
-import LoadingSpinner from "./components/LoadingSpinner";
-import AdminRoute from "./components/AdminRoute";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Header from "./components/Header";
-import BottomNav from "./components/BottomNav";
-import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
-import { OrganizationProvider } from "./context/OrganizationContext";
-import { NotificationProvider } from "./context/NotificationContext";
-import "./index.css";
+import ErrorBoundary from "./src/components/ErrorBoundary";
+import LoadingSpinner from "./src/components/LoadingSpinner";
+import AdminRoute from "./src/components/AdminRoute";
+import ProtectedRoute from "./src/components/ProtectedRoute";
+import Header from "./src/components/Header";
+import BottomNav from "./src/components/BottomNav";
+import { AuthProvider } from "./src/context/AuthContext";
+import { ThemeProvider } from "./src/context/ThemeContext";
+import { OrganizationProvider } from "./src/context/OrganizationContext";
+import { NotificationProvider } from "./src/context/NotificationContext";
+import "./src/index.css";
 
 // Lazy loading des pages
-const AuthLayout = lazy(() => import("./pages/auth/AuthLayout"));
-const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
-const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
+const AuthLayout = lazy(() => import("./src/pages/auth/AuthLayout"));
+const LoginPage = lazy(() => import("./src/pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("./src/pages/auth/RegisterPage"));
 const ForgotPasswordPage = lazy(
-  () => import("./pages/auth/ForgotPasswordPage"),
+  () => import("./src/pages/auth/ForgotPasswordPage"),
 );
-const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
+const ResetPasswordPage = lazy(
+  () => import("./src/pages/auth/ResetPasswordPage"),
+);
 
-const MainLayout = lazy(() => import("./pages/layout/MainLayout"));
-const DashboardPage = lazy(() => import("./pages/dashboard/DashboardPage"));
-const ProductsPage = lazy(() => import("./pages/products/ProductsPage"));
+const MainLayout = lazy(() => import("./src/pages/layout/MainLayout"));
+const DashboardPage = lazy(() => import("./src/pages/dashboard/DashboardPage"));
+const ProductsPage = lazy(() => import("./src/pages/products/ProductsPage"));
 const ProductDetailPage = lazy(
-  () => import("./pages/products/ProductDetailPage"),
+  () => import("./src/pages/products/ProductDetailPage"),
 );
 const CreateProductPage = lazy(
-  () => import("./pages/products/CreateProductPage"),
+  () => import("./src/pages/products/CreateProductPage"),
 );
-const EditProductPage = lazy(() => import("./pages/products/EditProductPage"));
+const EditProductPage = lazy(
+  () => import("./src/pages/products/EditProductPage"),
+);
 
-const StockPage = lazy(() => import("./pages/stock/StockPage"));
-const StockMovementPage = lazy(() => import("./pages/stock/StockMovementPage"));
-const StockAlertsPage = lazy(() => import("./pages/stock/StockAlertsPage"));
+const StockPage = lazy(() => import("./src/pages/stock/StockPage"));
+const StockMovementPage = lazy(
+  () => import("./src/pages/stock/StockMovementPage"),
+);
+const StockAlertsPage = lazy(() => import("./src/pages/stock/StockAlertsPage"));
 
-const OrdersPage = lazy(() => import("./pages/orders/OrdersPage"));
-const OrderDetailPage = lazy(() => import("./pages/orders/OrderDetailPage"));
-const CreateOrderPage = lazy(() => import("./pages/orders/CreateOrderPage"));
+const OrdersPage = lazy(() => import("./src/pages/orders/OrdersPage"));
+const OrderDetailPage = lazy(
+  () => import("./src/pages/orders/OrderDetailPage"),
+);
+const CreateOrderPage = lazy(
+  () => import("./src/pages/orders/CreateOrderPage"),
+);
 
-const SuppliersPage = lazy(() => import("./pages/suppliers/SuppliersPage"));
+const SuppliersPage = lazy(() => import("./src/pages/suppliers/SuppliersPage"));
 const SupplierDetailPage = lazy(
-  () => import("./pages/suppliers/SupplierDetailPage"),
+  () => import("./src/pages/suppliers/SupplierDetailPage"),
 );
 const CreateSupplierPage = lazy(
-  () => import("./pages/suppliers/CreateSupplierPage"),
+  () => import("./src/pages/suppliers/CreateSupplierPage"),
 );
 
-const CategoriesPage = lazy(() => import("./pages/categories/CategoriesPage"));
+const CategoriesPage = lazy(
+  () => import("./src/pages/categories/CategoriesPage"),
+);
 const CreateCategoryPage = lazy(
-  () => import("./pages/categories/CreateCategoryPage"),
+  () => import("./src/pages/categories/CreateCategoryPage"),
 );
 
-const AnalyticsPage = lazy(() => import("./pages/analytics/AnalyticsPage"));
-const ReportsPage = lazy(() => import("./pages/analytics/ReportsPage"));
-const PredictionsPage = lazy(() => import("./pages/analytics/PredictionsPage"));
+const AnalyticsPage = lazy(() => import("./src/pages/analytics/AnalyticsPage"));
+const ReportsPage = lazy(() => import("./src/pages/analytics/ReportsPage"));
+const PredictionsPage = lazy(
+  () => import("./src/pages/analytics/PredictionsPage"),
+);
 
-const SettingsPage = lazy(() => import("./pages/settings/SettingsPage"));
-const ProfilePage = lazy(() => import("./pages/settings/ProfilePage"));
+const SettingsPage = lazy(() => import("./src/pages/settings/SettingsPage"));
+const ProfilePage = lazy(() => import("./src/pages/settings/ProfilePage"));
 const OrganizationSettingsPage = lazy(
-  () => import("./pages/settings/OrganizationSettingsPage"),
+  () => import("./src/pages/settings/OrganizationSettingsPage"),
 );
 const SubscriptionPage = lazy(
-  () => import("./pages/subscription/SubscriptionPage"),
+  () => import("./src/pages/subscription/SubscriptionPage"),
 );
 
 const NotificationsPage = lazy(
-  () => import("./pages/notifications/NotificationsPage"),
+  () => import("./src/pages/notifications/NotificationsPage"),
 );
 
 // Admin Pages
-const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"));
-const UserManagement = lazy(() => import("./admin/pages/UserManagement"));
+const AdminDashboard = lazy(() => import("./src/admin/pages/Admindashboard"));
+const UserManagement = lazy(() => import("./src/admin/pages/UserManagement"));
 const OrganizationManagement = lazy(
-  () => import("./admin/pages/OrganizationManagement"),
+  () => import("./src/admin/pages/OrganizationManagement"),
 );
 const SubscriptionManagement = lazy(
-  () => import("./admin/pages/SubscriptionManagement"),
+  () => import("./src/admin/pages/SubscriptionManagement"),
 );
-const SystemLogs = lazy(() => import("./admin/pages/SystemLogs"));
-const AuditTrail = lazy(() => import("./admin/pages/AuditTrail"));
+const SystemLogs = lazy(() => import("./src/admin/pages/SystemLogs"));
+const AuditTrail = lazy(() => import("./src/admin/pages/AuditTrail"));
 
-const NotFoundPage = lazy(() => import("./pages/errors/NotFoundPage"));
-const UnauthorizedPage = lazy(() => import("./pages/errors/UnauthorizedPage"));
+const NotFoundPage = lazy(() => import("./src/pages/errors/NotFoundPage"));
+const UnauthorizedPage = lazy(
+  () => import("./src/pages/errors/UnauthorizedPage"),
+);
 
 /**
  * @component

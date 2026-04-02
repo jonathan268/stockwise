@@ -544,7 +544,7 @@ const Inventory = () => {
       <div className="md:shadow-lg md:card md:bg-base-100">
         <div className="p-0 md:card-body md:p-8">
           {/* Mobile view (Cards) */}
-          <div className="md:hidden space-y-3">
+          <div className="space-y-3 md:hidden">
             {paginatedProducts.map((product) => {
                if (!product || !product._id) return null;
                const statusBadge = getStatusBadge(product);
@@ -565,7 +565,7 @@ const Inventory = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold">{product.name}</h3>
-                        <p className="text-xs text-base-content/60 font-mono">{product.sku}</p>
+                        <p className="font-mono text-xs text-base-content/60">{product.sku}</p>
                       </div>
                       <div className={`badge badge-sm ${statusBadge.class}`}>{statusBadge.text}</div>
                    </div>
@@ -573,10 +573,10 @@ const Inventory = () => {
                    <div className="space-y-1">
                      <MobileCardRow label="Stock" value={`${quantity} (Seuil: ${product.stock?.minThreshold || 0})`} />
                      <MobileCardRow label="Prix" value={`${price.toLocaleString("fr-FR")} FCFA`} />
-                     <MobileCardRow label="Valeur" value={`${(price * quantity).toLocaleString("fr-FR")} FCFA`} className="text-success font-bold" />
+                     <MobileCardRow label="Valeur" value={`${(price * quantity).toLocaleString("fr-FR")} FCFA`} className="font-bold text-success" />
                    </div>
                    
-                   <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-base-200">
+                   <div className="flex justify-end gap-2 pt-3 mt-3 border-t border-base-200">
                       <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleViewDetails(product); }}>
                         <Eye size={16} />
                       </button>
@@ -593,7 +593,7 @@ const Inventory = () => {
           </div>
 
           {/* Desktop view (Table) */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="table w-full">
               <thead>
                 <tr>
