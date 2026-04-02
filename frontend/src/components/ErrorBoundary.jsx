@@ -60,7 +60,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-linear-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4">
           <div className="max-w-md w-full">
             <div className="bg-white rounded-lg shadow-2xl p-8 text-center">
               {/* Icône d'erreur */}

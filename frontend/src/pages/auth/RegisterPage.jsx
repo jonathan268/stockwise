@@ -92,11 +92,11 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md relative z-10">
-      <div className="bg-white rounded-lg shadow-2xl p-8">
+    <div className="relative z-10 w-full max-w-md">
+      <div className="p-8 bg-white rounded-lg shadow-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">StockWise</h1>
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">StockWise</h1>
           <p className="text-gray-600">Créer un nouveau compte</p>
         </div>
 
@@ -104,11 +104,11 @@ const RegisterPage = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Nom complet
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <User className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type="text"
                 name="fullName"
@@ -124,17 +124,17 @@ const RegisterPage = () => {
               />
             </div>
             {errors.fullName && (
-              <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+              <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
             )}
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Mail className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type="email"
                 name="email"
@@ -150,17 +150,17 @@ const RegisterPage = () => {
               />
             </div>
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
             )}
           </div>
 
           {/* Organization */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Nom de l'organisation
             </label>
             <div className="relative">
-              <Building2 className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Building2 className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type="text"
                 name="organizationName"
@@ -176,7 +176,7 @@ const RegisterPage = () => {
               />
             </div>
             {errors.organizationName && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="mt-1 text-xs text-red-500">
                 {errors.organizationName}
               </p>
             )}
@@ -184,18 +184,18 @@ const RegisterPage = () => {
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Téléphone (optionnel)
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Phone className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+33612345678"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               />
             </div>
@@ -203,11 +203,11 @@ const RegisterPage = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Mot de passe
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Lock className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -224,7 +224,7 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400"
+                className="absolute text-gray-400 right-3 top-3"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -234,17 +234,17 @@ const RegisterPage = () => {
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+              <p className="mt-1 text-xs text-red-500">{errors.password}</p>
             )}
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               Confirmer le mot de passe
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <Lock className="absolute w-5 h-5 text-gray-400 left-3 top-3" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="confirmPassword"
@@ -260,7 +260,7 @@ const RegisterPage = () => {
               />
             </div>
             {errors.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="mt-1 text-xs text-red-500">
                 {errors.confirmPassword}
               </p>
             )}
@@ -273,7 +273,7 @@ const RegisterPage = () => {
               name="agreeToTerms"
               checked={formData.agreeToTerms}
               onChange={handleChange}
-              className="w-4 h-4 rounded border-gray-300 mt-1"
+              className="w-4 h-4 mt-1 border-gray-300 rounded"
             />
             <span className="text-sm text-gray-600">
               J'accepte les{" "}
@@ -287,14 +287,14 @@ const RegisterPage = () => {
             </span>
           </label>
           {errors.agreeToTerms && (
-            <p className="text-red-500 text-xs">{errors.agreeToTerms}</p>
+            <p className="text-xs text-red-500">{errors.agreeToTerms}</p>
           )}
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="flex items-center justify-center w-full gap-2 px-4 py-2 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
           >
             {loading && <Loader className="w-5 h-5 animate-spin" />}
             {loading ? "Inscription en cours..." : "S'inscrire"}
@@ -302,11 +302,11 @@ const RegisterPage = () => {
         </form>
 
         {/* Sign In Link */}
-        <p className="text-center text-gray-600 text-sm mt-6">
+        <p className="mt-6 text-sm text-center text-gray-600">
           Vous avez déjà un compte?{" "}
           <Link
             to="/auth/login"
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="font-medium text-blue-600 hover:text-blue-700"
           >
             Se connecter
           </Link>

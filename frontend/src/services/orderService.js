@@ -84,4 +84,20 @@ export const OrderService = {
     const response = await api.get("/api/v1/orders/sales", { params });
     return response.data;
   },
+
+  // Exporter les commandes
+  exportOrders: async (format = "csv", params = {}) => {
+    const response = await api.get("/api/v1/orders/export", {
+      params: { format, ...params },
+    });
+    return response.data;
+  },
+
+  // Générer un PDF
+  generatePDF: async (id) => {
+    const response = await api.get(`/api/v1/orders/${id}/pdf`, {
+      responseType: "blob",
+    });
+    return response.data;
+  },
 };

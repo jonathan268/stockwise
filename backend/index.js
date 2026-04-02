@@ -13,22 +13,30 @@ const orderRoutes = require("./src/routes/orderRoutes");
 const supplierRoutes = require("./src/routes/supplierRoutes");
 const alertRoutes = require("./src/routes/alertRoutes");
 const analyticsRoutes = require("./src/routes/analyticsRoutes");
-const aiRoutes = require("./src/routes/geminiRoutes"); // Utilise geminiRoutes pour /api/v1/ai
+const aiRoutes = require("./src/routes/aiRoutes");
+const geminiRoutes = require("./src/routes/geminiRoutes");
 const predictionRoutes = require("./src/routes/predictionRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const organizationRoutes = require("./src/routes/organizationRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const recommendationRoutes = require("./src/routes/recommendationRoutes");
 const cronService = require("./src/services/cronService");
 
 const app = express();
 
 // 1. Configuration CORS (DOIT être au tout début pour gérer les preflights)
-app.use(cors({
-  origin: ['https://stockwise-eight.vercel.app', 'http://localhost:3000', 'http://localhost:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: [
+      "https://stockwise-eight.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 // 2. Middlewares de base
 app.use(express.json());
@@ -48,10 +56,12 @@ app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/alerts", alertRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/gemini", geminiRoutes);
 app.use("/api/v1/predictions", predictionRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/organizations", organizationRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/recommendations", recommendationRoutes);
 
 // Routes de santé
 app.get("/", (req, res) => {
@@ -128,12 +138,12 @@ const startServer = async () => {
     // 1. Attendre la connexion à la base de données avant de démarrer le serveur
     console.log("Tentative de connexion à MongoDB...");
     await connectDB();
-    
+
     // 2. Démarrer le serveur
     app.listen(PORT, () => {
       console.log(` Serveur démarré avec succès sur le port ${PORT}`);
       console.log(` CORS autorisés pour: https://stockwise-eight.vercel.app`);
-      
+
       // Démarrer les tâches planifiées
       cronService.start();
     });

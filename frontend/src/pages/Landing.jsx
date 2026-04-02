@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useInView, AnimatePresence } from "framer-motion";
 import {
   BarChart3,
   Brain,
@@ -400,7 +400,7 @@ export default function LandingPage() {
       ══════════════════════════════════════ */}
       <section className="relative flex items-center justify-center min-h-screen pt-16 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-175 h-175 rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute bottom-0 right-0 rounded-full w-96 h-96 bg-secondary/5 blur-3xl" />
         </div>
         <div className="relative z-10 max-w-4xl px-4 py-20 mx-auto text-center">
@@ -656,7 +656,7 @@ export default function LandingPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.2, duration: 0.5 }}
-                  className="absolute -bottom-4 -right-4 card bg-base-100 border border-base-300 shadow-lg p-3 rounded-xl flex flex-row items-center gap-3 max-w-[210px]"
+                  className="absolute -bottom-4 -right-4 card bg-base-100 border border-base-300 shadow-lg p-3 rounded-xl flex flex-row items-center gap-3 max-w-52.5"
                 >
                   <Bell size={16} className="text-warning shrink-0" />
                   <p className="text-xs text-base-content/80">

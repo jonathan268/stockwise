@@ -9,7 +9,7 @@ const UnauthorizedPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4">
       <div className="text-center max-w-md">
         <div className="mb-6 flex justify-center">
           <div className="bg-red-100 rounded-full p-6">

@@ -70,14 +70,16 @@ const Inventory = () => {
       } else if (response?.products && Array.isArray(response.products)) {
         // { products: [...] }
         productsData = response.products;
-      } else if (response?.data?.products && Array.isArray(response.data.products)) {
+      } else if (
+        response?.data?.products &&
+        Array.isArray(response.data.products)
+      ) {
         // { data: { products: [...] } }
         productsData = response.data.products;
       }
 
-
       const validProducts = productsData.filter(
-        (p) => p && typeof p === "object"
+        (p) => p && typeof p === "object",
       );
       setProducts(validProducts);
     } catch (err) {
@@ -89,7 +91,7 @@ const Inventory = () => {
       setError(
         typeof errorMessage === "string"
           ? errorMessage
-          : "Erreur lors du chargement des produits"
+          : "Erreur lors du chargement des produits",
       );
       toast.error("Erreur lors du chargement des produits");
       setProducts([]);
@@ -181,7 +183,7 @@ const Inventory = () => {
   const handleDeleteSelected = async () => {
     if (
       !window.confirm(
-        `Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`
+        `Voulez-vous vraiment supprimer ${selectedProducts.length} produit(s) ?`,
       )
     ) {
       return;
@@ -191,7 +193,7 @@ const Inventory = () => {
 
     try {
       await Promise.all(
-        selectedProducts.map((id) => ProductService.deleteProduct(id))
+        selectedProducts.map((id) => ProductService.deleteProduct(id)),
       );
       setProducts(products.filter((p) => !selectedProducts.includes(p._id)));
       setSelectedProducts([]);
@@ -240,8 +242,7 @@ const Inventory = () => {
       if (!p) return sum;
       const quantity =
         p.stock?.quantity ?? p.quantity ?? p.inventory?.quantity ?? 0;
-      const price =
-        p.pricing?.sellingPrice ?? p.sellingPrice ?? p.price ?? 0;
+      const price = p.pricing?.sellingPrice ?? p.sellingPrice ?? p.price ?? 0;
       return sum + price * quantity;
     }, 0);
 
@@ -250,7 +251,10 @@ const Inventory = () => {
       const quantity =
         p.stock?.quantity ?? p.quantity ?? p.inventory?.quantity ?? 0;
       const minThreshold =
-        p.stock?.minThreshold ?? p.minThreshold ?? p.inventory?.minThreshold ?? 0;
+        p.stock?.minThreshold ??
+        p.minThreshold ??
+        p.inventory?.minThreshold ??
+        0;
       return quantity > 0 && quantity <= minThreshold;
     }).length;
 
@@ -271,13 +275,12 @@ const Inventory = () => {
     if (!product) return false;
 
     const matchSearch =
-      (product.name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.sku?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchCategory =
-      filterCategory === "all" ||
-      product.category?.name === filterCategory;
+      filterCategory === "all" || product.category?.name === filterCategory;
 
     let matchStatus = true;
     if (filterStatus !== "all") {
@@ -297,9 +300,7 @@ const Inventory = () => {
   // ==================== CATEGORIES ====================
   const categories = [
     ...new Set(
-      products
-        .filter((p) => p?.category?.name)
-        .map((p) => p.category.name)
+      products.filter((p) => p?.category?.name).map((p) => p.category.name),
     ),
   ];
 
@@ -307,7 +308,7 @@ const Inventory = () => {
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -415,10 +416,18 @@ const Inventory = () => {
 
         <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-success">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              className="inline-block w-8 h-8 stroke-current">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
             </svg>
           </div>
           <div className="stat-title">Valeur Totale</div>
@@ -439,10 +448,18 @@ const Inventory = () => {
 
         <div className="rounded-lg shadow-lg stat bg-base-100">
           <div className="stat-figure text-error">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              className="inline-block w-8 h-8 stroke-current">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-8 h-8 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
           <div className="stat-title">Ruptures</div>
@@ -465,7 +482,10 @@ const Inventory = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
-                  <button className="btn btn-ghost btn-square" onClick={() => setSearchQuery("")}>
+                  <button
+                    className="btn btn-ghost btn-square"
+                    onClick={() => setSearchQuery("")}
+                  >
                     <X size={20} />
                   </button>
                 )}
@@ -473,18 +493,26 @@ const Inventory = () => {
             </div>
 
             <div className="form-control">
-              <select className="select select-bordered" value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}>
+              <select
+                className="select select-bordered"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              >
                 <option value="all">Toutes les catégories</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="form-control">
-              <select className="select select-bordered" value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}>
+              <select
+                className="select select-bordered"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
                 <option value="all">Tous les statuts</option>
                 <option value="in_stock">En stock</option>
                 <option value="low_stock">Stock bas</option>
@@ -494,25 +522,35 @@ const Inventory = () => {
             </div>
           </div>
 
-          {(searchQuery || filterCategory !== "all" || filterStatus !== "all") && (
+          {(searchQuery ||
+            filterCategory !== "all" ||
+            filterStatus !== "all") && (
             <div className="flex flex-wrap gap-2 mt-4">
-              <span className="text-sm text-base-content/60">Filtres actifs:</span>
+              <span className="text-sm text-base-content/60">
+                Filtres actifs:
+              </span>
               {searchQuery && (
                 <div className="gap-2 badge badge-primary">
                   Recherche: {searchQuery}
-                  <button onClick={() => setSearchQuery("")}><X size={12} /></button>
+                  <button onClick={() => setSearchQuery("")}>
+                    <X size={12} />
+                  </button>
                 </div>
               )}
               {filterCategory !== "all" && (
                 <div className="gap-2 badge badge-secondary">
                   Catégorie: {filterCategory}
-                  <button onClick={() => setFilterCategory("all")}><X size={12} /></button>
+                  <button onClick={() => setFilterCategory("all")}>
+                    <X size={12} />
+                  </button>
                 </div>
               )}
               {filterStatus !== "all" && (
                 <div className="gap-2 badge badge-accent">
                   Statut: {filterStatus}
-                  <button onClick={() => setFilterStatus("all")}><X size={12} /></button>
+                  <button onClick={() => setFilterStatus("all")}>
+                    <X size={12} />
+                  </button>
                 </div>
               )}
             </div>
@@ -524,15 +562,26 @@ const Inventory = () => {
       {selectedProducts.length > 0 && (
         <div className="shadow-lg alert alert-info">
           <div>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              className="flex-shrink-0 w-6 h-6 stroke-current">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="shrink-0 w-6 h-6 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>{selectedProducts.length} produit(s) sélectionné(s)</span>
           </div>
           <div className="flex-none">
-            <button className="gap-2 btn btn-sm btn-error" onClick={handleDeleteSelected}>
+            <button
+              className="gap-2 btn btn-sm btn-error"
+              onClick={handleDeleteSelected}
+            >
               <Trash2 size={16} />
               Supprimer la sélection
             </button>
@@ -546,49 +595,85 @@ const Inventory = () => {
           {/* Mobile view (Cards) */}
           <div className="space-y-3 md:hidden">
             {paginatedProducts.map((product) => {
-               if (!product || !product._id) return null;
-               const statusBadge = getStatusBadge(product);
-               const quantity = product.stock?.quantity ?? product.quantity ?? 0;
-               const price = product.pricing?.sellingPrice ?? product.sellingPrice ?? 0;
-               
-               return (
-                 <MobileCard key={product._id} onClick={() => handleViewDetails(product)}>
-                   <div className="flex items-center gap-3 mb-3">
-                     <div className="avatar placeholder">
-                        <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
-                          {product.image?.url ? (
-                            <img src={product.image.url} alt={product.name} />
-                          ) : (
-                            <Box size={20} />
-                          )}
-                        </div>
+              if (!product || !product._id) return null;
+              const statusBadge = getStatusBadge(product);
+              const quantity = product.stock?.quantity ?? product.quantity ?? 0;
+              const price =
+                product.pricing?.sellingPrice ?? product.sellingPrice ?? 0;
+
+              return (
+                <MobileCard
+                  key={product._id}
+                  onClick={() => handleViewDetails(product)}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="avatar placeholder">
+                      <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
+                        {product.image?.url ? (
+                          <img src={product.image.url} alt={product.name} />
+                        ) : (
+                          <Box size={20} />
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold">{product.name}</h3>
-                        <p className="font-mono text-xs text-base-content/60">{product.sku}</p>
-                      </div>
-                      <div className={`badge badge-sm ${statusBadge.class}`}>{statusBadge.text}</div>
-                   </div>
-                   
-                   <div className="space-y-1">
-                     <MobileCardRow label="Stock" value={`${quantity} (Seuil: ${product.stock?.minThreshold || 0})`} />
-                     <MobileCardRow label="Prix" value={`${price.toLocaleString("fr-FR")} FCFA`} />
-                     <MobileCardRow label="Valeur" value={`${(price * quantity).toLocaleString("fr-FR")} FCFA`} className="font-bold text-success" />
-                   </div>
-                   
-                   <div className="flex justify-end gap-2 pt-3 mt-3 border-t border-base-200">
-                      <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleViewDetails(product); }}>
-                        <Eye size={16} />
-                      </button>
-                      <button className="btn btn-ghost btn-xs" onClick={(e) => { e.stopPropagation(); handleEditProduct(product); }}>
-                        <Edit size={16} />
-                      </button>
-                      <button className="btn btn-ghost btn-xs text-error" onClick={(e) => { e.stopPropagation(); handleDeleteProduct(product._id); }}>
-                        <Trash2 size={16} />
-                      </button>
-                   </div>
-                 </MobileCard>
-               );
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold">{product.name}</h3>
+                      <p className="font-mono text-xs text-base-content/60">
+                        {product.sku}
+                      </p>
+                    </div>
+                    <div className={`badge badge-sm ${statusBadge.class}`}>
+                      {statusBadge.text}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <MobileCardRow
+                      label="Stock"
+                      value={`${quantity} (Seuil: ${product.stock?.minThreshold || 0})`}
+                    />
+                    <MobileCardRow
+                      label="Prix"
+                      value={`${price.toLocaleString("fr-FR")} FCFA`}
+                    />
+                    <MobileCardRow
+                      label="Valeur"
+                      value={`${(price * quantity).toLocaleString("fr-FR")} FCFA`}
+                      className="font-bold text-success"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-3 mt-3 border-t border-base-200">
+                    <button
+                      className="btn btn-ghost btn-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetails(product);
+                      }}
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditProduct(product);
+                      }}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      className="btn btn-ghost btn-xs text-error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProduct(product._id);
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </MobileCard>
+              );
             })}
           </div>
 
@@ -598,8 +683,13 @@ const Inventory = () => {
               <thead>
                 <tr>
                   <th>
-                    <input type="checkbox" className="checkbox checkbox-sm"
-                      checked={paginatedProducts.length > 0 && selectedProducts.length === paginatedProducts.length}
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-sm"
+                      checked={
+                        paginatedProducts.length > 0 &&
+                        selectedProducts.length === paginatedProducts.length
+                      }
                       disabled={paginatedProducts.length === 0}
                       onChange={handleSelectAll}
                     />
@@ -644,7 +734,9 @@ const Inventory = () => {
                   return (
                     <tr key={product._id} className="hover">
                       <td>
-                        <input type="checkbox" className="checkbox checkbox-sm"
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-sm"
                           checked={selectedProducts.includes(product._id)}
                           onChange={() => handleSelectProduct(product._id)}
                         />
@@ -654,14 +746,19 @@ const Inventory = () => {
                           <div className="avatar placeholder">
                             <div className="w-12 h-12 rounded bg-neutral-focus text-neutral-content">
                               {product.image?.url ? (
-                                <img src={product.image.url} alt={product.name || "Produit"} />
+                                <img
+                                  src={product.image.url}
+                                  alt={product.name || "Produit"}
+                                />
                               ) : (
                                 <Box size={20} />
                               )}
                             </div>
                           </div>
                           <div>
-                            <div className="font-bold">{product.name || "Sans nom"}</div>
+                            <div className="font-bold">
+                              {product.name || "Sans nom"}
+                            </div>
                             {product.description && (
                               <div className="max-w-xs text-sm truncate text-base-content/60">
                                 {product.description}
@@ -671,7 +768,9 @@ const Inventory = () => {
                         </div>
                       </td>
                       <td>
-                        <span className="font-mono text-sm">{product.sku || "N/A"}</span>
+                        <span className="font-mono text-sm">
+                          {product.sku || "N/A"}
+                        </span>
                       </td>
                       <td>
                         <div className="badge badge-ghost">
@@ -681,7 +780,9 @@ const Inventory = () => {
                       <td>
                         <div className="flex flex-col">
                           <span className="font-bold">{quantity}</span>
-                          <span className="text-xs text-base-content/60">Seuil: {minThreshold}</span>
+                          <span className="text-xs text-base-content/60">
+                            Seuil: {minThreshold}
+                          </span>
                         </div>
                       </td>
                       <td className="font-semibold">
@@ -691,20 +792,31 @@ const Inventory = () => {
                         {totalValue.toLocaleString("fr-FR")} FCFA
                       </td>
                       <td>
-                        <div className={`badge ${statusBadge.class}`}>{statusBadge.text}</div>
+                        <div className={`badge ${statusBadge.class}`}>
+                          {statusBadge.text}
+                        </div>
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button className="btn btn-ghost btn-xs" title="Voir"
-                            onClick={() => handleViewDetails(product)}>
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            title="Voir"
+                            onClick={() => handleViewDetails(product)}
+                          >
                             <Eye size={16} />
                           </button>
-                          <button className="btn btn-ghost btn-xs" title="Modifier"
-                            onClick={() => handleEditProduct(product)}>
+                          <button
+                            className="btn btn-ghost btn-xs"
+                            title="Modifier"
+                            onClick={() => handleEditProduct(product)}
+                          >
                             <Edit size={16} />
                           </button>
-                          <button className="btn btn-ghost btn-xs text-error" title="Supprimer"
-                            onClick={() => handleDeleteProduct(product._id)}>
+                          <button
+                            className="btn btn-ghost btn-xs text-error"
+                            title="Supprimer"
+                            onClick={() => handleDeleteProduct(product._id)}
+                          >
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -719,30 +831,52 @@ const Inventory = () => {
             <div className="flex flex-col items-center justify-between gap-4 mt-6 md:flex-row">
               <div className="text-sm text-base-content/60">
                 Affichage de {(currentPage - 1) * itemsPerPage + 1} à{" "}
-                {Math.min(currentPage * itemsPerPage, filteredProducts.length)} sur{" "}
-                {filteredProducts.length} produits
+                {Math.min(currentPage * itemsPerPage, filteredProducts.length)}{" "}
+                sur {filteredProducts.length} produits
               </div>
               <div className="btn-group">
-                <button className="btn btn-sm" disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}>«</button>
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  «
+                </button>
                 {[...Array(totalPages)].map((_, idx) => {
                   const page = idx + 1;
-                  if (page === 1 || page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)) {
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
                     return (
-                      <button key={page}
+                      <button
+                        key={page}
                         className={`btn btn-sm ${currentPage === page ? "btn-active" : ""}`}
-                        onClick={() => setCurrentPage(page)}>
+                        onClick={() => setCurrentPage(page)}
+                      >
                         {page}
                       </button>
                     );
-                  } else if (page === currentPage - 2 || page === currentPage + 2) {
-                    return <button key={page} className="btn btn-sm btn-disabled">...</button>;
+                  } else if (
+                    page === currentPage - 2 ||
+                    page === currentPage + 2
+                  ) {
+                    return (
+                      <button key={page} className="btn btn-sm btn-disabled">
+                        ...
+                      </button>
+                    );
                   }
                   return null;
                 })}
-                <button className="btn btn-sm" disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}>»</button>
+                <button
+                  className="btn btn-sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  »
+                </button>
               </div>
             </div>
           )}
