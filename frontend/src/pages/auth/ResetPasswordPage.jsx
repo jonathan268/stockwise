@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Lock, Eye, EyeOff, Loader, CheckCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader, CheckCircle, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "../../api/axios";
 
@@ -51,7 +51,7 @@ const ResetPasswordPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.password) newErrors.password = "Le mot de passe est requis";
+    if (!formData.password) newErrors.password = "Requis";
     if (formData.password.length < 8) newErrors.password = "Min 8 caractères";
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
@@ -77,7 +77,7 @@ const ResetPasswordPage = () => {
       });
 
       setSuccess(true);
-      toast.success("Mot de passe réinitialisé avec succès !");
+      toast.success("Mot de passe réinitialisé de manière sécurisée !");
       setTimeout(() => navigate("/auth/login"), 2000);
     } catch (error) {
       toast.error(
@@ -90,10 +90,10 @@ const ResetPasswordPage = () => {
 
   if (validating) {
     return (
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-white rounded-lg shadow-2xl p-8 text-center">
-          <Loader className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Vérification du lien...</p>
+      <div className="w-full max-w-md my-auto">
+        <div className="card bg-base-100 border border-base-300 shadow-2xl p-8 text-center">
+          <Loader className="w-10 h-10 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-base-content/70 font-medium">Vérification de la sécurité du lien...</p>
         </div>
       </div>
     );
@@ -104,108 +104,107 @@ const ResetPasswordPage = () => {
   }
 
   return (
-    <div className="w-full max-w-md relative z-10">
-      <div className="bg-white rounded-lg shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Nouveau mot de passe
-          </h1>
-          <p className="text-gray-600">
-            Créez un nouveau mot de passe sécurisé
-          </p>
-        </div>
-
-        {!success ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.password
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirmer
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                    errors.confirmPassword
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                  disabled={loading}
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {loading && <Loader className="w-5 h-5 animate-spin" />}
-              {loading ? "Réinitialisation..." : "Réinitialiser"}
-            </button>
-          </form>
-        ) : (
-          <div className="text-center py-8">
-            <div className="mb-4 flex justify-center">
-              <div className="bg-green-100 rounded-full p-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+    <div className="w-full max-w-md">
+      <div className="card bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+        <div className="card-body p-8 sm:p-10">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ShieldCheck className="text-primary w-8 h-8" />
               </div>
             </div>
-            <p className="text-gray-600">
-              Votre mot de passe a été réinitialisé avec succès ! Redirection
-              vers la connexion...
-            </p>
+            <h1 className="text-2xl font-bold text-base-content mb-2 tracking-tight">Nouveau mot de passe</h1>
+            <p className="text-base-content/60 text-sm">Créez un nouveau mot de passe fort et sécurisé</p>
           </div>
-        )}
+
+          {!success ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Password */}
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/80">Mot de passe</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="absolute left-4 text-base-content/40 w-5 h-5 pointer-events-none" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`input input-bordered w-full pl-11 pr-11 bg-base-100 transition-all ${
+                      errors.password ? "input-error" : "focus:input-primary"
+                    }`}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 p-1 text-base-content/40 hover:text-base-content/70 transition-colors bg-transparent border-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {errors.password && <span className="label-text-alt text-error mt-1">{errors.password}</span>}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/80">Confirmer le mot de passe</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="absolute left-4 text-base-content/40 w-5 h-5 pointer-events-none" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className={`input input-bordered w-full pl-11 pr-11 bg-base-100 transition-all ${
+                      errors.confirmPassword ? "input-error" : "focus:input-primary"
+                    }`}
+                    disabled={loading}
+                  />
+                </div>
+                {errors.confirmPassword && <span className="label-text-alt text-error mt-1">{errors.confirmPassword}</span>}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary w-full mt-6"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    Réinitialisation...
+                  </>
+                ) : (
+                  "Réinitialiser le mot de passe"
+                )}
+              </button>
+            </form>
+          ) : (
+            <div className="text-center py-8">
+              <div className="mb-6 flex justify-center">
+                <div className="bg-success/20 rounded-full p-5">
+                  <CheckCircle className="w-10 h-10 text-success" />
+                </div>
+              </div>
+              <p className="text-base-content/70 mb-2 font-medium">
+                Mot de passe mis à jour !
+              </p>
+              <p className="text-base-content/60 text-sm mb-6">Redirection vers la connexion en cours...</p>
+              <div className="progress progress-primary w-full h-1"></div>
+            </div>
+          )}
+          
+        </div>
       </div>
     </div>
   );

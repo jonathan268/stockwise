@@ -20,6 +20,7 @@ import { NotificationProvider } from "./src/context/NotificationContext";
 import "./src/index.css";
 
 // Lazy loading des pages
+const LandingPage = lazy(() => import("./src/pages/Landing"));
 const AuthLayout = lazy(() => import("./src/pages/auth/AuthLayout"));
 const LoginPage = lazy(() => import("./src/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./src/pages/auth/RegisterPage"));
@@ -176,6 +177,9 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
+        {/* ==================== PAGE VITRINE ==================== */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* ==================== ROUTES PUBLIQUES (AUTHENTIFICATION) ==================== */}
         <Route element={<AuthLayout />}>
           <Route path="/auth/login" element={<LoginPage />} />
@@ -199,7 +203,6 @@ const AppRoutes = () => {
           }
         >
           {/* Dashboard */}
-          <Route path="/" element={<DashboardPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
 
           {/* Gestion des Produits */}

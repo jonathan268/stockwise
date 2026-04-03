@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Loader, ArrowLeft } from 'lucide-react';
+import { Mail, Loader, ArrowLeft, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../api/axios';
 
@@ -34,69 +34,91 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md relative z-10">
-      <div className="bg-white rounded-lg shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mot de passe oublié</h1>
-          <p className="text-gray-600">
-            {submitted ? 'Vérifiez votre email pour continuer' : 'Entrez votre email pour réinitialiser'}
-          </p>
-        </div>
-
-        {!submitted ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@exemple.com"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={loading}
-                />
+    <div className="w-full max-w-md">
+      <div className="card bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+        <div className="card-body p-8 sm:p-10">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <KeyRound className="text-primary w-8 h-8" />
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {loading && <Loader className="w-5 h-5 animate-spin" />}
-              {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
-            </button>
-          </form>
-        ) : (
-          <div className="text-center py-8">
-            <div className="mb-4 flex justify-center">
-              <div className="bg-green-100 rounded-full p-4">
-                <Mail className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Un email a été envoyé à <strong>{email}</strong>. Vérifiez votre inbox et cliquez sur le lien pour réinitialiser votre mot de passe.
+            <h1 className="text-2xl font-bold text-base-content mb-2 tracking-tight">Mot de passe oublié</h1>
+            <p className="text-base-content/60 text-sm">
+              {submitted ? 'Vérifiez votre boîte e-mail pour continuer' : 'Entrez votre adresse e-mail pour réinitialiser le mot de passe'}
             </p>
-            <button
-              onClick={() => navigate('/auth/login')}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            >
-              Revenir à la connexion
-            </button>
           </div>
-        )}
 
-        {/* Back to Login */}
-        <Link
-          to="/auth/login"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm mt-6 justify-center"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Retour à la connexion
-        </Link>
+          {!submitted ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Email */}
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text font-medium text-base-content/80">Adresse e-mail</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-4 text-base-content/40 w-5 h-5 pointer-events-none" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vous@exemple.com"
+                    className="input input-bordered w-full pl-11 bg-base-100 focus:input-primary transition-all"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary w-full mt-4"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : (
+                  "Envoyer le lien"
+                )}
+              </button>
+            </form>
+          ) : (
+            <div className="text-center py-8">
+              <div className="mb-6 flex justify-center">
+                <div className="bg-success/20 rounded-full p-5">
+                  <Mail className="w-10 h-10 text-success" />
+                </div>
+              </div>
+              <p className="text-base-content/70 mb-8 text-sm leading-relaxed">
+                Un e-mail de réinitialisation a été envoyé à <strong>{email}</strong>. Cliquez sur le lien à l'intérieur pour réinitialiser votre mot de passe.
+              </p>
+              <button
+                onClick={() => navigate('/auth/login')}
+                className="btn btn-primary w-full"
+              >
+                Revenir à la connexion
+              </button>
+            </div>
+          )}
+
+          {/* Back to Login */}
+          {!submitted && (
+            <Link
+              to="/auth/login"
+              className="flex items-center gap-2 text-base-content/60 hover:text-base-content text-sm mt-8 justify-center transition-colors font-medium"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour à la connexion
+            </Link>
+          )}
+
+        </div>
       </div>
     </div>
   );

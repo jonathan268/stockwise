@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, Loader } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader, PackagePlus } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "../../api/axios";
 
@@ -60,126 +60,133 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="w-full max-w-md relative z-10">
-      <div className="bg-white rounded-lg shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">StockWise</h1>
-          <p className="text-gray-600">Connectez-vous à votre compte</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Adresse email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="vous@exemple.com"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={loading}
-              />
+    <div className="w-full max-w-md">
+      <div className="card bg-base-100 border border-base-300 shadow-2xl overflow-hidden">
+        <div className="card-body p-8 sm:p-10">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <PackagePlus className="text-primary w-8 h-8" />
+              </div>
             </div>
+            <h1 className="text-2xl font-bold text-base-content mb-2 tracking-tight">Bon retour parmi nous</h1>
+            <p className="text-base-content/60 text-sm">Connectez-vous pour accéder à votre espace StockWise</p>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mot de passe
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Email */}
+            <div className="form-control w-full">
+              <label className="label">
+                <span className="label-text font-medium text-base-content/80">Adresse e-mail</span>
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-4 text-base-content/40 w-5 h-5 pointer-events-none" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="vous@exemple.com"
+                  className="input input-bordered w-full pl-11 bg-base-100 focus:input-primary transition-all"
+                  disabled={loading}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span className="text-gray-600">Se souvenir de moi</span>
-            </label>
-            <Link
-              to="/auth/forgot-password"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+            {/* Password */}
+            <div className="form-control w-full">
+              <label className="label">
+                <span className="label-text font-medium text-base-content/80">Mot de passe</span>
+                <Link
+                  to="/auth/forgot-password"
+                  className="label-text-alt text-primary hover:text-primary-focus font-medium transition-colors"
+                >
+                  Oublié ?
+                </Link>
+              </label>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-4 text-base-content/40 w-5 h-5 pointer-events-none" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="input input-bordered w-full pl-11 pr-11 bg-base-100 focus:input-primary transition-all"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 p-1 text-base-content/40 hover:text-base-content/70 transition-colors bg-transparent border-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me */}
+            <div className="form-control mt-2">
+              <label className="label cursor-pointer justify-start gap-3">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  className="checkbox checkbox-sm checkbox-primary rounded"
+                />
+                <span className="label-text text-base-content/70">Se souvenir de moi</span>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary w-full mt-2"
             >
-              Mot de passe oublié ?
-            </Link>
-          </div>
+              {loading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Connexion...
+                </>
+              ) : (
+                "Se connecter"
+              )}
+            </button>
+          </form>
 
-          {/* Submit Button */}
+          {/* Divider */}
+          <div className="divider text-base-content/40 text-sm mt-6 mb-4">Ou continuer avec</div>
+
+          {/* Google Login (Visuellement adapté) */}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            type="button"
+            className="btn btn-outline border-base-300 hover:border-base-content/30 w-full hover:bg-base-200 text-base-content"
           >
-            {loading && <Loader className="w-5 h-5 animate-spin" />}
-            {loading ? "Connexion en cours..." : "Se connecter"}
+            <img
+              src="https://www.gstatic.com/firebaseapp/v8.10.1/images/firebaseui-logo.png"
+              alt="Google"
+              className="w-5 h-5 mr-2"
+            />
+            Google
           </button>
-        </form>
 
-        {/* Divider */}
-        <div className="my-6 flex items-center gap-4">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-sm text-gray-500">ou</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
+          {/* Sign Up Link */}
+          <p className="text-center text-sm text-base-content/70 mt-8">
+            Pas encore de compte ?{" "}
+            <Link
+              to="/auth/register"
+              className="text-primary hover:text-primary-focus font-semibold transition-colors"
+            >
+              S'inscrire gratuitement
+            </Link>
+          </p>
         </div>
-
-        {/* Google Login */}
-        <button
-          type="button"
-          className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          <img
-            src="https://www.gstatic.com/firebaseapp/v8.10.1/images/firebaseui-logo.png"
-            alt="Google"
-            className="w-5 h-5"
-          />
-          Continuer avec Google
-        </button>
-
-        {/* Sign Up Link */}
-        <p className="text-center text-gray-600 text-sm mt-6">
-          Pas encore de compte?{" "}
-          <Link
-            to="/auth/register"
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            S'inscrire
-          </Link>
-        </p>
       </div>
     </div>
   );
