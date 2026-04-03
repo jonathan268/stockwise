@@ -5,7 +5,7 @@ import { useAuthContext } from "../context/AuthContext";
 /**
  * Route protégée réservée aux SuperAdmins
  */
-export const AdminRoute = ({ children }) => {
+const AdminRoute = ({ children }) => {
   const { user, loading, isSuperAdmin } = useAuthContext();
 
   if (loading) {
@@ -22,3 +22,5 @@ export const AdminRoute = ({ children }) => {
 
   return children;
 };
+
+export default AdminRoute;
