@@ -327,12 +327,12 @@ export default function LandingPage() {
               </nav>
               <div className="flex flex-col gap-2 p-4 border-t border-base-300">
                 <a
-                  href="/login"
+                  href="/auth/login"
                   className="w-full gap-2 btn btn-outline btn-primary"
                 >
                   <LogIn size={16} /> Connexion
                 </a>
-                <a href="/register" className="w-full gap-2 btn btn-primary">
+                <a href="/auth/register" className="w-full gap-2 btn btn-primary">
                   <UserPlus size={16} /> Essai gratuit
                 </a>
               </div>
@@ -375,11 +375,11 @@ export default function LandingPage() {
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <a href="/login" className="hidden btn btn-ghost btn-sm lg:flex">
+            <a href="/auth/login" className="hidden btn btn-ghost btn-sm lg:flex">
               Connexion
             </a>
             <a
-              href="/register"
+              href="/auth/register"
               className="hidden gap-1 btn btn-primary btn-sm lg:flex"
             >
               Essai gratuit <ArrowRight size={14} />
@@ -425,7 +425,7 @@ export default function LandingPage() {
           </AnimatedSection>
           <AnimatedSection custom={3}>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
-              <a href="/register" className="gap-2 btn btn-primary btn-lg">
+              <a href="/auth/register" className="gap-2 btn btn-primary btn-lg">
                 Commencer gratuitement <ArrowRight size={18} />
               </a>
               <button

@@ -47,9 +47,9 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) {
-          // No refresh token, redirect to login
+          // No refresh token, trigger auth-error event instead of hard redirect
           localStorage.removeItem("token");
-          window.location.href = "/login";
+          window.dispatchEvent(new Event("auth-error"));
           return Promise.reject(error);
         }
 
@@ -64,10 +64,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, redirect to login
+        // Refresh failed, trigger auth-error event
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
+        window.dispatchEvent(new Event("auth-error"));
         return Promise.reject(refreshError);
       }
     }

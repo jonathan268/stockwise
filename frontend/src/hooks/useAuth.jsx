@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
 
 export const useAuth = () => {
@@ -6,6 +6,22 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
+
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const response = await api.get("/api/v1/auth/me");
+      setUser(response.data.data);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error("Erreur de récupération de l'utilisateur:", error);
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -20,23 +36,21 @@ export const useAuth = () => {
     };
 
     checkAuth();
-  }, []);
+  }, [fetchCurrentUser]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await api.get("/api/v1/auth/me");
-      setUser(response.data.data);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error("Erreur de récupération de l'utilisateur:", error);
+  // Écouter les erreurs d'authentification globales (ex: token expiré sans refresh token)
+  useEffect(() => {
+    const handleAuthError = () => {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       setIsAuthenticated(false);
       setUser(null);
-    } finally {
       setLoading(false);
-    }
-  };
+    };
+
+    window.addEventListener("auth-error", handleAuthError);
+    return () => window.removeEventListener("auth-error", handleAuthError);
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -44,7 +58,7 @@ export const useAuth = () => {
     setUser(null);
     setIsAuthenticated(false);
     // Rediriger vers la page de login
-    window.location.href = "/login";
+    window.location.href = "/auth/login";
   };
 
   const refreshToken = async () => {
