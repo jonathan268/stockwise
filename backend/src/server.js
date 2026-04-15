@@ -1,0 +1,105 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import compression from "compression";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import fs from "fs";
+import http from "http";
+import { connectDB } from "./config/database.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import authRoutes from "./routes/auth.routes.js";
+import productRoutes from "./routes/product.routes.js";
+import saleRoutes from "./routes/sale.routes.js";
+import alertRoutes from "./routes/alert.routes.js";
+import movementRoutes from "./routes/movement.routes.js";
+import categoryRoutes from "./routes/category.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import billingRoutes from "./routes/billing.routes.js";
+import recommendationRoutes from "./routes/recommendation.routes.js";
+import logger from "./utils/logger.js";
+import { initSocket } from "./utils/socket.js";
+import { startAICronJob } from "./jobs/ai.cron.js";
+
+dotenv.config();
+
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// ─── Créer dossier logs s'il n'existe pas ─────────────────
+if (!fs.existsSync("logs")) {
+  fs.mkdirSync("logs");
+}
+
+// ─── Middlewares globaux ──────────────────────────────────
+app.use(helmet());
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+app.use(compression());
+app.use(
+  morgan("combined", {
+    stream: fs.createWriteStream("logs/access.log", { flags: "a" }),
+  }),
+);
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+// ─── Routes ───────────────────────────────────────────────
+app.get("/api/v1/health", (req, res) => {
+  res.json({ success: true, message: "API is running" });
+});
+
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/sales", saleRoutes);
+app.use("/api/v1/alerts", alertRoutes);
+app.use("/api/v1/movements", movementRoutes);
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/billing", billingRoutes);
+app.use("/api/v1/recommendations", recommendationRoutes);
+
+// ─── Fallback 404 ─────────────────────────────────────────
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, error: "Route non trouvée" });
+});
+
+// ─── Error Handler (doit être le dernier) ─────────────────
+app.use(errorHandler);
+
+// ─── Démarrage du serveur ─────────────────────────────────
+const PORT = process.env.PORT || 5000;
+
+// Utiliser un serveur HTTP explicite pour lier Socket.io
+const server = http.createServer(app);
+const io = initSocket(server);
+
+const startServer = async () => {
+  try {
+    await connectDB();
+    server.listen(PORT, () => {
+      logger.info(` Serveur lancé sur http://localhost:${PORT}`);
+    });
+    
+    // Initialisation des Tâches planifiées (Cron)
+    startAICronJob();
+
+    // Graceful shutdown
+    process.on("SIGTERM", () => {
+      logger.info("SIGTERM reçu. Arrêt du serveur...");
+      server.close(() => {
+        logger.info("Serveur arrêté");
+        process.exit(0);
+      });
+    });
+  } catch (error) {
+    logger.error("Erreur au démarrage:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+export default app;

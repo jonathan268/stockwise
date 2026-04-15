@@ -1,14 +1,20 @@
-class AppError extends Error {
-  constructor(message, statusCode, errors = null) {
+/**
+ * Classe d'erreur personnalisée avec code métier
+ * Toutes les erreurs operationnelles la utilisent
+ */
+export class AppError extends Error {
+  constructor(message, statusCode = 500, code = "INTERNAL_ERROR") {
     super(message);
-
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
+    this.code = code;
     this.isOperational = true;
-    this.errors = errors;
-
-    Error.captureStackTrace(this, this.constructor);
   }
 }
 
-module.exports = { AppError };
+/**
+ * Utilitaire pour les fonctions async dans les controllers
+ * Évite les try/catch répétitifs
+ */
+export const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};

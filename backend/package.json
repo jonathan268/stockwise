@@ -1,36 +1,38 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "logique métier du saas",
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "name": "stockwise-api",
+  "version": "4.0.0",
+  "description": "StockWise — Gestion de stock intelligente pour PME africaines",
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/scripts/seeder.js",
+    "seed:reset": "node src/scripts/seeder.js --reset"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "axios": "^1.13.4",
-    "bcrypt": "^6.0.0",
-    "body-parser": "^2.2.2",
-    "cors": "^2.8.6",
-    "crypto": "^1.0.1",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "express-jwt": "^8.5.1",
-    "express-rate-limit": "^8.2.1",
-    "joi": "^18.0.2",
-    "jsonwebtoken": "^9.0.3",
-    "jwks-rsa": "^3.2.2",
-    "mongoose": "^9.1.5",
-    "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.1",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "express": "^5.0.0",
+    "mongoose": "^9.4.1",
+    "dotenv": "^17.4.1",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^8.3.2",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^3.0.3",
+    "joi": "^18.1.2",
+    "node-cron": "^4.0.1",
+    "nodemailer": "^8.0.5",
+    "socket.io": "^4.8.1",
+    "axios": "^1.6.2",
+    "crypto-js": "^4.2.0",
+    "@google/generative-ai": "^0.24.1",
+    "notchpay.js": "^1.0.0",
+    "winston": "^3.11.0",
+    "slugify": "^1.6.6"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.0.2"
   }
 }

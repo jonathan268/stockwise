@@ -1,4 +1,32 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: all;
+  themes: light, dark;
 }
+
+@theme {
+  --font-display: "Poppins", sans-serif;
+  --font-body: "Poppins", sans-serif;
+  --font-sans: "Poppins", sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  
+}
+

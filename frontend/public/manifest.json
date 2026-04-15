@@ -1,0 +1,10 @@
+{
+  "name": "StockWise",
+  "short_name": "StockWise",
+  "description": "Gestion de stock intelligente pour PME africaines",
+  "theme_color": "#570df8",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": []
+}
