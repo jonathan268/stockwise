@@ -44,7 +44,7 @@ productSchema.index(
 );
 
 // Auto-génération du SKU si non fourni
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
   if (!this.sku) {
     const slug = this.name
       .toLowerCase()
@@ -54,7 +54,6 @@ productSchema.pre("save", function (next) {
     const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
     this.sku = `SW-${slug}-${rand}`;
   }
-  next();
 });
 
 // Virtual
