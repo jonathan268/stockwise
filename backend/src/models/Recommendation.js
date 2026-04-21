@@ -9,7 +9,7 @@ const recommendationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["restock", "popular", "dead_stock", "bundle"],
+      enum: ["restock", "popular", "dead_stock", "bundle", "system"],
       required: true,
     },
     priority: {
