@@ -71,5 +71,19 @@ export const generateInsightsForOrg = async (organizationId) => {
     logger.info(`Insights IA générés avec succès pour org ${organizationId}`);
   } catch (error) {
     logger.error(`Erreur Gemini AI pour org ${organizationId}:`, error);
+
+    // Création d'une recommandation de repli élégante ("graceful fallback") en cas d'erreur de l'IA (ex: 503 High Demand)
+    try {
+      await Recommendation.create({
+        organizationId,
+        title: "✨ Assistant IA en pause",
+        description: "Notre assistant d'intelligence artificielle traite actuellement un volume exceptionnel de données et fait une petite pause (Service temporairement indisponible). Vos recommandations magiques seront bientôt de retour. Réessayez dans quelques instants !",
+        type: "system", // Typé comme message système / générique (fallback de bundle ou autre)
+        priority: "low",
+        actionLabel: "audit"
+      });
+    } catch (fallbackError) {
+      logger.error("Erreur lors de la création de la reco de fallback IA:", fallbackError);
+    }
   }
 };

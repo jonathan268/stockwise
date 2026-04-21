@@ -29,7 +29,7 @@ export const updateCategory = async (organizationId, categoryId, updateData) => 
   const category = await Category.findOneAndUpdate(
     { _id: categoryId, organizationId },
     updateData,
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   );
 
   if (!category) throw new AppError("Catégorie introuvable", 404);

@@ -67,7 +67,7 @@ export const markAlertAsRead = async (organizationId, alertId, userId) => {
       acknowledgedBy: userId,
       acknowledgedAt: new Date(),
     },
-    { new: true },
+    { returnDocument: "after" },
   ).populate("product", "name sku currentStock minimumStock");
 
   if (!alert) {

@@ -36,7 +36,19 @@ if (!fs.existsSync("logs")) {
 
 // ─── Middlewares globaux ──────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
+const allowedOrigins = [clientUrl, "http://localhost:5173", "https://stockwise-eight.vercel.app"];
+
+app.use(cors({ 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }, 
+  credentials: true 
+}));
 app.use(compression());
 app.use(
   morgan("combined", {

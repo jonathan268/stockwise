@@ -63,7 +63,7 @@ router.patch("/:id/dismiss", asyncHandler(async (req, res) => {
   const rec = await Recommendation.findOneAndUpdate(
     { _id: req.params.id, organizationId: req.organizationId },
     { isDismissed: true },
-    { new: true }
+    { returnDocument: "after" }
   );
   res.json({ success: true, data: rec });
 }));
