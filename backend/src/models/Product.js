@@ -43,6 +43,20 @@ productSchema.index(
   { unique: true, sparse: true },
 );
 
+// Auto-génération du SKU si non fourni
+productSchema.pre("save", function (next) {
+  if (!this.sku) {
+    const slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 20);
+    const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.sku = `SW-${slug}-${rand}`;
+  }
+  next();
+});
+
 // Virtual
 productSchema.virtual("stockStatus").get(function () {
   if (this.currentStock === 0) return "out";

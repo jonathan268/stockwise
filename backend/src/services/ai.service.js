@@ -5,7 +5,7 @@ import Organization from "../models/Organization.js";
 import logger from "../utils/logger.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const MODEL_NAME = "gemini-1.5-flash"; // Modèle stable et rapide
+const MODEL_NAME = "gemini-2.5-flash"; // Modèle stable et rapide
 
 /**
  * Service IA asynchrone : Analyse le stock et génère des insights métier

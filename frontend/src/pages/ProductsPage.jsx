@@ -14,7 +14,7 @@ const StockBadge = ({ current, min }) => {
 };
 
 const emptyProduct = {
-  name: "", sku: "", description: "",
+  name: "", description: "",
   costPrice: "", sellingPrice: "", currentStock: "",
   minimumStock: "5", unit: "pièce", category: "",
 };
@@ -106,7 +106,6 @@ export default function ProductsPage() {
     setEditingProduct(product);
     setForm({
       name: product.name || "",
-      sku: product.sku || "",
       description: product.description || "",
       costPrice: product.costPrice || "",
       sellingPrice: product.sellingPrice || "",
@@ -272,15 +271,7 @@ export default function ProductsPage() {
                     <input type="text" className="input input-bordered w-full" required
                       value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                   </div>
-                  <div>
-                    <label className="label">
-                      <span className="label-text font-medium">SKU</span>
-                      <span className="label-text-alt text-xs opacity-50 italic">Auto-généré si vide</span>
-                    </label>
-                    <input type="text" className="input input-bordered w-full"
-                      placeholder="SW-XXXXXX"
-                      value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
-                  </div>
+
                   <div>
                     <label className="label flex justify-between items-center">
                       <span className="label-text font-medium">Catégorie</span>
