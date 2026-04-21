@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Lock, LogIn, AlertCircle, Building2, PackagePlus, ArrowRight, CheckCircle } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import axiosInstance from "../lib/axios";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -29,6 +30,20 @@ export default function RegisterPage() {
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || "Erreur d'inscription");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axiosInstance.post("/auth/google", { idToken: credentialResponse.credential });
+      setAuth(data.data);
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || err.response?.data?.error || "Erreur de connexion Google");
     } finally {
       setLoading(false);
     }
@@ -206,6 +221,19 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          <div className="divider text-base-content/40 text-sm my-6">OU</div>
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Échec de la configuration avec Google")}
+              useOneTap
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              text="signup_with"
+            />
+          </div>
 
           <p className="text-center text-sm text-base-content/60 mt-8">
             Vous avez déjà un compte ?{" "}

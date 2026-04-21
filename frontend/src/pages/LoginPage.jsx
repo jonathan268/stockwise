@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, AlertCircle, PackagePlus, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import axiosInstance from "../lib/axios";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -31,6 +32,25 @@ export default function LoginPage() {
       const code = err.response?.data?.code;
       const message = err.response?.data?.error || "Erreur de connexion";
       setError({ message, code });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axiosInstance.post("/auth/google", { idToken: credentialResponse.credential });
+      setAuth(data.data);
+      const user = data.data.user;
+      if (user.role === "super_admin") {
+        navigate("/console", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (err) {
+      setError({ message: err.response?.data?.message || err.response?.data?.error || "Erreur de connexion Google" });
     } finally {
       setLoading(false);
     }
@@ -128,6 +148,19 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          <div className="divider text-base-content/40 text-sm my-6">OU</div>
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError({ message: "Échec de la connexion avec Google" })}
+              useOneTap
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              text="continue_with"
+            />
+          </div>
 
           <p className="text-center text-sm text-base-content/60 mt-8">
             Nouveau sur StockWise ?{" "}

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import {
-  User, Building2, Shield, Palette, Save, Sun, Moon, Check, CreditCard, Zap
+  User, Building2, Shield, Palette, Save, Sun, Moon, Check, CreditCard, AlertCircle
 } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
+import axiosInstance from "../lib/axios";
 
 const tabs = [
   { id: "profile", label: "Profil", icon: User },
@@ -14,11 +15,35 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
-  const { user, organization } = useAuthStore();
+  const { user, organization, setAuth, updateOrganization } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const [activeTab, setActiveTab] = useState("profile");
   const [saved, setSaved] = useState(false);
   const [isSubsModalOpen, setIsSubsModalOpen] = useState(false);
+
+  // States
+  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "" });
+  const [orgForm, setOrgForm] = useState({ name: "", currency: "XAF", timezone: "Africa/Douala" });
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingOrg, setIsSavingOrg] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  // Sync initial state
+  useEffect(() => {
+    if (user) {
+      setProfileForm({ firstName: user.firstName || "", lastName: user.lastName || "" });
+    }
+    if (organization) {
+      setOrgForm({
+        name: organization.name || "",
+        currency: organization.settings?.currency || "XAF",
+        timezone: organization.settings?.timezone || "Africa/Douala"
+      });
+    }
+  }, [user, organization]);
 
   const getDaysRemaining = () => {
     const targetDate = organization?.trialEndsAt || organization?.currentPeriodEnd;
@@ -33,15 +58,60 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleSaveProfile = async () => {
+    try {
+      setIsSavingProfile(true);
+      const { data } = await axiosInstance.put("/auth/me", profileForm);
+      setAuth({ user: { ...user, ...data.data }, organization, accessToken: useAuthStore.getState().accessToken, refreshToken: useAuthStore.getState().refreshToken });
+      showSaved();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleSaveOrg = async () => {
+    try {
+      setIsSavingOrg(true);
+      const { data } = await axiosInstance.put("/auth/organization", orgForm);
+      updateOrganization({ ...organization, ...data.data });
+      showSaved();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingOrg(false);
+    }
+  };
+
+  const handleSavePassword = async () => {
+    setPasswordError("");
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      return setPasswordError("Les mots de passe ne correspondent pas");
+    }
+    try {
+      setIsSavingPassword(true);
+      await axiosInstance.put("/auth/password", {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      showSaved();
+    } catch (error) {
+      setPasswordError(error.response?.data?.message || error.response?.data?.error || "Erreur lors de la mise à jour");
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
         <h1 className="text-2xl font-black font-display">Paramètres</h1>
-        <p className="text-base-content/60 text-sm mt-1">Gérez votre profil et les préférences de l'application</p>
+        <p className="text-base-content/60 text-sm mt-1">Gérez votre profil et les préférences.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar Tabs */}
         <div className="md:w-56 shrink-0">
           <ul className="menu bg-base-100 rounded-2xl border border-base-content/5 shadow-sm p-2 gap-1">
             {tabs.map((tab) => (
@@ -58,10 +128,9 @@ export default function SettingsPage() {
           </ul>
         </div>
 
-        {/* Content */}
         <div className="flex-1 card bg-base-100 shadow-sm border border-base-content/5">
           <div className="card-body">
-            {/* Profile Tab */}
+            
             {activeTab === "profile" && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold font-display">Informations personnelles</h2>
@@ -77,34 +146,35 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="label"><span className="label-text font-medium">Prénom</span></label>
-                    <input type="text" className="input input-bordered w-full" defaultValue={user?.firstName} />
+                    <input type="text" className="input input-bordered w-full" value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} />
                   </div>
                   <div>
                     <label className="label"><span className="label-text font-medium">Nom</span></label>
-                    <input type="text" className="input input-bordered w-full" defaultValue={user?.lastName} />
+                    <input type="text" className="input input-bordered w-full" value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="label"><span className="label-text font-medium">Email</span></label>
-                    <input type="email" className="input input-bordered w-full" defaultValue={user?.email} disabled />
+                    <input type="email" className="input input-bordered w-full" value={user?.email || ""} disabled />
                     <label className="label"><span className="label-text-alt text-base-content/40">L'email ne peut pas être modifié</span></label>
                   </div>
                 </div>
-                <button onClick={showSaved} className="btn btn-primary gap-2"><Save size={18} /> Enregistrer</button>
+                <button onClick={handleSaveProfile} disabled={isSavingProfile} className="btn btn-primary gap-2">
+                  {isSavingProfile ? <span className="loading loading-spinner loading-sm"/> : <Save size={18} />} Enregistrer
+                </button>
               </div>
             )}
 
-            {/* Company Tab */}
             {activeTab === "company" && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold font-display">Informations de l'entreprise</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="label"><span className="label-text font-medium">Nom de l'organisation</span></label>
-                    <input type="text" className="input input-bordered w-full" defaultValue={organization?.name} />
+                    <input type="text" className="input input-bordered w-full" value={orgForm.name} onChange={e => setOrgForm({...orgForm, name: e.target.value})} />
                   </div>
                   <div>
                     <label className="label"><span className="label-text font-medium">Devise</span></label>
-                    <select className="select select-bordered w-full" defaultValue={organization?.settings?.currency || "XAF"}>
+                    <select className="select select-bordered w-full" value={orgForm.currency} onChange={e => setOrgForm({...orgForm, currency: e.target.value})}>
                       <option value="XAF">XAF (Franc CFA)</option>
                       <option value="EUR">EUR (Euro)</option>
                       <option value="USD">USD (Dollar)</option>
@@ -112,7 +182,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <label className="label"><span className="label-text font-medium">Fuseau horaire</span></label>
-                    <select className="select select-bordered w-full" defaultValue={organization?.settings?.timezone || "Africa/Douala"}>
+                    <select className="select select-bordered w-full" value={orgForm.timezone} onChange={e => setOrgForm({...orgForm, timezone: e.target.value})}>
                       <option value="Africa/Douala">Africa/Douala</option>
                       <option value="Europe/Paris">Europe/Paris</option>
                       <option value="America/New_York">America/New_York</option>
@@ -136,63 +206,57 @@ export default function SettingsPage() {
                             )}
                           </div>
                         </div>
-                        <button 
-                          onClick={() => setIsSubsModalOpen(true)}
-                          className="btn btn-primary btn-sm gap-2"
-                        >
-                          <CreditCard size={14} /> 
-                          {organization?.plan === "starter" ? "S'abonner maintenant" : "Gérer l'abonnement"}
+                        <button onClick={() => setIsSubsModalOpen(true)} className="btn btn-primary btn-sm gap-2">
+                          <CreditCard size={14} /> {organization?.plan === "starter" ? "S'abonner maintenant" : "Gérer l'abonnement"}
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
-                <button onClick={showSaved} className="btn btn-primary gap-2"><Save size={18} /> Enregistrer</button>
+                <button onClick={handleSaveOrg} disabled={isSavingOrg} className="btn btn-primary gap-2">
+                  {isSavingOrg ? <span className="loading loading-spinner loading-sm"/> : <Save size={18} />} Enregistrer
+                </button>
               </div>
             )}
 
-            {/* Security Tab */}
             {activeTab === "security" && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold font-display">Sécurité du compte</h2>
+                {passwordError && (
+                  <div className="alert alert-error text-sm py-2">
+                    <AlertCircle size={16} /> <span>{passwordError}</span>
+                  </div>
+                )}
                 <div className="space-y-4">
                   <div>
                     <label className="label"><span className="label-text font-medium">Mot de passe actuel</span></label>
-                    <input type="password" className="input input-bordered w-full" placeholder="••••••••" />
+                    <input type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} className="input input-bordered w-full" placeholder="••••••••" />
                   </div>
                   <div>
                     <label className="label"><span className="label-text font-medium">Nouveau mot de passe</span></label>
-                    <input type="password" className="input input-bordered w-full" placeholder="••••••••" />
+                    <input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="input input-bordered w-full" placeholder="••••••••" />
                   </div>
                   <div>
                     <label className="label"><span className="label-text font-medium">Confirmer le mot de passe</span></label>
-                    <input type="password" className="input input-bordered w-full" placeholder="••••••••" />
+                    <input type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} className="input input-bordered w-full" placeholder="••••••••" />
                   </div>
                 </div>
-                <button onClick={showSaved} className="btn btn-primary gap-2"><Save size={18} /> Mettre à jour</button>
+                <button onClick={handleSavePassword} disabled={isSavingPassword || !passwordForm.currentPassword || !passwordForm.newPassword} className="btn btn-primary gap-2">
+                  {isSavingPassword ? <span className="loading loading-spinner loading-sm"/> : <Save size={18} />} Mettre à jour
+                </button>
               </div>
             )}
 
-            {/* Appearance Tab */}
             {activeTab === "appearance" && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold font-display">Apparence</h2>
-                <p className="text-base-content/60">Personnalisez l'interface selon vos préférences</p>
-
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => { if (theme === "dark") toggleTheme(); }}
-                    className={`card p-6 text-center cursor-pointer border-2 transition-all ${theme === "light" ? "border-primary bg-primary/5" : "border-base-content/10 hover:border-base-content/20"}`}
-                  >
+                  <button onClick={() => { if (theme === "dark") toggleTheme(); }} className={`card p-6 border-2 transition-all ${theme === "light" ? "border-primary bg-primary/5" : "border-base-content/10 hover:border-base-content/20"}`}>
                     <Sun size={32} className="mx-auto mb-3 text-warning" />
                     <p className="font-bold">Mode Clair</p>
                     {theme === "light" && <span className="badge badge-primary badge-sm mt-2 mx-auto">Actif</span>}
                   </button>
-
-                  <button
-                    onClick={() => { if (theme === "light") toggleTheme(); }}
-                    className={`card p-6 text-center cursor-pointer border-2 transition-all ${theme === "dark" ? "border-primary bg-primary/5" : "border-base-content/10 hover:border-base-content/20"}`}
-                  >
+                  <button onClick={() => { if (theme === "light") toggleTheme(); }} className={`card p-6 border-2 transition-all ${theme === "dark" ? "border-primary bg-primary/5" : "border-base-content/10 hover:border-base-content/20"}`}>
                     <Moon size={32} className="mx-auto mb-3 text-info" />
                     <p className="font-bold">Mode Sombre</p>
                     {theme === "dark" && <span className="badge badge-primary badge-sm mt-2 mx-auto">Actif</span>}
@@ -201,23 +265,17 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* Saved Toast */}
             {saved && (
               <div className="toast toast-end toast-bottom z-50">
-                <div className="alert alert-success shadow-lg">
-                  <Check size={18} />
-                  <span className="font-medium">Modifications sauvegardées</span>
+                <div className="alert alert-success shadow-sm">
+                  <Check size={18} /> <span className="font-medium text-white">Modifications sauvegardées</span>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      <SubscriptionModal 
-        isOpen={isSubsModalOpen} 
-        onClose={() => setIsSubsModalOpen(false)} 
-      />
+      <SubscriptionModal isOpen={isSubsModalOpen} onClose={() => setIsSubsModalOpen(false)} />
     </div>
   );
 }

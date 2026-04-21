@@ -5,6 +5,9 @@ import mongoose from "mongoose";
 import { AppError } from "../utils/appError.js";
 import bcrypt from "bcryptjs";
 import { generateTokens, verifyRefreshToken } from "../utils/jwt.js";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerService = async ({
   firstName,
@@ -128,4 +131,109 @@ export const refreshTokenService = async (token) => {
   await user.save();
 
   return { accessToken, refreshToken: newRefreshToken };
+};
+
+export const updateProfileService = async (userId, updateData) => {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { firstName: updateData.firstName, lastName: updateData.lastName },
+    { returnDocument: "after", runValidators: true }
+  );
+  if (!user) throw new AppError("Utilisateur introuvable", 404);
+  return user;
+};
+
+export const updatePasswordService = async (userId, { currentPassword, newPassword }) => {
+  const user = await User.findById(userId).select("+password");
+  if (!user) throw new AppError("Utilisateur introuvable", 404);
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) throw new AppError("L'ancien mot de passe est incorrect", 401);
+
+  user.password = newPassword;
+  await user.save(); // L'événement pre-save va hasher le mot de passe
+  return true;
+};
+
+export const updateOrganizationService = async (orgId, updateData) => {
+  // Extraction sécurisée
+  const safeUpdates = {};
+  if (updateData.name) safeUpdates.name = updateData.name;
+  
+  // Utilisation de notation pointée pour ne mettre à jour que certains paramètres
+  const dotUpdates = { ...safeUpdates };
+  if (updateData.currency) dotUpdates["settings.currency"] = updateData.currency;
+  if (updateData.timezone) dotUpdates["settings.timezone"] = updateData.timezone;
+
+  if (Object.keys(dotUpdates).length === 0) return null;
+
+  const org = await Organization.findByIdAndUpdate(
+    orgId,
+    { $set: dotUpdates },
+    { returnDocument: "after", runValidators: true }
+  );
+  if (!org) throw new AppError("Organisation introuvable", 404);
+  return org;
+};
+
+export const googleAuthService = async (idToken) => {
+  // 1. Verifier le token via google-auth-library
+  const ticket = await googleClient.verifyIdToken({
+    idToken: idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  const { email, given_name, family_name, sub } = payload;
+  
+  if (!email) throw new AppError("Email manquant dans le profil Google", 400);
+
+  // 2. Trouver l'utilisateur
+  let user = await User.findOne({ email });
+
+  if (user) {
+    // S'il existe mais n'a pas son googleId attaché (fusion)
+    if (!user.googleId) {
+      user.googleId = sub;
+      await user.save();
+    }
+  } else {
+    // Nouvel utilisateur
+    const orgName = `Organisation de ${given_name}`;
+    const organization = await Organization.create({
+      name: orgName,
+      slug: `${orgName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+    });
+
+    user = await User.create({
+      firstName: given_name,
+      lastName: family_name,
+      email,
+      googleId: sub,
+      organizationId: organization._id,
+      role: "owner"
+    });
+    organization.owner = user._id;
+    await organization.save();
+  }
+
+  // 3. Génération session standard JWT
+  const { accessToken, refreshToken } = generateTokens(user);
+  user.refreshToken = await bcrypt.hash(refreshToken, 10);
+  user.lastLogin = new Date();
+  await user.save();
+
+  // 4. Formater les données de retour
+  let organizationData = null;
+  if (user.organizationId) {
+    const orgDoc = await Organization.findById(user.organizationId);
+    if (orgDoc) {
+      organizationData = orgDoc.toJSON();
+      const subscription = await Subscription.findOne({ organizationId: orgDoc._id });
+      if (subscription) {
+        organizationData.currentPeriodEnd = subscription.currentPeriodEnd;
+      }
+    }
+  }
+
+  return { user, organization: organizationData, accessToken, refreshToken };
 };
