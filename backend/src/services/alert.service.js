@@ -150,6 +150,7 @@ export const createLowStockAlert = async (organizationId, productId) => {
     organizationId,
     product: productId,
     type: "low_stock",
+    message: `Le stock pour ${product.name} est bas (${product.currentStock} restant(s)).`,
     isRead: false,
   });
 
@@ -188,6 +189,7 @@ export const createOutOfStockAlert = async (organizationId, productId) => {
     organizationId,
     product: productId,
     type: "out_of_stock",
+    message: `Le produit ${product.name} est en rupture de stock.`,
     isRead: false,
   });
 

@@ -42,7 +42,7 @@ const saleSchema = new mongoose.Schema(
 saleSchema.index({ organizationId: 1, createdAt: -1 });
 
 // Auto-générer le numéro de vente
-saleSchema.pre("save", async function (next) {
+saleSchema.pre("save", async function () {
   if (this.isNew) {
     const count = await mongoose
       .model("Sale")
@@ -50,7 +50,6 @@ saleSchema.pre("save", async function (next) {
     const year = new Date().getFullYear();
     this.saleNumber = `SW-${year}-${String(count + 1).padStart(4, "0")}`;
   }
-  next();
 });
 
 export default mongoose.model("Sale", saleSchema);

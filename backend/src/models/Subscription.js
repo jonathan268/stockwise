@@ -42,6 +42,18 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Note: Nettoyer l'ancien index s'il existe (pour éviter l'erreur E11000)
+subscriptionSchema.post('init', async function() {
+  try {
+    await mongoose.connection.collections['subscriptions'].dropIndex('organization_1');
+  } catch (err) {
+    // Index non trouvé, silencieuse l'erreur
+  }
+});
 
+const Subscription = mongoose.model("Subscription", subscriptionSchema);
 
-export default mongoose.model("Subscription", subscriptionSchema);
+// On essaie de supprimer l'index au chargement du modèle aussi, pour être sûr
+Subscription.collection.dropIndex('organization_1').catch(() => {});
+
+export default Subscription;

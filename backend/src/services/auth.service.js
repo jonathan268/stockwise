@@ -85,18 +85,19 @@ export const loginService = async ({ email, password }) => {
   await user.save();
 
   // 4. Récupérer l'organisation et sa souscription
-  let organization = null;
+  let organizationData = null;
   if (user.organizationId) {
-    organization = await Organization.findById(user.organizationId).lean();
-    if (organization) {
-      const subscription = await Subscription.findOne({ organizationId: organization._id });
+    const orgDoc = await Organization.findById(user.organizationId);
+    if (orgDoc) {
+      organizationData = orgDoc.toJSON(); // toJSON() inclut les propriétés virtuelles (comme hasProAccess)
+      const subscription = await Subscription.findOne({ organizationId: orgDoc._id });
       if (subscription) {
-        organization.currentPeriodEnd = subscription.currentPeriodEnd;
+        organizationData.currentPeriodEnd = subscription.currentPeriodEnd;
       }
     }
   }
 
-  return { user, organization, accessToken, refreshToken };
+  return { user, organization: organizationData, accessToken, refreshToken };
 };
 
 export const logoutService = async (user) => {
