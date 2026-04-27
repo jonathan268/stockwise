@@ -65,14 +65,14 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         onClick={onClose}
         className="absolute inset-0 bg-base-300/60 backdrop-blur-md"
       />
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="relative bg-base-100 rounded-3xl shadow-2xl border border-base-content/10 w-full max-w-5xl overflow-hidden"
       >
         {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-6 right-6 btn btn-ghost btn-circle btn-sm z-10"
         >
@@ -89,7 +89,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-6">
               {plans.map((p) => (
-                <div 
+                <div
                   key={p.id}
                   className={`card border-2 p-6 transition-all duration-300 relative flex-1 min-w-70 max-w-[320px] ${p.color} ${p.popular ? "shadow-xl shadow-primary/10" : "border-base-content/5"}`}
                 >
@@ -98,7 +98,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       <Zap size={12} /> Populaire
                     </div>
                   )}
-                  
+
                   <div className="mb-6">
                     <p className="text-sm font-bold uppercase tracking-wider text-base-content/50 mb-1">{p.name}</p>
                     <div className="flex items-baseline gap-1">
@@ -117,7 +117,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     ))}
                   </ul>
 
-                  <button 
+                  <button
                     disabled={p.disabled || organization?.plan === p.id || subscribeMutation.isPending}
                     onClick={() => p.id === "pro" ? subscribeMutation.mutate("pro") : null}
                     className={`btn btn-sm w-full gap-2 ${p.popular ? "btn-primary" : "btn-outline border-base-content/20"}`}
@@ -138,32 +138,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
           {/* Right Panel: Benefits/Highlight */}
           <div className="lg:w-[300px] bg-primary text-primary-content p-8 lg:p-10 flex flex-col justify-center shrink-0">
-            <h3 className="text-2xl font-black font-display mb-8">Pourquoi passer au plan Pro ?</h3>
-            
-            <div className="space-y-8">
-              <div className="flex gap-4">
-                <div className="bg-primary-content/20 p-2 rounded-xl shrink-0 h-fit"><Sparkles size={18} /></div>
-                <div>
-                  <p className="font-bold text-sm">Analyses IA Illimitées</p>
-                  <p className="text-xs opacity-75 mt-1">Prévisions de demande ultra-précises basées sur vos ventes.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="bg-primary-content/20 p-2 rounded-xl shrink-0 h-fit"><Zap size={18} /></div>
-                <div>
-                  <p className="font-bold text-sm">Réactivité maximale</p>
-                  <p className="text-xs opacity-75 mt-1">Alertes temps réel pour éviter toute rupture de stock.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="bg-primary-content/20 p-2 rounded-xl shrink-0 h-fit"><ShieldCheck size={18} /></div>
-                <div>
-                  <p className="font-bold text-sm">Sécurité entreprise</p>
-                  <p className="text-xs opacity-75 mt-1">Protection avancée de vos données commerciales.</p>
-                </div>
-              </div>
-            </div>
-
             <div className="mt-10 p-5 rounded-2xl bg-primary-content/10 border border-primary-content/20">
               <p className="text-[10px] uppercase font-black opacity-60 mb-2">Sécurisé par NotchPay</p>
               <p className="text-xs italic">"La confiance pour vos transactions."</p>
