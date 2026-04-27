@@ -2,8 +2,18 @@ import Product from "../models/Product.js";
 import Sale from "../models/Sale.js";
 import Alert from "../models/Alert.js";
 import mongoose from "mongoose";
+import NodeCache from "node-cache";
+
+const cache = new NodeCache({ stdTTL: 300 }); // 5 minutes TTL
 
 export const getDashboardSummary = async (organizationId) => {
+  const cacheKey = `dashboard_${organizationId}`;
+  const cachedData = cache.get(cacheKey);
+  
+  if (cachedData) {
+    return cachedData;
+  }
+
   const orgId = new mongoose.Types.ObjectId(organizationId);
   const today = new Date();
   const startOfDay = new Date(today.setHours(0, 0, 0, 0));
@@ -19,7 +29,8 @@ export const getDashboardSummary = async (organizationId) => {
     salesThisWeek,
     salesThisMonth,
     activeAlerts,
-    recentAlerts
+    recentAlerts,
+    recentSales
   ] = await Promise.all([
     Product.countDocuments({ organizationId: orgId, isDeleted: false }),
     Product.countDocuments({ organizationId: orgId, isDeleted: false, $expr: { $lte: ["$currentStock", "$minimumStock"] }, currentStock: { $gt: 0 } }),
@@ -41,10 +52,11 @@ export const getDashboardSummary = async (organizationId) => {
       { $group: { _id: null, revenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
     ]),
     Alert.countDocuments({ organizationId: orgId, isRead: false }),
-    Alert.find({ organizationId: orgId, isRead: false }).populate("product", "name currentStock minimumStock").sort({ createdAt: -1 }).limit(5)
+    Alert.find({ organizationId: orgId, isRead: false }).populate("product", "name currentStock minimumStock").sort({ createdAt: -1 }).limit(5),
+    Sale.find({ organizationId: orgId }).populate("items.product", "name").populate("soldBy", "firstName lastName").sort({ createdAt: -1 }).limit(5)
   ]);
 
-  return {
+  const result = {
     totalProducts,
     lowStockCount,
     outOfStockCount,
@@ -56,6 +68,10 @@ export const getDashboardSummary = async (organizationId) => {
     monthlySalesAmount: salesThisMonth[0]?.revenue || 0,
     monthlySalesCount: salesThisMonth[0]?.count || 0,
     activeAlerts,
-    recentAlerts
+    recentAlerts,
+    recentSales: { data: recentSales }
   };
+
+  cache.set(cacheKey, result);
+  return result;
 };

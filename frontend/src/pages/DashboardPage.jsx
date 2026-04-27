@@ -49,29 +49,19 @@ const KPICard = ({ icon: Icon, label, value, sub, color, index }) => (
 export default function DashboardPage() {
   const { user } = useAuthStore();
 
-  const { data: summary, isLoading } = useQuery({
-    queryKey: ["dashboard-summary"],
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ["dashboard-aggregate"],
     queryFn: async () => {
       const res = await axiosInstance.get("/dashboard/summary");
       return res.data.data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10,  // 10 minutes
   });
 
-  const { data: recentAlerts } = useQuery({
-    queryKey: ["recent-alerts"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/alerts", { params: { limit: 5, isRead: false } });
-      return res.data.data;
-    },
-  });
-
-  const { data: recentSales } = useQuery({
-    queryKey: ["recent-sales"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/sales", { params: { limit: 5 } });
-      return res.data;
-    },
-  });
+  const summary = dashboardData;
+  const recentAlerts = dashboardData?.recentAlerts;
+  const recentSales = dashboardData?.recentSales;
 
   const fmt = (n) => {
     if (n == null) return "0";

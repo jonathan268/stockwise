@@ -13,11 +13,13 @@ export default function AlertsPage() {
   const [filters, setFilters] = useState({ type: "", isRead: false, page: 1, limit: 20 });
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["alerts", filters],
+    queryKey: ["alerts", filters.type, filters.isRead, filters.page, filters.limit],
     queryFn: async () => {
       const res = await axiosInstance.get("/alerts", { params: filters });
       return res.data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const { data: stats } = useQuery({
@@ -26,6 +28,8 @@ export default function AlertsPage() {
       const res = await axiosInstance.get("/alerts/stats");
       return res.data.data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const alerts = data?.data || [];

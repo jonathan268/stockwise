@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, Package, Search, Edit3, Trash2, AlertCircle,
+import { Plus, Package, Search, Edit3, Trash2, AlertCircle,
   ChevronLeft, ChevronRight, X, Save, BarChart3,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
+import { useDebounce } from "use-debounce";
 
 const StockBadge = ({ current, min }) => {
   if (current === 0) return <span className="badge badge-error badge-sm font-bold">Rupture</span>;
@@ -23,6 +23,7 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [form, setForm] = useState(emptyProduct);
@@ -34,13 +35,15 @@ export default function ProductsPage() {
 
   // Fetch products
   const { data, isLoading } = useQuery({
-    queryKey: ["products", page, search],
+    queryKey: ["products", page, debouncedSearch],
     queryFn: async () => {
       const { data } = await axiosInstance.get("/products", {
-        params: { page, limit: 10, search },
+        params: { page, limit: 10, search: debouncedSearch },
       });
       return data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   // Fetch categories
@@ -64,8 +67,27 @@ export default function ProductsPage() {
       }
       return axiosInstance.post("/products", productData);
     },
-    onSuccess: () => {
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+      const previousProducts = queryClient.getQueryData(["products", page, debouncedSearch]);
+      
+      if (editingProduct && previousProducts) {
+        queryClient.setQueryData(["products", page, debouncedSearch], {
+          ...previousProducts,
+          data: previousProducts.data.map((p) => p._id === editingProduct._id ? { ...p, ...newData } : p)
+        });
+      }
+      return { previousProducts };
+    },
+    onError: (err, newData, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData(["products", page, debouncedSearch], context.previousProducts);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onSuccess: () => {
       closeModal();
     },
   });
@@ -90,8 +112,28 @@ export default function ProductsPage() {
   };
   const deleteMutation = useMutation({
     mutationFn: (id) => axiosInstance.delete(`/products/${id}`),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["products"] });
+      const previousProducts = queryClient.getQueryData(["products", page, debouncedSearch]);
+      
+      if (previousProducts) {
+        queryClient.setQueryData(["products", page, debouncedSearch], {
+          ...previousProducts,
+          data: previousProducts.data.filter((p) => p._id !== id)
+        });
+      }
+      return { previousProducts };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData(["products", page, debouncedSearch], context.previousProducts);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      setDeleteConfirm(null);
+    },
+    onSuccess: () => {
       setDeleteConfirm(null);
     },
   });

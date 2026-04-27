@@ -41,14 +41,13 @@ const saleSchema = new mongoose.Schema(
 
 saleSchema.index({ organizationId: 1, createdAt: -1 });
 
-// Auto-générer le numéro de vente
+// Auto-générer le numéro de vente avec un composant aléatoire
 saleSchema.pre("save", async function () {
   if (this.isNew) {
-    const count = await mongoose
-      .model("Sale")
-      .countDocuments({ organizationId: this.organizationId });
     const year = new Date().getFullYear();
-    this.saleNumber = `SW-${year}-${String(count + 1).padStart(4, "0")}`;
+    // Génère une chaîne aléatoire de 6 caractères alphanumériques
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.saleNumber = `SW-${year}-${randomPart}`;
   }
 });
 

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import SaleForm from "../components/SaleForm";
+import { useDebounce } from "use-debounce";
 
 const paymentBadge = {
   cash: "badge-success",
@@ -27,13 +28,17 @@ export default function SalesPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", paymentMethod: "", startDate: "", endDate: "" });
   const [cancelModal, setCancelModal] = useState({ open: false, saleId: null, reason: "" });
+  const [debouncedSearch] = useDebounce(filters.search, 500);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["sales", page, filters],
+    queryKey: ["sales", page, filters.paymentMethod, filters.startDate, filters.endDate, debouncedSearch],
     queryFn: async () => {
-      const res = await axiosInstance.get("/sales", { params: { page, limit: 10, ...filters } });
+      const activeFilters = { ...filters, search: debouncedSearch };
+      const res = await axiosInstance.get("/sales", { params: { page, limit: 10, ...activeFilters } });
       return res.data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const { data: stats } = useQuery({

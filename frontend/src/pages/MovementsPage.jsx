@@ -30,6 +30,8 @@ export default function MovementsPage() {
       });
       return data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const { data: productsData } = useQuery({
@@ -38,6 +40,8 @@ export default function MovementsPage() {
       const { data } = await axiosInstance.get("/products", { params: { limit: 200 } });
       return data.data;
     },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const movements = data?.data || [];

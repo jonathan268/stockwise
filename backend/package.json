@@ -26,6 +26,7 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^9.4.1",
     "morgan": "^1.10.0",
+    "node-cache": "^5.1.2",
     "node-cron": "^4.0.1",
     "nodemailer": "^8.0.5",
     "notchpay.js": "^1.0.0",
