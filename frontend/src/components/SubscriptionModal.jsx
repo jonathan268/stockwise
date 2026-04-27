@@ -135,14 +135,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               ))}
             </div>
           </div>
-
-          {/* Right Panel: Benefits/Highlight */}
-          <div className="lg:w-[300px] bg-primary text-primary-content p-8 lg:p-10 flex flex-col justify-center shrink-0">
-            <div className="mt-10 p-5 rounded-2xl bg-primary-content/10 border border-primary-content/20">
-              <p className="text-[10px] uppercase font-black opacity-60 mb-2">Sécurisé par NotchPay</p>
-              <p className="text-xs italic">"La confiance pour vos transactions."</p>
-            </div>
-          </div>
         </div>
       </motion.div>
     </div>

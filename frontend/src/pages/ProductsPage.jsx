@@ -86,6 +86,7 @@ export default function ProductsPage() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-aggregate"] });
     },
     onSuccess: () => {
       closeModal();
@@ -131,6 +132,7 @@ export default function ProductsPage() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-aggregate"] });
       setDeleteConfirm(null);
     },
     onSuccess: () => {

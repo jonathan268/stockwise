@@ -4,7 +4,7 @@ import Alert from "../models/Alert.js";
 import mongoose from "mongoose";
 import NodeCache from "node-cache";
 
-const cache = new NodeCache({ stdTTL: 300 }); // 5 minutes TTL
+const cache = new NodeCache({ stdTTL: 300, useClones: false }); // 5 minutes TTL
 
 export const getDashboardSummary = async (organizationId) => {
   const cacheKey = `dashboard_${organizationId}`;
@@ -52,8 +52,8 @@ export const getDashboardSummary = async (organizationId) => {
       { $group: { _id: null, revenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
     ]),
     Alert.countDocuments({ organizationId: orgId, isRead: false }),
-    Alert.find({ organizationId: orgId, isRead: false }).populate("product", "name currentStock minimumStock").sort({ createdAt: -1 }).limit(5),
-    Sale.find({ organizationId: orgId }).populate("items.product", "name").populate("soldBy", "firstName lastName").sort({ createdAt: -1 }).limit(5)
+    Alert.find({ organizationId: orgId, isRead: false }).populate("product", "name currentStock minimumStock").sort({ createdAt: -1 }).limit(5).lean(),
+    Sale.find({ organizationId: orgId }).populate("items.product", "name").populate("soldBy", "firstName lastName").sort({ createdAt: -1 }).limit(5).lean()
   ]);
 
   const result = {
@@ -74,4 +74,9 @@ export const getDashboardSummary = async (organizationId) => {
 
   cache.set(cacheKey, result);
   return result;
+};
+
+// Export to clear cache when a product, sale, or alert is modified
+export const clearDashboardCache = (organizationId) => {
+  cache.del(`dashboard_${organizationId}`);
 };
