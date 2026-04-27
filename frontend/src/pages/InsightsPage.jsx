@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Sparkles,
   RefreshCw,
@@ -185,9 +186,12 @@ export default function InsightsPage() {
                       <span className="text-xs font-medium text-base-content/40 flex items-center gap-1">
                         <Lightbulb size={12} /> {config.label}
                       </span>
-                      <button className="btn btn-ghost btn-sm gap-2 text-primary font-bold">
-                        Détails <ChevronRight size={16} />
-                      </button>
+                      <Link 
+                        to="/products"
+                        className="btn btn-ghost btn-sm gap-2 text-primary font-bold"
+                      >
+                        Voir le stock <ChevronRight size={16} />
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
