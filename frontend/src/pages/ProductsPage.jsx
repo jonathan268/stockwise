@@ -18,6 +18,7 @@ const emptyProduct = {
   name: "", description: "",
   costPrice: "", sellingPrice: "", currentStock: "",
   minimumStock: "5", unit: "pièce", category: "",
+  preferredSupplier: "",
 };
 
 export default function ProductsPage() {
@@ -59,6 +60,15 @@ export default function ProductsPage() {
   const products = data?.data || [];
   const meta = data?.meta || { total: 0, totalPages: 1 };
   const categories = categoriesData || [];
+  const suppliers = suppliersData || [];
+  const { data: suppliersData } = useQuery({
+    queryKey: ["suppliers-list"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/suppliers", { params: { limit: 200 } });
+      return data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   // Create / Update mutation
   const saveMutation = useMutation({
@@ -158,6 +168,7 @@ export default function ProductsPage() {
       minimumStock: product.minimumStock || "5",
       unit: product.unit || "pièce",
       category: product.category?._id || product.category || "",
+      preferredSupplier: product.preferredSupplier?._id || product.preferredSupplier || "",
     });
     setModalOpen(true);
   };
@@ -178,6 +189,7 @@ export default function ProductsPage() {
       sellingPrice: Number(form.sellingPrice),
       currentStock: Number(form.currentStock),
       minimumStock: Number(form.minimumStock),
+      preferredSupplier: form.preferredSupplier || undefined,
     };
     if (!payload.category) delete payload.category;
     saveMutation.mutate(payload);
@@ -390,6 +402,14 @@ export default function ProductsPage() {
                       <option value="mètre">Mètre</option>
                       <option value="sac">Sac</option>
                       <option value="carton">Carton</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label"><span className="label-text font-medium">Fournisseur préféré</span></label>
+                    <select className="select select-bordered w-full"
+                      value={form.preferredSupplier} onChange={(e) => setForm({ ...form, preferredSupplier: e.target.value })}>
+                      <option value="">Aucun</option>
+                      {suppliers.filter((s) => s.isActive !== false).map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
                   </div>
                 </div>

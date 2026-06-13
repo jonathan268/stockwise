@@ -13,6 +13,7 @@ const createProductSchema = Joi.object({
   currentStock: Joi.number().min(0).optional(),
   minimumStock: Joi.number().min(0).optional(),
   unit: Joi.string().optional(),
+  preferredSupplier: Joi.string().optional().allow(""),
 });
 
 const updateProductSchema = Joi.object({
@@ -25,6 +26,7 @@ const updateProductSchema = Joi.object({
   costPrice: Joi.number().min(0).optional(),
   minimumStock: Joi.number().min(0).optional(),
   unit: Joi.string().optional(),
+  preferredSupplier: Joi.string().optional().allow(""),
 });
 
 const adjustStockSchema = Joi.object({

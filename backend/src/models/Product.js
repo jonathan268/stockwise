@@ -33,6 +33,12 @@ const productSchema = new mongoose.Schema(
     // IA metrics
     salesVelocity: { type: Number, default: 0 },
     lastSoldAt: { type: Date },
+
+    // Supplier
+    preferredSupplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supplier",
+    },
   },
   { timestamps: true },
 );

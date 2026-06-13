@@ -11,7 +11,7 @@ import { runInTransaction } from "../utils/transactionHelper.js";
  */
 export const createMovement = async (organizationId, movementData, userId) => {
   return await runInTransaction(async ({ opt }) => {
-    const { productId, type, quantity, reason, reference, saleId } = movementData;
+    const { productId, type, quantity, reason, reference, saleId, supplier } = movementData;
 
     // 1. Récupérer le produit (avec lock de session si possible)
     const product = await Product.findOne({
@@ -49,7 +49,8 @@ export const createMovement = async (organizationId, movementData, userId) => {
         reason,
         reference,
         createdBy: userId,
-        saleId: saleId || null
+        saleId: saleId || null,
+        supplier: (type === "in" || type === "return") ? supplier || null : null
       }],
       opt
     );
@@ -80,6 +81,7 @@ export const getMovements = async (organizationId, filters = {}) => {
     StockMovement.find(query)
       .populate("product", "name sku")
       .populate("createdBy", "firstName lastName")
+      .populate("supplier", "name")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit)),

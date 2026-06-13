@@ -24,6 +24,7 @@ import {
   Zap,
   Shield,
   MessageSquare,
+  Building2,
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
 import FeedbackModal from "./FeedbackModal";
@@ -33,6 +34,7 @@ const navItems = [
   { label: "Analyses IA", path: "/insights", icon: Sparkles },
   { label: "Produits", path: "/products", icon: Package },
   { label: "Ventes", path: "/sales", icon: ShoppingCart },
+  { label: "Fournisseurs", path: "/suppliers", icon: Building2 },
   { label: "Mouvements", path: "/movements", icon: ArrowLeftRight },
   { label: "Alertes", path: "/alerts", icon: Bell },
   { label: "Paramètres", path: "/settings", icon: Settings },

@@ -23,7 +23,7 @@ export default function MovementsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [subsModal, setSubsModal] = useState(false);
-  const [form, setForm] = useState({ productId: "", type: "in", quantity: "", reason: "" });
+  const [form, setForm] = useState({ productId: "", type: "in", quantity: "", reason: "", supplier: "" });
   const { organization } = useAuthStore();
 
   const { data, isLoading } = useQuery({
@@ -52,13 +52,24 @@ export default function MovementsPage() {
   const meta = data?.meta || { total: 0, totalPages: 1 };
   const products = productsData || [];
 
+  // Fetch suppliers
+  const { data: suppliersData } = useQuery({
+    queryKey: ["suppliers-list"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/suppliers", { params: { limit: 200, active: true } });
+      return data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+  const suppliers = suppliersData || [];
+
   const createMutation = useMutation({
     mutationFn: (payload) => axiosInstance.post("/movements", payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["movements"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setModalOpen(false);
-      setForm({ productId: "", type: "in", quantity: "", reason: "" });
+      setForm({ productId: "", type: "in", quantity: "", reason: "", supplier: "" });
     },
   });
 
@@ -117,6 +128,7 @@ export default function MovementsPage() {
               <tr className="bg-base-200/50">
                 <th>Type</th>
                 <th>Produit</th>
+                <th>Fournisseur</th>
                 <th>Quantité</th>
                 <th>Avant</th>
                 <th>Après</th>
@@ -127,7 +139,7 @@ export default function MovementsPage() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan="8" className="text-center py-12"><span className="loading loading-spinner loading-lg text-primary" /></td></tr>
+                <tr><td colSpan="9" className="text-center py-12"><span className="loading loading-spinner loading-lg text-primary" /></td></tr>
               ) : movements.length > 0 ? (
                 movements.map((m, idx) => {
                   const config = typeConfig[m.type] || typeConfig.adjustment;
@@ -149,6 +161,7 @@ export default function MovementsPage() {
                         </div>
                       </td>
                       <td className="font-medium">{m.product?.name || "—"}</td>
+                      <td className="text-sm text-base-content/60">{m.supplier?.name || "—"}</td>
                       <td className="font-mono font-bold">{m.quantity}</td>
                       <td className="font-mono text-base-content/50">{m.quantityBefore}</td>
                       <td className="font-mono font-bold">{m.quantityAfter}</td>
@@ -162,7 +175,7 @@ export default function MovementsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-16">
+                  <td colSpan="9" className="text-center py-16">
                     <ArrowLeftRight className="mx-auto mb-3 opacity-30" size={40} />
                     <p className="text-base-content/50 font-medium">Aucun mouvement enregistré</p>
                   </td>
@@ -217,6 +230,16 @@ export default function MovementsPage() {
                     value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
                 </div>
               </div>
+              {(form.type === "in" || form.type === "return") && (
+                <div>
+                  <label className="label"><span className="label-text font-medium">Fournisseur</span></label>
+                  <select className="select select-bordered w-full"
+                    value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })}>
+                    <option value="">Sélectionner un fournisseur</option>
+                    {suppliers.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="label"><span className="label-text font-medium">Raison</span></label>
                 <input type="text" className="input input-bordered w-full" placeholder="Réapprovisionnement, inventaire..."

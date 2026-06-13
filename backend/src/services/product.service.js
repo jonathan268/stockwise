@@ -17,6 +17,7 @@ export const getProducts = async (organizationId, filters = {}) => {
   const [products, total] = await Promise.all([
     Product.find(query)
       .populate("category", "name color icon")
+      .populate("preferredSupplier", "name")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit),

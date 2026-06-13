@@ -10,6 +10,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
+import SuppliersPage from "./pages/SuppliersPage";
 import SalesPage from "./pages/SalesPage";
 import MovementsPage from "./pages/MovementsPage";
 import AlertsPage from "./pages/AlertsPage";
@@ -50,6 +51,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <ProductsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/suppliers"
+        element={
+          <PrivateRoute>
+            <SuppliersPage />
           </PrivateRoute>
         }
       />

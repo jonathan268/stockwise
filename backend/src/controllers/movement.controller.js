@@ -9,6 +9,7 @@ const createMovementSchema = Joi.object({
   reason: Joi.string().trim().max(500).optional().allow(""),
   reference: Joi.string().optional().allow(""),
   saleId: Joi.string().optional().allow(""),
+  supplier: Joi.string().optional().allow(""),
 });
 
 const validate = (schema, data) => {

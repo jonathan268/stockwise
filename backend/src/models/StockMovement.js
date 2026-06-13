@@ -24,6 +24,7 @@ const stockMovementSchema = new mongoose.Schema(
     reference: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     saleId: { type: mongoose.Schema.Types.ObjectId, ref: "Sale" },
+    supplier: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier" },
   },
   { timestamps: true },
 );
