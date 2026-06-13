@@ -75,17 +75,16 @@ app.use(helmet({
 }));
 
 const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
-const allowedOrigins = [clientUrl, "http://localhost:5173", "https://stockwise-eight.vercel.app"];
 
-app.use(cors({ 
+app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (!origin) return callback(null, true);
+    if (origin === clientUrl || origin === "http://localhost:5173" || origin.endsWith("vercel.app") || origin.endsWith("render.com")) {
+      return callback(null, true);
     }
-  }, 
-  credentials: true 
+    callback(null, origin);
+  },
+  credentials: true,
 }));
 app.use(compression());
 app.use(
