@@ -79,7 +79,12 @@ export const adjustStock = async (
     if (!product) throw new AppError("Produit introuvable", 404);
 
     const quantityBefore = product.currentStock;
-    const quantityAfter = adjustData.quantity;
+    const delta = adjustData.delta;
+    const quantityAfter = quantityBefore + delta;
+
+    if (quantityAfter < 0) {
+      throw new AppError("Le stock ne peut pas être négatif", 400);
+    }
 
     // Créer le mouvement
     await StockMovement.create(
@@ -88,7 +93,7 @@ export const adjustStock = async (
           organizationId,
           product: productId,
           type: "adjustment",
-          quantity: Math.abs(quantityAfter - quantityBefore),
+          quantity: Math.abs(delta),
           quantityBefore,
           quantityAfter,
           reason: adjustData.reason,

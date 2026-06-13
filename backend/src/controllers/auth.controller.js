@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as authService from "../services/auth.service.js";
 import Joi from "joi";
 
@@ -48,15 +49,6 @@ const updateOrganizationSchema = Joi.object({
   timezone: Joi.string().optional(),
   lowStockAlertEmail: Joi.boolean().optional(),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const register = asyncHandler(async (req, res) => {
   const data = validate(registerSchema, req.body);

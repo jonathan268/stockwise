@@ -1,5 +1,9 @@
 import jwt from "jsonwebtoken";
 
+const getRefreshSecret = () => {
+  return process.env.JWT_REFRESH_SECRET || (process.env.JWT_SECRET + "_refresh_legacy");
+};
+
 export const generateTokens = (user) => {
   const payload = {
     userId: user._id,
@@ -11,9 +15,10 @@ export const generateTokens = (user) => {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+  const refreshSecret = getRefreshSecret();
   const refreshToken = jwt.sign(
     { userId: user._id },
-    process.env.JWT_SECRET + "_refresh",
+    refreshSecret,
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN },
   );
 
@@ -25,5 +30,5 @@ export const verifyToken = (token) => {
 };
 
 export const verifyRefreshToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET + "_refresh");
+  return jwt.verify(token, getRefreshSecret());
 };

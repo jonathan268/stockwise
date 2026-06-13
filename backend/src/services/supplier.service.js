@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Supplier from "../models/Supplier.js";
 import Product from "../models/Product.js";
 import StockMovement from "../models/StockMovement.js";
@@ -16,28 +17,34 @@ export const getSuppliers = async (organizationId, filters = {}) => {
     ];
   }
 
-  const [suppliers, total] = await Promise.all([
+  const [suppliers, total, enrichment] = await Promise.all([
     Supplier.find(query)
       .sort({ name: 1 })
       .skip((page - 1) * limit)
-      .limit(Number(limit)),
+      .limit(Number(limit))
+      .lean(),
     Supplier.countDocuments(query),
+    Promise.all([
+      Product.aggregate([
+        { $match: { organizationId: new mongoose.Types.ObjectId(organizationId), isDeleted: false, preferredSupplier: { $ne: null } } },
+        { $group: { _id: "$preferredSupplier", count: { $sum: 1 } } },
+      ]),
+      StockMovement.aggregate([
+        { $match: { organizationId: new mongoose.Types.ObjectId(organizationId), supplier: { $ne: null } } },
+        { $group: { _id: "$supplier", count: { $sum: 1 } } },
+      ]),
+    ]),
   ]);
 
-  const enriched = await Promise.all(
-    suppliers.map(async (s) => {
-      const productCount = await Product.countDocuments({
-        organizationId,
-        preferredSupplier: s._id,
-        isDeleted: false,
-      });
-      const movementCount = await StockMovement.countDocuments({
-        organizationId,
-        supplier: s._id,
-      });
-      return { ...s.toJSON(), productCount, movementCount };
-    }),
-  );
+  const [productCounts, movementCounts] = enrichment;
+  const productMap = Object.fromEntries(productCounts.map((p) => [p._id.toString(), p.count]));
+  const movementMap = Object.fromEntries(movementCounts.map((m) => [m._id.toString(), m.count]));
+
+  const enriched = suppliers.map((s) => ({
+    ...s,
+    productCount: productMap[s._id.toString()] || 0,
+    movementCount: movementMap[s._id.toString()] || 0,
+  }));
 
   return {
     suppliers: enriched,

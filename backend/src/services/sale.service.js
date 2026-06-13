@@ -115,7 +115,6 @@ export const createSale = async (
         { ...opt, returnDocument: "after" },
       );
 
-      // Création du mouvement de stock
       await StockMovement.create(
         [
           {
@@ -126,7 +125,7 @@ export const createSale = async (
             quantityBefore,
             quantityAfter,
             reference: createdSale._id,
-            description: `Vente ${createdSale.saleNumber} - ${product.name}`,
+            reason: `Vente ${createdSale.saleNumber} - ${product.name}`,
             createdBy: userId,
           },
         ],

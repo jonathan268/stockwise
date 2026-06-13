@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as feedbackService from "../services/feedback.service.js";
 import Joi from "joi";
 
@@ -15,15 +16,6 @@ const updateFeedbackSchema = Joi.object({
   priority: Joi.string().valid("low", "medium", "high", "critical").optional(),
   adminNote: Joi.string().optional(),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const createFeedback = asyncHandler(async (req, res) => {
   const data = validate(createFeedbackSchema, req.body);

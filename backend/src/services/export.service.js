@@ -4,7 +4,10 @@ import StockMovement from "../models/StockMovement.js";
 
 const escapeCSV = (val) => {
   if (val == null) return "";
-  const str = String(val);
+  let str = String(val);
+  if (/^[=+\-@]/.test(str)) {
+    str = "'" + str;
+  }
   if (str.includes(",") || str.includes('"') || str.includes("\n")) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -17,12 +20,29 @@ const toCSV = (headers, rows) => {
   return [headerLine, ...dataLines].join("\n");
 };
 
-export const exportProductsCSV = async (organizationId) => {
-  const products = await Product.find({ organizationId, isDeleted: false })
-    .populate("category", "name")
-    .lean();
+const streamCSV = async (res, headers, cursor, rowMapper) => {
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.write("\uFEFF");
+  res.write(headers.map((h) => escapeCSV(h)).join(",") + "\n");
 
-  const rows = products.map((p) => ({
+  for await (const doc of cursor) {
+    const row = rowMapper(doc);
+    const line = headers.map((h) => escapeCSV(row[h] || "")).join(",") + "\n";
+    res.write(line);
+  }
+
+  res.end();
+};
+
+export const exportProductsCSV = async (organizationId, res) => {
+  const cursor = Product.find({ organizationId, isDeleted: false })
+    .populate("category", "name")
+    .lean()
+    .cursor();
+
+  const headers = ["name", "sku", "category", "sellingPrice", "costPrice", "currentStock", "minimumStock", "unit", "stockStatus", "salesVelocity", "lastSoldAt"];
+
+  await streamCSV(res, headers, cursor, (p) => ({
     name: p.name,
     sku: p.sku,
     category: p.category?.name || "",
@@ -35,19 +55,17 @@ export const exportProductsCSV = async (organizationId) => {
     salesVelocity: p.salesVelocity,
     lastSoldAt: p.lastSoldAt ? new Date(p.lastSoldAt).toLocaleDateString("fr-FR") : "",
   }));
-
-  return toCSV(
-    ["name", "sku", "category", "sellingPrice", "costPrice", "currentStock", "minimumStock", "unit", "stockStatus", "salesVelocity", "lastSoldAt"],
-    rows,
-  );
 };
 
-export const exportSalesCSV = async (organizationId) => {
-  const sales = await Sale.find({ organizationId })
+export const exportSalesCSV = async (organizationId, res) => {
+  const cursor = Sale.find({ organizationId })
     .populate("soldBy", "firstName lastName")
-    .lean();
+    .lean()
+    .cursor();
 
-  const rows = sales.map((s) => ({
+  const headers = ["saleNumber", "date", "totalAmount", "paymentMethod", "customerName", "items", "soldBy", "status"];
+
+  await streamCSV(res, headers, cursor, (s) => ({
     saleNumber: s.saleNumber,
     date: new Date(s.createdAt).toLocaleDateString("fr-FR"),
     totalAmount: s.totalAmount,
@@ -57,20 +75,18 @@ export const exportSalesCSV = async (organizationId) => {
     soldBy: s.soldBy ? `${s.soldBy.firstName} ${s.soldBy.lastName}` : "",
     status: s.status,
   }));
-
-  return toCSV(
-    ["saleNumber", "date", "totalAmount", "paymentMethod", "customerName", "items", "soldBy", "status"],
-    rows,
-  );
 };
 
-export const exportMovementsCSV = async (organizationId) => {
-  const movements = await StockMovement.find({ organizationId })
+export const exportMovementsCSV = async (organizationId, res) => {
+  const cursor = StockMovement.find({ organizationId })
     .populate("product", "name sku")
     .populate("createdBy", "firstName lastName")
-    .lean();
+    .lean()
+    .cursor();
 
-  const rows = movements.map((m) => ({
+  const headers = ["date", "product", "sku", "type", "quantity", "quantityBefore", "quantityAfter", "reason", "createdBy"];
+
+  await streamCSV(res, headers, cursor, (m) => ({
     date: new Date(m.createdAt).toLocaleDateString("fr-FR"),
     product: m.product?.name || "",
     sku: m.product?.sku || "",
@@ -81,11 +97,6 @@ export const exportMovementsCSV = async (organizationId) => {
     reason: m.reason || "",
     createdBy: m.createdBy ? `${m.createdBy.firstName} ${m.createdBy.lastName}` : "",
   }));
-
-  return toCSV(
-    ["date", "product", "sku", "type", "quantity", "quantityBefore", "quantityAfter", "reason", "createdBy"],
-    rows,
-  );
 };
 
 export const getProfitabilityReport = async (organizationId) => {

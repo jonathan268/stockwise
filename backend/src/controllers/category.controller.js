@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as categoryService from "../services/category.service.js";
 import Joi from "joi";
 
@@ -13,15 +14,6 @@ const updateCategorySchema = Joi.object({
   color: Joi.string().optional(),
   icon: Joi.string().optional(),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const getCategories = asyncHandler(async (req, res) => {
   const categories = await categoryService.getCategories(req.organizationId);

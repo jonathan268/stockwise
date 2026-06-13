@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as supplierService from "../services/supplier.service.js";
 import Joi from "joi";
 
@@ -22,15 +23,6 @@ const updateSupplierSchema = Joi.object({
   notes: Joi.string().trim().max(1000).optional().allow(""),
   isActive: Joi.boolean().optional(),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const getSuppliers = asyncHandler(async (req, res) => {
   const result = await supplierService.getSuppliers(req.organizationId, req.query);

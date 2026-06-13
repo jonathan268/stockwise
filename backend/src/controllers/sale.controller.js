@@ -34,7 +34,7 @@ export const createSale = asyncHandler(async (req, res) => {
     });
   }
 
-  const result = await saleService.createSale(
+  const sale = await saleService.createSale(
     req.organizationId,
     value.items,
     value.paymentMethod,
@@ -45,8 +45,8 @@ export const createSale = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    data: result.sale,
-    message: result.message,
+    data: sale,
+    message: "Vente créée avec succès",
   });
 });
 

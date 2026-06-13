@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useThemeStore } from "./store/themeStore";
+import { useAuthStore } from "./store/authStore";
+import axios from "./lib/axios";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
@@ -23,11 +25,24 @@ import PrivateRoute from "./routes/PrivateRoute";
 
 export default function App() {
   const { theme } = useThemeStore();
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const setTokens = useAuthStore((s) => s.setTokens);
+  const logout = useAuthStore((s) => s.logout);
 
   useEffect(() => {
-    // Sync theme with DOM
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (refreshToken && !useAuthStore.getState().accessToken) {
+      axios.post("/auth/refresh-token", { refreshToken })
+        .then((res) => {
+          const { accessToken, refreshToken: newRefresh } = res.data.data;
+          setTokens(accessToken, newRefresh);
+        })
+        .catch(() => logout());
+    }
+  }, []);
 
   return (
     <Routes>

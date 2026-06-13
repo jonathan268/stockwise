@@ -49,6 +49,7 @@ productSchema.index(
   { organizationId: 1, sku: 1 },
   { unique: true, sparse: true },
 );
+productSchema.index({ organizationId: 1, salesVelocity: -1, currentStock: 1 });
 
 // Auto-génération du SKU si non fourni
 productSchema.pre("save", function () {

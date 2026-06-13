@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as movementService from "../services/movement.service.js";
 import Joi from "joi";
 
@@ -11,15 +12,6 @@ const createMovementSchema = Joi.object({
   saleId: Joi.string().optional().allow(""),
   supplier: Joi.string().optional().allow(""),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const createMovement = asyncHandler(async (req, res) => {
   const data = validate(createMovementSchema, req.body);

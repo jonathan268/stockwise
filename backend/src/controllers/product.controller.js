@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/appError.js";
+import { validate } from "../utils/validation.js";
 import * as productService from "../services/product.service.js";
 import Joi from "joi";
 
@@ -30,18 +31,9 @@ const updateProductSchema = Joi.object({
 });
 
 const adjustStockSchema = Joi.object({
-  quantity: Joi.number().min(0).required(),
+  delta: Joi.number().required(),
   reason: Joi.string().trim().max(500).optional().allow(""),
 });
-
-const validate = (schema, data) => {
-  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
-  if (error) {
-    const message = error.details.map((d) => d.message).join(", ");
-    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
-  }
-  return value;
-};
 
 export const getProducts = asyncHandler(async (req, res) => {
   const result = await productService.getProducts(

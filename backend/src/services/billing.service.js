@@ -3,13 +3,7 @@ import axios from "axios";
 import Organization from "../models/Organization.js";
 import { AppError } from "../utils/appError.js";
 import logger from "../utils/logger.js";
-
-// Plans prices (en XAF)
-const PLANS = {
-  starter: 0,
-  pro: 9900,
-  enterprise: 25000 // Prix indicatif
-};
+import { PLANS } from "../config/plans.js";
 
 /**
  * Initialise un paiement NotchPay pour un upgrade de plan
@@ -20,7 +14,9 @@ export const initializePayment = async (organizationId, userEmail, targetPlan) =
   }
 
   const organization = await Organization.findById(organizationId);
-  const amount = PLANS[targetPlan];
+  const planConfig = PLANS[targetPlan];
+  if (!planConfig) throw new AppError("Plan invalide", 400);
+  const amount = planConfig.price;
 
   // Identifiant unique pour la référence interne (ex: renvoyé dans le webhook)
   const reference = `sub_${organizationId}_${Date.now()}`;
@@ -61,36 +57,43 @@ export const initializePayment = async (organizationId, userEmail, targetPlan) =
  * Gère le webhook de NotchPay pour valider la transaction et mettre à jour l'Organisation
  */
 export const handleWebhook = async (signature, payloadBody) => {
-  // Vérification de la signature NotchPay
+  if (!process.env.NOTCHPAY_WEBHOOK_HASH) {
+    throw new AppError("Webhook secret non configuré", 500);
+  }
+
   const hash = crypto
     .createHmac("sha256", process.env.NOTCHPAY_WEBHOOK_HASH)
     .update(JSON.stringify(payloadBody))
     .digest("hex");
 
-  if (hash !== signature) {
+  if (hash.length !== signature.length || !crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature))) {
     throw new AppError("Signature Webhook Invalide", 401);
   }
 
   const event = payloadBody.event;
   const data = payloadBody.data;
 
-  // Paiement complété avec succès !
   if (event === "payment.complete" && data.status === "complete") {
     const reference = data.reference;
-    // Extract organizationId from `sub_ORGID_TIMECODE`
     const parts = reference.split("_");
     if (parts.length >= 3 && parts[0] === "sub") {
       const orgId = parts[1];
-      
-      let newPlan = "pro"; // par défaut
-      if (data.amount >= PLANS.enterprise) {
+
+      const paidAmount = data.amount;
+      let newPlan = null;
+      if (paidAmount === PLANS.pro.price) {
+        newPlan = "pro";
+      } else if (paidAmount === PLANS.enterprise.price) {
         newPlan = "enterprise";
+      } else {
+        logger.warn(`Webhook: montant ${paidAmount} ne correspond à aucun plan pour org ${orgId}`);
+        return true;
       }
 
       const org = await Organization.findById(orgId);
       if (org) {
         org.plan = newPlan;
-        org.isTrialActive = false; // L'abonnement remplace le trial
+        org.isTrialActive = false;
         await org.save();
         logger.info(`✅ Webhook Notchpay: Upgrade réussi pour l'Org ${orgId} (Plan: ${newPlan})`);
       }

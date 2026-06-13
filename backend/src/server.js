@@ -76,13 +76,33 @@ app.use(helmet({
 
 const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
 
+const allowedOrigins = [
+  clientUrl,
+  "http://localhost:5173",
+];
+
+const isOriginAllowed = (origin) => {
+  return allowedOrigins.some((allowed) => {
+    if (!allowed) return false;
+    if (origin === allowed) return true;
+    try {
+      const allowedHost = new URL(allowed).hostname;
+      const originHost = new URL(origin).hostname;
+      if (originHost.endsWith(".vercel.app") || originHost.endsWith(".render.com")) return true;
+    } catch {
+      return false;
+    }
+    return false;
+  });
+};
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (origin === clientUrl || origin === "http://localhost:5173" || origin.endsWith("vercel.app") || origin.endsWith("render.com")) {
+    if (isOriginAllowed(origin)) {
       return callback(null, true);
     }
-    callback(null, origin);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
@@ -100,7 +120,7 @@ app.get("/api/v1/health", (req, res) => {
   res.json({ success: true, message: "API is running" });
 });
 
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authLimiter, authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/sales", saleRoutes);
 app.use("/api/v1/alerts", alertRoutes);
