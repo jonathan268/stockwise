@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ArrowLeftRight, ArrowUpRight, ArrowDownRight, RotateCcw, SlidersHorizontal,
-  Plus, ChevronLeft, ChevronRight, Package, X, Save, Download,
+  Plus, ChevronLeft, ChevronRight, Package, X, Save, Download, Lock,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
+import { useAuthStore } from "../store/authStore";
+import SubscriptionModal from "../components/SubscriptionModal";
 
 const typeConfig = {
   in: { label: "Entrée", icon: ArrowUpRight, color: "text-success", bg: "bg-success/10" },
@@ -20,7 +22,9 @@ export default function MovementsPage() {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [subsModal, setSubsModal] = useState(false);
   const [form, setForm] = useState({ productId: "", type: "in", quantity: "", reason: "" });
+  const { organization } = useAuthStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["movements", page, typeFilter],
@@ -88,10 +92,17 @@ export default function MovementsPage() {
             <option value="return">Retours</option>
             <option value="adjustment">Ajustements</option>
           </select>
-          <a href={`${import.meta.env.VITE_API_URL}/exports/movements/csv`}
-            className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
-            <Download size={16} /> CSV
-          </a>
+          {organization?.hasProAccess ? (
+            <a href={`${import.meta.env.VITE_API_URL}/exports/movements/csv`}
+              className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
+              <Download size={16} /> CSV
+            </a>
+          ) : (
+            <button onClick={() => setSubsModal(true)}
+              className="btn btn-ghost btn-sm gap-2 opacity-50">
+              <Lock size={14} /> CSV
+            </button>
+          )}
           <button onClick={() => setModalOpen(true)} className="btn btn-primary btn-sm gap-2">
             <Plus size={16} /> Mouvement
           </button>
@@ -223,6 +234,8 @@ export default function MovementsPage() {
           <div className="modal-backdrop" onClick={() => setModalOpen(false)} />
         </div>
       )}
+
+      <SubscriptionModal isOpen={subsModal} onClose={() => setSubsModal(false)} />
     </div>
   );
 }

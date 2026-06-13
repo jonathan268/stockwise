@@ -8,19 +8,33 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    price: "0",
-    description: "Pour les petites entreprises qui débutent.",
-    features: ["Jusqu'à 100 produits", "Historique de 30 jours", "1 Utilisateur"],
+    price: "9 900",
+    description: "Pour les PME qui veulent une solution fiable.",
+    features: [
+      "Jusqu'à 100 produits",
+      "3 utilisateurs",
+      "Tableau de bord KPI",
+      "Gestion des ventes",
+      "Alertes stock",
+      "Génération de factures",
+    ],
     color: "bg-base-200",
-    button: "Plan Actuel",
+    button: "Votre plan actuel",
     disabled: true,
   },
   {
     id: "pro",
     name: "Pro",
-    price: "9 900",
+    price: "14 900",
     description: "Tout ce dont vous avez besoin pour croître.",
-    features: ["Produits illimités", "Historique complet", "Analyses IA avancées", "Utilisateurs illimités", "Alertes stock intelligentes"],
+    features: [
+      "Produits illimités",
+      "Jusqu'à 10 utilisateurs",
+      "IA Gemini Copilot",
+      "Export CSV avancé",
+      "Rapports de rentabilité",
+      "Support prioritaire",
+    ],
     color: "bg-primary/10 border-primary",
     button: "Passer à Pro",
     popular: true,
@@ -28,11 +42,18 @@ const plans = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "sur mesure",
-    description: "Solutions personnalisées pour grandes structures.",
-    features: ["Support prioritaire 24/7", "API dédiée", "Multi-entrepôts", "Formation sur site"],
+    price: "29 900",
+    description: "Solutions complètes pour grandes structures.",
+    features: [
+      "Tout le plan Pro",
+      "Utilisateurs illimités",
+      "Support téléphonique 24/7",
+      "SLA garanti 99.9%",
+      "API dédiée",
+      "Onboarding dédié",
+    ],
     color: "bg-base-200",
-    button: "Contacter Sales",
+    button: "Passer à Enterprise",
   },
 ];
 
@@ -103,7 +124,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     <p className="text-sm font-bold uppercase tracking-wider text-base-content/50 mb-1">{p.name}</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-black">{p.price}</span>
-                      {p.id === "pro" && <span className="text-sm font-medium opacity-60">XAF/mois</span>}
+                      <span className="text-sm font-medium opacity-60">XAF/mois</span>
                     </div>
                     <p className="text-xs text-base-content/60 mt-2 leading-relaxed min-h-12">{p.description}</p>
                   </div>
@@ -119,7 +140,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
                   <button
                     disabled={p.disabled || organization?.plan === p.id || subscribeMutation.isPending}
-                    onClick={() => p.id === "pro" ? subscribeMutation.mutate("pro") : null}
+                    onClick={() => {
+                      if (p.id === "enterprise") {
+                        window.location.href = "mailto:contact@stockwise.app?subject=Demande%20Enterprise";
+                      } else if (p.id !== "starter") {
+                        subscribeMutation.mutate("pro");
+                      }
+                    }}
                     className={`btn btn-sm w-full gap-2 ${p.popular ? "btn-primary" : "btn-outline border-base-content/20"}`}
                   >
                     {subscribeMutation.isPending && p.id === "pro" ? (

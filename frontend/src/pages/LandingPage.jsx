@@ -30,41 +30,47 @@ gsap.registerPlugin(ScrollTrigger);
 const plans = [
   {
     name: 'Starter',
-    price: '0',
+    price: '9 900',
     currency: 'XAF',
     period: '/mois',
-    desc: 'Pour decouvrir la puissance de StockWise.',
-    cta: 'Creer mon compte',
+    desc: 'Pour les PME qui veulent une solution fiable.',
+    cta: 'Créer mon compte',
     href: '/register',
     features: [
-      "Jusqu'a 50 references",
-      '2 utilisateurs',
-      'Tableau de bord de base',
-      'Alertes email',
+      "Jusqu'à 100 produits",
+      '3 utilisateurs',
+      'Tableau de bord KPI',
+      'Gestion des ventes',
+      'Alertes stock',
+      'Mouvements de stock',
+      'Génération de factures',
       'Support par email',
     ],
     notIncluded: [
-      'IA Predictive Gemini',
-      'Multi-sites & Transferts',
-      'Export CSV avance',
+      'IA Gemini Copilot',
+      'Export CSV avancé',
+      'Rapports de rentabilité',
+      'Utilisateurs illimités',
+      'Support prioritaire',
     ],
   },
   {
     name: 'Professionnel',
-    price: '9 900',
+    price: '14 900',
     currency: 'XAF',
     period: '/mois',
-    desc: 'Pour les PME qui veulent passer a la vitesse superieure.',
+    desc: 'Pour les entreprises qui veulent passer à la vitesse supérieure.',
     cta: 'Essai 30 jours gratuit',
     href: '/register',
     popular: true,
     features: [
-      'References illimitees',
-      'Utilisateurs illimites',
-      'IA Gemini Copilot activee',
-      'Multi-sites & Transferts',
-      'Alertes en temps reel',
-      'Export CSV avance',
+      'Produits illimités',
+      "Jusqu'à 10 utilisateurs",
+      'IA Gemini Copilot active',
+      'Export CSV avancé',
+      'Rapports de rentabilité',
+      'Génération de factures',
+      'Alertes en temps réel',
       'Support prioritaire',
     ],
     notIncluded: [],
@@ -74,17 +80,18 @@ const plans = [
     price: '29 900',
     currency: 'XAF',
     period: '/mois',
-    desc: 'Pour les organisations avec des besoins sur mesure.',
+    desc: 'Pour les organisations avec des besoins spécifiques.',
     cta: 'Contacter le support',
     href: '#',
     features: [
-      'Multi-organisations',
-      'Entrepots illimites',
-      "API d'integration externe",
-      'Support telephonique 24/7',
+      'Tout le plan Professionnel',
+      'Utilisateurs illimités',
+      "API d'intégration sur mesure",
+      'Onboarding dédié',
+      'Support téléphonique 24/7',
       'SLA garanti 99.9%',
-      'Onboarding dedie',
-      'Audit & Rapports avances',
+      'Rapports personnalisés',
+      'Audit trimestriel',
     ],
     notIncluded: [],
   },
@@ -481,6 +488,8 @@ export default function LandingPage() {
         ref={featuresRef}
         className="relative z-10 py-32 md:py-48"
       >
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(var(--color-primary-rgb),0.04),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1\' fill=\'%23ffffff\'/%3E%3C/svg%3E")' }} />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="mb-20">
             <div className="flex items-center gap-2 mb-4 text-primary/60">
@@ -643,6 +652,8 @@ export default function LandingPage() {
 
       {/* AI SECTION - GSAP Scrubbing Text Reveals */}
       <section id="ia" ref={aiRef} className="relative z-10 py-32 md:py-48">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_50%,rgba(var(--color-primary-rgb),0.05),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'1\' fill=\'%23ffffff\'/%3E%3C/svg%3E")' }} />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20">
             <div className="lg:col-span-2">
@@ -857,10 +868,12 @@ export default function LandingPage() {
                     >
                       {plan.price}
                     </span>
-                    <span className="text-xs text-base-content/50 font-medium">
-                      {plan.currency}
-                      {plan.period}
-                    </span>
+                    {plan.currency && (
+                      <span className="text-xs text-base-content/50 font-medium">
+                        {plan.currency}
+                        {plan.period}
+                      </span>
+                    )}
                   </div>
 
                   <ul className="space-y-3 mb-8">
@@ -925,6 +938,8 @@ export default function LandingPage() {
 
       {/* TESTIMONIALS - Carousel fluide */}
       <section ref={testimonialRef} className="relative z-10 py-32 md:py-48">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(var(--color-primary-rgb),0.03),transparent_60%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_100%,rgba(var(--color-primary-rgb),0.02),transparent_60%)] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="flex items-center justify-between mb-20">
             <div>

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/authStore";
-import SubscriptionModal from "../components/SubscriptionModal";
+import PlanGate from "../components/PlanGate";
 
 const typeConfig = {
   restock: {
@@ -60,7 +60,6 @@ export default function InsightsPage() {
   const queryClient = useQueryClient();
   const { organization } = useAuthStore();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSubsModalOpen, setIsSubsModalOpen] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["recommendations"],
@@ -87,52 +86,28 @@ export default function InsightsPage() {
 
   const recommendations = data?.data || [];
 
-  if (!organization?.hasProAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto space-y-6">
-        <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center animate-pulse">
-          <Sparkles size={40} />
-        </div>
-        <h1 className="text-3xl font-black font-display">Passer au plan PRO</h1>
-        <p className="text-base-content/60">
-          Les analyses IA par Gemini sont réservées aux membres PRO. Optimisez votre inventaire avec des prédictions intelligentes et des recommandations de réapprovisionnement automatiques.
-        </p>
-        <button 
-          onClick={() => setIsSubsModalOpen(true)}
-          className="btn btn-primary btn-wide"
-        >
-          Voir les tarifs
-        </button>
-
-        <SubscriptionModal 
-          isOpen={isSubsModalOpen} 
-          onClose={() => setIsSubsModalOpen(false)} 
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black font-display flex items-center gap-3">
-            <Sparkles className="text-primary animate-pulse" size={32} />
-            Analyses IA
-          </h1>
-          <p className="text-base-content/60">
-            Propulsé par Google Gemini — Recommandations intelligentes pour votre stock.
-          </p>
+    <PlanGate>
+      <div className="space-y-8 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black font-display flex items-center gap-3">
+              <Sparkles className="text-primary animate-pulse" size={32} />
+              Analyses IA
+            </h1>
+            <p className="text-base-content/60">
+              Propulsé par Google Gemini — Recommandations intelligentes pour votre stock.
+            </p>
+          </div>
+          <button
+            onClick={() => generateMutation.mutate()}
+            className={`btn btn-primary gap-2 ${isGenerating ? "loading" : ""}`}
+            disabled={isGenerating}
+          >
+            {isGenerating ? "Analyse en cours..." : <><RefreshCw size={18} /> Nouvelle Analyse</>}
+          </button>
         </div>
-        <button
-          onClick={() => generateMutation.mutate()}
-          className={`btn btn-primary gap-2 ${isGenerating ? "loading" : ""}`}
-          disabled={isGenerating}
-        >
-          {isGenerating ? "Analyse en cours..." : <><RefreshCw size={18} /> Nouvelle Analyse</>}
-        </button>
-      </div>
 
       {/* Main Grid */}
       {isLoading ? (
@@ -232,6 +207,7 @@ export default function InsightsPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PlanGate>
   );
 }

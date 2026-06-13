@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ShoppingCart, Plus, Search, DollarSign, TrendingUp, Hash,
-  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye, Download,
+  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye, Download, Lock,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import SaleForm from "../components/SaleForm";
 import { useDebounce } from "use-debounce";
+import { useAuthStore } from "../store/authStore";
+import SubscriptionModal from "../components/SubscriptionModal";
 
 const paymentBadge = {
   cash: "badge-success",
@@ -28,6 +30,8 @@ export default function SalesPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ search: "", paymentMethod: "", startDate: "", endDate: "" });
   const [cancelModal, setCancelModal] = useState({ open: false, saleId: null, reason: "" });
+  const [subsModal, setSubsModal] = useState(false);
+  const { organization } = useAuthStore();
   const [debouncedSearch] = useDebounce(filters.search, 500);
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -77,10 +81,17 @@ export default function SalesPage() {
           <p className="text-base-content/60 text-sm mt-1">Historique et création de ventes</p>
         </div>
         <div className="flex gap-2">
-          <a href={`${import.meta.env.VITE_API_URL}/exports/sales/csv`}
-            className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
-            <Download size={16} /> CSV
-          </a>
+          {organization?.hasProAccess ? (
+            <a href={`${import.meta.env.VITE_API_URL}/exports/sales/csv`}
+              className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
+              <Download size={16} /> CSV
+            </a>
+          ) : (
+            <button onClick={() => setSubsModal(true)}
+              className="btn btn-ghost btn-sm gap-2 opacity-50">
+              <Lock size={14} /> CSV
+            </button>
+          )}
           <button onClick={() => setShowForm(!showForm)} className="btn btn-primary gap-2">
             {showForm ? <XIcon size={18} /> : <Plus size={18} />}
             {showForm ? "Fermer" : "Nouvelle vente"}
@@ -228,6 +239,8 @@ export default function SalesPage() {
           <div className="modal-backdrop" onClick={() => setCancelModal({ open: false, saleId: null, reason: "" })} />
         </div>
       )}
+
+      <SubscriptionModal isOpen={subsModal} onClose={() => setSubsModal(false)} />
     </div>
   );
 }
