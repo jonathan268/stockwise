@@ -13,6 +13,8 @@ import {
   Bell,
   Clock,
 } from "lucide-react";
+import AnimatedNumber from "../components/AnimatedNumber";
+import { DashboardSkeleton } from "../components/Skeleton";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RePieChart, Pie, Cell, Legend,
@@ -29,7 +31,7 @@ const fadeIn = {
   }),
 };
 
-const KPICard = ({ icon: Icon, label, value, sub, color, index }) => (
+const KPICard = ({ icon: Icon, label, value, sub, color, index, numberValue }) => (
   <motion.div custom={index} initial="hidden" animate="visible" variants={fadeIn}
     className="card bg-base-100 shadow-sm border border-base-content/5"
   >
@@ -37,7 +39,9 @@ const KPICard = ({ icon: Icon, label, value, sub, color, index }) => (
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-sm font-medium text-base-content/60 mb-1">{label}</p>
-          <p className="text-3xl font-black font-display tracking-tight truncate">{value}</p>
+          <p className="text-3xl font-black font-display tracking-tight truncate">
+            {numberValue !== undefined ? <AnimatedNumber value={numberValue} /> : value}
+          </p>
           {sub && <p className="text-xs text-base-content/50 mt-1">{sub}</p>}
         </div>
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${color}`}>
@@ -73,11 +77,7 @@ export default function DashboardPage() {
   const fmt = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(n);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const s = summary;
@@ -92,10 +92,13 @@ export default function DashboardPage() {
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard icon={Package} label="Produits" value={fmt(s?.totalProducts)}
+          numberValue={s?.totalProducts}
           sub={`${fmt(s?.lowStockCount || 0)} en alerte`} color="bg-primary/10 text-primary" index={0} />
         <KPICard icon={DollarSign} label="Valeur du Stock" value={`${fmt(s?.totalStockValue)} XAF`}
+          numberValue={s?.totalStockValue}
           color="bg-success/10 text-success" index={1} />
         <KPICard icon={ShoppingCart} label="Ventes du mois" value={fmt(s?.monthlySalesCount)}
+          numberValue={s?.monthlySalesCount}
           sub={
             <span className="flex items-center gap-2">
               <span>{fmt(s?.monthlySalesAmount)} XAF</span>
@@ -104,6 +107,7 @@ export default function DashboardPage() {
           }
           color="bg-info/10 text-info" index={2} />
         <KPICard icon={AlertTriangle} label="Alertes" value={fmt(s?.activeAlerts)}
+          numberValue={s?.activeAlerts}
           sub={`${fmt(s?.outOfStockCount || 0)} ruptures`} color="bg-error/10 text-error" index={3} />
       </div>
 

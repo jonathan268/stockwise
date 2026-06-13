@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import {
-  User, Building2, Shield, Palette, Save, Sun, Moon, Check, CreditCard, AlertCircle
+  User, Building2, Shield, Palette, Save, Sun, Moon, CreditCard, AlertCircle
 } from "lucide-react";
 import SubscriptionModal from "../components/SubscriptionModal";
 import axiosInstance from "../lib/axios";
+import { useToastStore } from "../store/toastStore";
 
 const tabs = [
   { id: "profile", label: "Profil", icon: User },
@@ -55,8 +56,7 @@ export default function SettingsPage() {
   const daysLeft = getDaysRemaining();
 
   const showSaved = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    useToastStore.getState().success("Modifications sauvegardées");
   };
 
   const handleSaveProfile = async () => {
@@ -66,7 +66,7 @@ export default function SettingsPage() {
       setAuth({ user: { ...user, ...data.data }, organization, accessToken: useAuthStore.getState().accessToken, refreshToken: useAuthStore.getState().refreshToken });
       showSaved();
     } catch (error) {
-      console.error(error);
+      useToastStore.getState().error("Erreur lors de la sauvegarde du profil");
     } finally {
       setIsSavingProfile(false);
     }
@@ -282,13 +282,6 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {saved && (
-              <div className="toast toast-end toast-bottom z-50">
-                <div className="alert alert-success shadow-sm">
-                  <Check size={18} /> <span className="font-medium text-white">Modifications sauvegardées</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore } from "./store/authStore";
 import axios from "./lib/axios";
@@ -22,8 +23,10 @@ import ConsolePage from "./pages/ConsolePage";
 
 // Components
 import PrivateRoute from "./routes/PrivateRoute";
+import PageTransition from "./components/PageTransition";
 
 export default function App() {
+  const location = useLocation();
   const { theme } = useThemeStore();
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -45,89 +48,91 @@ export default function App() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
-      <Route path="/auth/reset/:token" element={<ResetPasswordPage />} />
-      
-      {/* Protected Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/products"
-        element={
-          <PrivateRoute>
-            <ProductsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/suppliers"
-        element={
-          <PrivateRoute>
-            <SuppliersPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/sales"
-        element={
-          <PrivateRoute>
-            <SalesPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/movements"
-        element={
-          <PrivateRoute>
-            <MovementsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/alerts"
-        element={
-          <PrivateRoute>
-            <AlertsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/insights"
-        element={
-          <PrivateRoute>
-            <InsightsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <SettingsPage />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/console"
-        element={
-          <PrivateRoute>
-            <ConsolePage />
-          </PrivateRoute>
-        }
-      />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+        <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+        <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+        <Route path="/auth/forgot" element={<PageTransition><ForgotPasswordPage /></PageTransition>} />
+        <Route path="/auth/reset/:token" element={<PageTransition><ResetPasswordPage /></PageTransition>} />
+        
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <PageTransition><DashboardPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <PageTransition><ProductsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/suppliers"
+          element={
+            <PrivateRoute>
+              <PageTransition><SuppliersPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/sales"
+          element={
+            <PrivateRoute>
+              <PageTransition><SalesPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/movements"
+          element={
+            <PrivateRoute>
+              <PageTransition><MovementsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <PrivateRoute>
+              <PageTransition><AlertsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/insights"
+          element={
+            <PrivateRoute>
+              <PageTransition><InsightsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <PageTransition><SettingsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/console"
+          element={
+            <PrivateRoute>
+              <PageTransition><ConsolePage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
   );
 }

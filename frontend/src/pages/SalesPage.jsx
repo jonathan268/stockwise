@@ -9,6 +9,7 @@ import axiosInstance from "../lib/axios";
 import SaleForm from "../components/SaleForm";
 import { useDebounce } from "use-debounce";
 import { useAuthStore } from "../store/authStore";
+import { useToastStore } from "../store/toastStore";
 import SubscriptionModal from "../components/SubscriptionModal";
 
 const paymentBadge = {
@@ -61,10 +62,11 @@ export default function SalesPage() {
   const confirmCancel = async () => {
     try {
       await axiosInstance.post(`/sales/${cancelModal.saleId}/cancel`, { reason: cancelModal.reason });
+      useToastStore.getState().success("Vente annulée, stock restitué");
       refetch();
       setCancelModal({ open: false, saleId: null, reason: "" });
     } catch (err) {
-      alert(err.response?.data?.error || "Erreur lors de l'annulation");
+      useToastStore.getState().error(err.response?.data?.error || "Erreur lors de l'annulation");
     }
   };
 

@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
 import FeedbackModal from "./FeedbackModal";
+import Toast from "./Toast";
+import KeyboardShortcuts from "./KeyboardShortcuts";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -295,6 +297,9 @@ export default function Layout({ children }) {
           {children}
         </main>
       </div>
+
+      <Toast />
+      <KeyboardShortcuts />
     </div>
   );
 }

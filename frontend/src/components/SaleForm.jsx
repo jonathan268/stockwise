@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash2, ShoppingCart, AlertCircle } from "lucide-react";
 import axiosInstance from "../lib/axios";
+import { useToastStore } from "../store/toastStore";
 
 export default function SaleForm({ onSuccess }) {
   const [items, setItems] = useState([]);
@@ -62,9 +63,12 @@ export default function SaleForm({ onSuccess }) {
       setCustomerName("");
       setPaymentMethod("cash");
       setNote("");
+      useToastStore.getState().success("Vente enregistrée avec succès");
       if (onSuccess) onSuccess();
     } catch (err) {
-      setError(err.response?.data?.error || err.message || "Erreur lors de la création");
+      const msg = err.response?.data?.error || err.message || "Erreur lors de la création";
+      setError(msg);
+      useToastStore.getState().error(msg);
     } finally {
       setLoading(false);
     }
@@ -72,12 +76,6 @@ export default function SaleForm({ onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {error && (
-        <div className="alert alert-error">
-          <AlertCircle size={18} />
-          <span>{error}</span>
-        </div>
-      )}
 
       {/* Client & Payment */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

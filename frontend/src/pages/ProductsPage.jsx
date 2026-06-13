@@ -7,6 +7,7 @@ import { Plus, Package, Search, Edit3, Trash2, AlertCircle,
 import axiosInstance from "../lib/axios";
 import { useDebounce } from "use-debounce";
 import { useAuthStore } from "../store/authStore";
+import { useToastStore } from "../store/toastStore";
 
 const StockBadge = ({ current, min }) => {
   if (current === 0) return <span className="badge badge-error badge-sm font-bold">Rupture</span>;
@@ -94,12 +95,18 @@ export default function ProductsPage() {
       if (context?.previousProducts) {
         queryClient.setQueryData(["products", page, debouncedSearch], context.previousProducts);
       }
+      useToastStore.getState().error(
+        err.response?.data?.error || "Erreur lors de l'enregistrement"
+      );
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-aggregate"] });
     },
     onSuccess: () => {
+      useToastStore.getState().success(
+        editingProduct ? "Produit modifié avec succès" : "Produit créé avec succès"
+      );
       closeModal();
     },
   });
@@ -140,6 +147,9 @@ export default function ProductsPage() {
       if (context?.previousProducts) {
         queryClient.setQueryData(["products", page, debouncedSearch], context.previousProducts);
       }
+      useToastStore.getState().error(
+        err.response?.data?.error || "Erreur lors de la suppression"
+      );
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -147,6 +157,7 @@ export default function ProductsPage() {
       setDeleteConfirm(null);
     },
     onSuccess: () => {
+      useToastStore.getState().success("Produit supprimé");
       setDeleteConfirm(null);
     },
   });

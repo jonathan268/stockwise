@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import { useToastStore } from "../store/toastStore";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -33,9 +34,19 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
+
+    // Toast pour les erreurs non-401 (sauf si déjà gérée par le composant)
+    if (status && status !== 401 && !originalRequest._silentToast) {
+      const msg =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Une erreur est survenue";
+      useToastStore.getState().error(msg);
+    }
 
     // Si c'est une 401 et que ce n'est pas déjà une tentative de refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // En attente du refresh en cours
         return new Promise(function (resolve, reject) {
