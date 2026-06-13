@@ -6,6 +6,7 @@ import { AppError } from "../utils/appError.js";
 import bcrypt from "bcryptjs";
 import { generateTokens, verifyRefreshToken } from "../utils/jwt.js";
 import { OAuth2Client } from "google-auth-library";
+import { sendWelcomeEmail } from "./email.service.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -55,6 +56,9 @@ export const registerService = async ({
   const { accessToken, refreshToken } = generateTokens(user);
   user.refreshToken = await bcrypt.hash(refreshToken, 10);
   await user.save();
+
+  // 7. Email de bienvenue (asynchrone, non-bloquant)
+  setImmediate(() => sendWelcomeEmail(user));
 
   return { user, organization, accessToken, refreshToken };
 };
@@ -164,6 +168,7 @@ export const updateOrganizationService = async (orgId, updateData) => {
   const dotUpdates = { ...safeUpdates };
   if (updateData.currency) dotUpdates["settings.currency"] = updateData.currency;
   if (updateData.timezone) dotUpdates["settings.timezone"] = updateData.timezone;
+  if (updateData.lowStockAlertEmail !== undefined) dotUpdates["settings.lowStockAlertEmail"] = updateData.lowStockAlertEmail;
 
   if (Object.keys(dotUpdates).length === 0) return null;
 

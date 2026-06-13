@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
   // States
   const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "" });
-  const [orgForm, setOrgForm] = useState({ name: "", currency: "XAF", timezone: "Africa/Douala" });
+  const [orgForm, setOrgForm] = useState({ name: "", currency: "XAF", timezone: "Africa/Douala", lowStockAlertEmail: false });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -40,7 +40,8 @@ export default function SettingsPage() {
       setOrgForm({
         name: organization.name || "",
         currency: organization.settings?.currency || "XAF",
-        timezone: organization.settings?.timezone || "Africa/Douala"
+        timezone: organization.settings?.timezone || "Africa/Douala",
+        lowStockAlertEmail: organization.settings?.lowStockAlertEmail || false,
       });
     }
   }, [user, organization]);
@@ -74,7 +75,12 @@ export default function SettingsPage() {
   const handleSaveOrg = async () => {
     try {
       setIsSavingOrg(true);
-      const { data } = await axiosInstance.put("/auth/organization", orgForm);
+      const { data } = await axiosInstance.put("/auth/organization", {
+        name: orgForm.name,
+        currency: orgForm.currency,
+        timezone: orgForm.timezone,
+        lowStockAlertEmail: orgForm.lowStockAlertEmail,
+      });
       updateOrganization({ ...organization, ...data.data });
       showSaved();
     } catch (error) {
@@ -211,6 +217,17 @@ export default function SettingsPage() {
                         </button>
                       </div>
                     </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="label cursor-pointer justify-start gap-3">
+                      <input
+                        type="checkbox"
+                        className="toggle toggle-primary"
+                        checked={orgForm.lowStockAlertEmail}
+                        onChange={(e) => setOrgForm({...orgForm, lowStockAlertEmail: e.target.checked})}
+                      />
+                      <span className="label-text font-medium">Recevoir les alertes de stock par email</span>
+                    </label>
                   </div>
                 </div>
                 <button onClick={handleSaveOrg} disabled={isSavingOrg} className="btn btn-primary gap-2">

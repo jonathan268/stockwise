@@ -64,8 +64,8 @@ export const markAlertAsRead = async (organizationId, alertId, userId) => {
     { _id: alertId, organizationId },
     {
       isRead: true,
-      acknowledgedBy: userId,
-      acknowledgedAt: new Date(),
+      readBy: userId,
+      readAt: new Date(),
     },
     { returnDocument: "after" },
   ).populate("product", "name sku currentStock minimumStock");
@@ -88,8 +88,8 @@ export const markAllAlertsAsRead = async (organizationId, userId) => {
     { organizationId, isRead: false },
     {
       isRead: true,
-      acknowledgedBy: userId,
-      acknowledgedAt: new Date(),
+      readBy: userId,
+      readAt: new Date(),
     },
   );
 
@@ -274,7 +274,7 @@ export const resolveStockAlerts = async (organizationId) => {
         product.currentStock > product.minimumStock)
     ) {
       alert.isRead = true;
-      alert.acknowledgedAt = new Date();
+      alert.readAt = new Date();
       await alert.save();
       resolvedCount++;
     }

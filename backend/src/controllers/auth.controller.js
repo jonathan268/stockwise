@@ -1,15 +1,57 @@
 import { asyncHandler } from "../utils/appError.js";
 import * as authService from "../services/auth.service.js";
+import Joi from "joi";
+
+const registerSchema = Joi.object({
+  firstName: Joi.string().trim().min(1).max(50).required(),
+  lastName: Joi.string().trim().min(1).max(50).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).max(128).required(),
+  organizationName: Joi.string().trim().min(1).max(100).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+const googleLoginSchema = Joi.object({
+  idToken: Joi.string().required(),
+});
+
+const refreshTokenSchema = Joi.object({
+  refreshToken: Joi.string().required(),
+});
+
+const updateProfileSchema = Joi.object({
+  firstName: Joi.string().trim().min(1).max(50).optional(),
+  lastName: Joi.string().trim().min(1).max(50).optional(),
+});
+
+const updatePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(6).max(128).required(),
+});
+
+const updateOrganizationSchema = Joi.object({
+  name: Joi.string().trim().min(1).max(100).optional(),
+  currency: Joi.string().valid("XAF", "EUR", "USD").optional(),
+  timezone: Joi.string().optional(),
+  lowStockAlertEmail: Joi.boolean().optional(),
+});
+
+const validate = (schema, data) => {
+  const { error, value } = schema.validate(data, { abortEarly: false, stripUnknown: true });
+  if (error) {
+    const message = error.details.map((d) => d.message).join(", ");
+    throw { status: 400, message, code: "VALIDATION_ERROR", isValidation: true };
+  }
+  return value;
+};
 
 export const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, organizationName } = req.body;
-  const result = await authService.registerService({
-    firstName,
-    lastName,
-    email,
-    password,
-    organizationName,
-  });
+  const data = validate(registerSchema, req.body);
+  const result = await authService.registerService(data);
 
   res.status(201).json({
     success: true,
@@ -23,8 +65,8 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const result = await authService.loginService({ email, password });
+  const data = validate(loginSchema, req.body);
+  const result = await authService.loginService(data);
 
   res.json({
     success: true,
@@ -38,10 +80,8 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const googleLogin = asyncHandler(async (req, res) => {
-  const { idToken } = req.body;
-  if (!idToken) return res.status(400).json({ success: false, message: "idToken requis" });
-  
-  const result = await authService.googleAuthService(idToken);
+  const data = validate(googleLoginSchema, req.body);
+  const result = await authService.googleAuthService(data.idToken);
 
   res.json({
     success: true,
@@ -64,12 +104,8 @@ export const me = asyncHandler(async (req, res) => {
 });
 
 export const refreshToken = asyncHandler(async (req, res) => {
-  const { refreshToken: token } = req.body;
-  if (!token) {
-    return res.status(400).json({ success: false, message: "Token requis" });
-  }
-
-  const result = await authService.refreshTokenService(token);
+  const data = validate(refreshTokenSchema, req.body);
+  const result = await authService.refreshTokenService(data.refreshToken);
 
   res.json({
     success: true,
@@ -81,15 +117,14 @@ export const refreshToken = asyncHandler(async (req, res) => {
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const result = await authService.updateProfileService(req.user._id, req.body);
+  const data = validate(updateProfileSchema, req.body);
+  const result = await authService.updateProfileService(req.user._id, data);
   res.json({ success: true, data: result });
 });
 
 export const updatePassword = asyncHandler(async (req, res) => {
-  await authService.updatePasswordService(req.user._id, {
-    currentPassword: req.body.currentPassword,
-    newPassword: req.body.newPassword
-  });
+  const data = validate(updatePasswordSchema, req.body);
+  await authService.updatePasswordService(req.user._id, data);
   res.json({ success: true, message: "Mot de passe mis à jour avec succès" });
 });
 
@@ -97,6 +132,7 @@ export const updateOrganization = asyncHandler(async (req, res) => {
   if (!req.organizationId) {
     return res.status(403).json({ success: false, error: "Organisation requise" });
   }
-  const org = await authService.updateOrganizationService(req.organizationId, req.body);
+  const data = validate(updateOrganizationSchema, req.body);
+  const org = await authService.updateOrganizationService(req.organizationId, data);
   res.json({ success: true, data: org });
 });

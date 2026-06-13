@@ -22,8 +22,11 @@ import {
   Sparkles,
   CreditCard,
   Zap,
+  Shield,
+  MessageSquare,
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
+import FeedbackModal from "./FeedbackModal";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -45,6 +48,8 @@ export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isSubsModalOpen, setIsSubsModalOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const isSuperAdmin = user?.role === "super_admin";
 
   // Calcul des jours restants
   const getDaysRemaining = () => {
@@ -130,10 +135,42 @@ export default function Layout({ children }) {
             </NavLink>
           );
         })}
+
+        {/* Console super admin (visible uniquement pour super_admin) */}
+        {isSuperAdmin && (
+          <NavLink
+            to="/console"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative mt-4 border border-warning/20 bg-warning/5
+              ${location.pathname === "/console"
+                ? "bg-warning text-warning-content"
+                : "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
+              }
+              ${collapsed && !isMobile ? "justify-center px-3" : ""}
+            `}
+          >
+            <Shield size={20} strokeWidth={2} className="shrink-0" />
+            {(!collapsed || isMobile) && <span>Console Admin</span>}
+
+            {collapsed && !isMobile && (
+              <div className="absolute left-full ml-3 px-3 py-1.5 bg-base-content text-base-100 text-sm font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
+                Console Admin
+              </div>
+            )}
+          </NavLink>
+        )}
       </nav>
 
       {/* Bottom section */}
       <div className="px-3 pb-4 space-y-2">
+        {/* Feedback button */}
+        <button
+          onClick={() => setIsFeedbackOpen(true)}
+          className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-base-content/60 hover:bg-base-content/5 hover:text-base-content transition-colors ${collapsed && !isMobile ? "justify-center px-3" : ""}`}
+        >
+          <MessageSquare size={20} />
+          {(!collapsed || isMobile) && <span className="font-medium">Feedback</span>}
+        </button>
+
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
@@ -247,6 +284,9 @@ export default function Layout({ children }) {
           isOpen={isSubsModalOpen} 
           onClose={() => setIsSubsModalOpen(false)} 
         />
+
+        {/* Feedback Modal */}
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-base-200/50 p-4 sm:p-6 lg:p-8">

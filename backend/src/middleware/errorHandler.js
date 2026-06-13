@@ -3,6 +3,15 @@
  * Doit être le dernier middleware
  */
 export const errorHandler = (err, req, res, next) => {
+  // Joi validation error
+  if (err.isValidation) {
+    return res.status(err.status || 400).json({
+      success: false,
+      error: err.message,
+      code: err.code || "VALIDATION_ERROR",
+    });
+  }
+
   const statusCode = err.statusCode || 500;
   const isDev = process.env.NODE_ENV === "development";
 

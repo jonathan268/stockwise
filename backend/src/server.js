@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -19,7 +20,8 @@ import categoryRoutes from "./routes/category.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import billingRoutes from "./routes/billing.routes.js";
 import recommendationRoutes from "./routes/recommendation.routes.js";
-import logger from "./utils/logger.js";
+import feedbackRoutes from "./routes/feedback.routes.js";
+import consoleRoutes from "./routes/console.routes.js";
 import { initSocket } from "./utils/socket.js";
 import { startAICronJob } from "./jobs/ai.cron.js";
 
@@ -34,8 +36,41 @@ if (!fs.existsSync("logs")) {
   fs.mkdirSync("logs");
 }
 
+// ─── Rate limiting global ──────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Trop de requêtes, réessayez plus tard", code: "RATE_LIMIT_EXCEEDED" },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Trop de tentatives, réessayez plus tard", code: "RATE_LIMIT_EXCEEDED" },
+});
+
+app.use("/api/", globalLimiter);
+
 // ─── Middlewares globaux ──────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://accounts.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://notchpay.co", "https://accounts.google.com"],
+      frameSrc: ["'self'", "https://accounts.google.com"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
 const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : "http://localhost:5173";
 const allowedOrigins = [clientUrl, "http://localhost:5173", "https://stockwise-eight.vercel.app"];
 
@@ -72,6 +107,12 @@ app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 app.use("/api/v1/billing", billingRoutes);
 app.use("/api/v1/recommendations", recommendationRoutes);
+
+// Routes Feedback
+app.use("/api/v1/feedback", feedbackRoutes);
+
+// ─── Super admin route ──────────────────────────────────────
+app.use("/api/v1/console", consoleRoutes);
 
 // ─── Fallback 404 ─────────────────────────────────────────
 app.use((req, res, next) => {

@@ -13,6 +13,7 @@ import MovementsPage from "./pages/MovementsPage";
 import AlertsPage from "./pages/AlertsPage";
 import InsightsPage from "./pages/InsightsPage";
 import SettingsPage from "./pages/SettingsPage";
+import ConsolePage from "./pages/ConsolePage";
 
 // Components
 import PrivateRoute from "./routes/PrivateRoute";
@@ -85,6 +86,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <SettingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/console"
+        element={
+          <PrivateRoute>
+            <ConsolePage />
           </PrivateRoute>
         }
       />
