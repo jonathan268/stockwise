@@ -28,6 +28,7 @@ const organizationSchema = new mongoose.Schema(
       currency: { type: String, default: "XAF" },
       timezone: { type: String, default: "Africa/Douala" },
       lowStockAlertEmail: { type: Boolean, default: true },
+      vatNumber: { type: String, default: "" },
     },
 
     isActive: { type: Boolean, default: true },

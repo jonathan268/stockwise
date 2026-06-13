@@ -13,6 +13,10 @@ router.post("/refresh-token", authController.refreshToken);
 
 router.put("/me", protect, authController.updateProfile);
 router.put("/password", protect, authController.updatePassword);
+
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/reset-password", authController.resetPassword);
+
 import { tenant } from "../middleware/tenant.js";
 router.put("/organization", protect, tenant, authController.updateOrganization);
 

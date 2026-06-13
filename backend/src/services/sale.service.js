@@ -76,6 +76,7 @@ export const createSale = async (
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: itemTotal,
+        vatRate: product.vatRate || 0,
       });
     }
 

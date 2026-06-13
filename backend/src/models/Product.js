@@ -19,6 +19,7 @@ const productSchema = new mongoose.Schema(
     // Prix
     sellingPrice: { type: Number, required: true, min: 0 },
     costPrice: { type: Number, default: 0, min: 0 },
+    vatRate: { type: Number, default: 0, min: 0, max: 100 },
 
     // Stock
     currentStock: { type: Number, default: 0, min: 0 },

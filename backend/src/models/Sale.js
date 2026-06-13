@@ -10,6 +10,7 @@ const saleItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
   unitPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
+  vatRate: { type: Number, default: 0 },
 });
 
 const saleSchema = new mongoose.Schema(

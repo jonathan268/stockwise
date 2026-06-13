@@ -33,6 +33,15 @@ const updatePasswordSchema = Joi.object({
   newPassword: Joi.string().min(6).max(128).required(),
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string().min(6).max(128).required(),
+});
+
 const updateOrganizationSchema = Joi.object({
   name: Joi.string().trim().min(1).max(100).optional(),
   currency: Joi.string().valid("XAF", "EUR", "USD").optional(),
@@ -126,6 +135,18 @@ export const updatePassword = asyncHandler(async (req, res) => {
   const data = validate(updatePasswordSchema, req.body);
   await authService.updatePasswordService(req.user._id, data);
   res.json({ success: true, message: "Mot de passe mis à jour avec succès" });
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const data = validate(forgotPasswordSchema, req.body);
+  const result = await authService.forgotPasswordService(data.email);
+  res.json({ success: true, message: result.message });
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const data = validate(resetPasswordSchema, req.body);
+  const result = await authService.resetPasswordService(data.token, data.password);
+  res.json({ success: true, message: result.message });
 });
 
 export const updateOrganization = asyncHandler(async (req, res) => {

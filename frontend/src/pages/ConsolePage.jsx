@@ -3,19 +3,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/authStore";
 import {
-  Users, Building2, Package, Bell, BarChart3, Search, Eye, ToggleLeft, ToggleRight, MessageSquare
+  Users, Building2, Package, Bell, BarChart3, MessageSquare,
+  ToggleLeft, ToggleRight, TrendingUp, DollarSign, Activity, FileText,
 } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 import { Navigate } from "react-router-dom";
+
+const COLORS = ["#2563eb", "#16a34a", "#eab308", "#dc2626", "#8b5cf6"];
 
 const tabs = [
   { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
   { id: "users", label: "Utilisateurs", icon: Users },
   { id: "organizations", label: "Organisations", icon: Building2 },
   { id: "feedback", label: "Feedbacks", icon: MessageSquare },
+  { id: "logs", label: "Logs", icon: FileText },
 ];
 
 export default function ConsolePage() {
-  const { user, isSuperAdmin } = useAuthStore();
+  const { isSuperAdmin } = useAuthStore();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [userPage, setUserPage] = useState(1);
@@ -23,51 +31,53 @@ export default function ConsolePage() {
 
   if (!isSuperAdmin()) return <Navigate to="/dashboard" replace />;
 
-  const { data: dashboardData } = useQuery({
+  const { data: dashData } = useQuery({
     queryKey: ["console-dashboard"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/console/dashboard");
-      return res.data.data;
-    },
+    queryFn: async () => { const r = await axiosInstance.get("/console/dashboard"); return r.data.data; },
     enabled: activeTab === "overview",
   });
 
   const { data: usersData } = useQuery({
     queryKey: ["console-users", userPage],
-    queryFn: async () => {
-      const res = await axiosInstance.get(`/console/users?page=${userPage}&limit=20`);
-      return res.data;
-    },
+    queryFn: async () => { const r = await axiosInstance.get(`/console/users?page=${userPage}`); return r.data; },
     enabled: activeTab === "users",
   });
 
   const { data: orgsData } = useQuery({
     queryKey: ["console-orgs", orgPage],
-    queryFn: async () => {
-      const res = await axiosInstance.get(`/console/organizations?page=${orgPage}&limit=20`);
-      return res.data;
-    },
+    queryFn: async () => { const r = await axiosInstance.get(`/console/organizations?page=${orgPage}`); return r.data; },
     enabled: activeTab === "organizations",
   });
 
   const { data: feedbackData } = useQuery({
     queryKey: ["console-feedback"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/feedback?limit=50");
-      return res.data;
-    },
+    queryFn: async () => { const r = await axiosInstance.get("/console/feedback?limit=50"); return r.data; },
     enabled: activeTab === "feedback",
   });
 
-  const toggleStatus = useMutation({
-    mutationFn: async (userId) => {
-      const res = await axiosInstance.patch(`/console/users/${userId}/toggle-status`);
-      return res.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["console-users"] });
-    },
+  const { data: logsData } = useQuery({
+    queryKey: ["console-logs"],
+    queryFn: async () => { const r = await axiosInstance.get("/console/logs"); return r.data.data; },
+    enabled: activeTab === "logs",
+    refetchInterval: 10000,
   });
+
+  const toggleUser = useMutation({
+    mutationFn: (id) => axiosInstance.patch(`/console/users/${id}/toggle-status`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["console-users"] }),
+  });
+
+  const toggleOrg = useMutation({
+    mutationFn: (id) => axiosInstance.patch(`/console/organizations/${id}/toggle-status`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["console-orgs"] }),
+  });
+
+  const updateFeedback = useMutation({
+    mutationFn: ({ id, data }) => axiosInstance.patch(`/console/feedback/${id}`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["console-feedback"] }),
+  });
+
+  const fmt = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(n);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -81,12 +91,9 @@ export default function ConsolePage() {
           <ul className="menu bg-base-100 rounded-2xl border border-base-content/5 shadow-sm p-2 gap-1">
             {tabs.map((tab) => (
               <li key={tab.id}>
-                <button
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 font-medium ${activeTab === tab.id ? "active" : ""}`}
-                >
-                  <tab.icon size={18} />
-                  {tab.label}
+                <button onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-3 font-medium ${activeTab === tab.id ? "active" : ""}`}>
+                  <tab.icon size={18} /> {tab.label}
                 </button>
               </li>
             ))}
@@ -94,40 +101,73 @@ export default function ConsolePage() {
         </div>
 
         <div className="flex-1 space-y-4">
-          {activeTab === "overview" && dashboardData && (
+          {activeTab === "overview" && dashData && (
             <>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
                   <div className="stat-figure text-primary"><Users size={24} /></div>
                   <div className="stat-title text-xs">Utilisateurs</div>
-                  <div className="stat-value text-2xl">{dashboardData.totalUsers}</div>
+                  <div className="stat-value text-2xl">{fmt(dashData.totalUsers)}</div>
+                  <div className="stat-desc text-xs">+{fmt(dashData.newUsersThisMonth)} ce mois</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
                   <div className="stat-figure text-secondary"><Building2 size={24} /></div>
                   <div className="stat-title text-xs">Organisations</div>
-                  <div className="stat-value text-2xl">{dashboardData.totalOrgs}</div>
+                  <div className="stat-value text-2xl">{fmt(dashData.totalOrgs)}</div>
+                  <div className="stat-desc text-xs">{fmt(dashData.activeOrgs)} actives</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-accent"><Package size={24} /></div>
-                  <div className="stat-title text-xs">Produits</div>
-                  <div className="stat-value text-2xl">{dashboardData.totalProducts}</div>
+                  <div className="stat-figure text-accent"><TrendingUp size={24} /></div>
+                  <div className="stat-title text-xs">Revenu du mois</div>
+                  <div className="stat-value text-xl">{fmt(dashData.revenueThisMonth)} XAF</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-warning"><Bell size={24} /></div>
-                  <div className="stat-title text-xs">Alertes</div>
-                  <div className="stat-value text-2xl">{dashboardData.totalAlerts}</div>
+                  <div className="stat-figure text-info"><Activity size={24} /></div>
+                  <div className="stat-title text-xs">Ventes totales</div>
+                  <div className="stat-value text-2xl">{fmt(dashData.totalSales)}</div>
                 </div>
               </div>
-              <div className="card bg-base-100 border border-base-content/5 shadow-sm">
-                <div className="card-body">
-                  <h3 className="font-bold">Répartition des plans</h3>
-                  <div className="flex gap-4 mt-2">
-                    {dashboardData.plansBreakdown?.map((p) => (
-                      <div key={p._id} className="badge badge-lg gap-2">
-                        <span className="capitalize">{p._id}</span>
-                        <span className="font-bold">{p.count}</span>
-                      </div>
-                    ))}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+                  <div className="card-body">
+                    <h3 className="font-bold text-sm flex items-center gap-2">
+                      <TrendingUp size={16} className="text-primary" /> Évolution des revenus
+                    </h3>
+                    {dashData.salesTrend?.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={dashData.salesTrend}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--bc)/0.1)" />
+                          <XAxis dataKey="_id" tick={{ fontSize: 10 }} stroke="oklch(var(--bc)/0.4)" />
+                          <YAxis tick={{ fontSize: 10 }} stroke="oklch(var(--bc)/0.4)" />
+                          <Tooltip />
+                          <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-[200px] flex items-center justify-center text-base-content/40">Pas de données</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+                  <div className="card-body">
+                    <h3 className="font-bold text-sm flex items-center gap-2">
+                      <DollarSign size={16} className="text-primary" /> Répartition des plans
+                    </h3>
+                    {dashData.plansBreakdown?.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                          <Pie data={dashData.plansBreakdown} dataKey="count" nameKey="_id" cx="50%" cy="50%" outerRadius={70}
+                            label={({ _id, count }) => `${_id} (${count})`}>
+                            {dashData.plansBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-[200px] flex items-center justify-center text-base-content/40">Pas de données</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -138,33 +178,19 @@ export default function ConsolePage() {
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
                 <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Utilisateur</th>
-                      <th>Email</th>
-                      <th>Rôle</th>
-                      <th>Statut</th>
-                      <th>Organisation</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Organisation</th><th className="text-right">Actions</th>
+                  </tr></thead>
                   <tbody>
                     {usersData?.data?.map((u) => (
                       <tr key={u._id}>
                         <td className="font-medium">{u.firstName} {u.lastName}</td>
                         <td className="text-sm text-base-content/60">{u.email}</td>
                         <td><span className="badge badge-sm capitalize">{u.role}</span></td>
-                        <td>
-                          <span className={`badge badge-sm ${u.isActive ? "badge-success" : "badge-error"}`}>
-                            {u.isActive ? "Actif" : "Inactif"}
-                          </span>
-                        </td>
+                        <td><span className={`badge badge-sm ${u.isActive ? "badge-success" : "badge-error"}`}>{u.isActive ? "Actif" : "Inactif"}</span></td>
                         <td className="text-sm">{u.organizationId?.name || "—"}</td>
                         <td className="text-right">
-                          <button
-                            onClick={() => toggleStatus.mutate(u._id)}
-                            className="btn btn-ghost btn-xs gap-1"
-                          >
+                          <button onClick={() => toggleUser.mutate(u._id)} className="btn btn-ghost btn-xs gap-1">
                             {u.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                             {u.isActive ? "Désactiver" : "Activer"}
                           </button>
@@ -175,17 +201,9 @@ export default function ConsolePage() {
                 </table>
                 {usersData?.meta && (
                   <div className="flex justify-center p-4 gap-2">
-                    <button
-                      disabled={userPage <= 1}
-                      onClick={() => setUserPage((p) => p - 1)}
-                      className="btn btn-ghost btn-sm"
-                    >Précédent</button>
-                    <span className="btn btn-ghost btn-sm disabled">Page {usersData.meta.page} / {usersData.meta.totalPages}</span>
-                    <button
-                      disabled={userPage >= usersData.meta.totalPages}
-                      onClick={() => setUserPage((p) => p + 1)}
-                      className="btn btn-ghost btn-sm"
-                    >Suivant</button>
+                    <button disabled={userPage <= 1} onClick={() => setUserPage(p => p - 1)} className="btn btn-ghost btn-sm">Précédent</button>
+                    <span className="btn btn-ghost btn-sm disabled">Page {usersData.meta.page}/{usersData.meta.totalPages}</span>
+                    <button disabled={userPage >= usersData.meta.totalPages} onClick={() => setUserPage(p => p + 1)} className="btn btn-ghost btn-sm">Suivant</button>
                   </div>
                 )}
               </div>
@@ -196,40 +214,32 @@ export default function ConsolePage() {
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
                 <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Organisation</th>
-                      <th>Propriétaire</th>
-                      <th>Plan</th>
-                      <th>Slug</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th>Organisation</th><th>Propriétaire</th><th>Plan</th><th>Statut</th><th>Date</th><th className="text-right">Actions</th>
+                  </tr></thead>
                   <tbody>
                     {orgsData?.data?.map((org) => (
                       <tr key={org._id}>
                         <td className="font-medium">{org.name}</td>
                         <td className="text-sm">{org.owner?.firstName} {org.owner?.lastName}</td>
                         <td><span className="badge badge-sm capitalize">{org.plan}</span></td>
-                        <td className="text-sm text-base-content/40">{org.slug}</td>
+                        <td><span className={`badge badge-sm ${org.isActive ? "badge-success" : "badge-error"}`}>{org.isActive ? "Active" : "Inactive"}</span></td>
                         <td className="text-sm text-base-content/40">{new Date(org.createdAt).toLocaleDateString()}</td>
+                        <td className="text-right">
+                          <button onClick={() => toggleOrg.mutate(org._id)} className="btn btn-ghost btn-xs gap-1">
+                            {org.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                            {org.isActive ? "Désactiver" : "Activer"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {orgsData?.meta && (
                   <div className="flex justify-center p-4 gap-2">
-                    <button
-                      disabled={orgPage <= 1}
-                      onClick={() => setOrgPage((p) => p - 1)}
-                      className="btn btn-ghost btn-sm"
-                    >Précédent</button>
-                    <span className="btn btn-ghost btn-sm disabled">Page {orgsData.meta.page} / {orgsData.meta.totalPages}</span>
-                    <button
-                      disabled={orgPage >= orgsData.meta.totalPages}
-                      onClick={() => setOrgPage((p) => p + 1)}
-                      className="btn btn-ghost btn-sm"
-                    >Suivant</button>
+                    <button disabled={orgPage <= 1} onClick={() => setOrgPage(p => p - 1)} className="btn btn-ghost btn-sm">Précédent</button>
+                    <span className="btn btn-ghost btn-sm disabled">Page {orgsData.meta.page}/{orgsData.meta.totalPages}</span>
+                    <button disabled={orgPage >= orgsData.meta.totalPages} onClick={() => setOrgPage(p => p + 1)} className="btn btn-ghost btn-sm">Suivant</button>
                   </div>
                 )}
               </div>
@@ -240,29 +250,73 @@ export default function ConsolePage() {
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
                 <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Titre</th>
-                      <th>Type</th>
-                      <th>Statut</th>
-                      <th>Priorité</th>
-                      <th>Note</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th>Titre</th><th>Type</th><th>Statut</th><th>Priorité</th><th>Note</th><th>Date</th><th className="text-right">Actions</th>
+                  </tr></thead>
                   <tbody>
                     {feedbackData?.data?.map((f) => (
                       <tr key={f._id}>
                         <td className="font-medium max-w-xs truncate">{f.title}</td>
                         <td><span className="badge badge-sm">{f.type}</span></td>
-                        <td><span className={`badge badge-sm ${f.status === "new" ? "badge-info" : f.status === "planned" ? "badge-warning" : f.status === "done" ? "badge-success" : ""}`}>{f.status}</span></td>
-                        <td><span className={`badge badge-sm ${f.priority === "critical" ? "badge-error" : f.priority === "high" ? "badge-warning" : ""}`}>{f.priority}</span></td>
-                        <td>{f.rating ? `${f.rating}/5` : "—"}</td>
+                        <td>
+                          <select className="select select-ghost select-xs"
+                            value={f.status}
+                            onChange={(e) => updateFeedback.mutate({ id: f._id, data: { status: e.target.value } })}>
+                            <option value="new">Nouveau</option>
+                            <option value="in_review">En cours</option>
+                            <option value="planned">Planifié</option>
+                            <option value="done">Fait</option>
+                            <option value="rejected">Rejeté</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select className="select select-ghost select-xs"
+                            value={f.priority}
+                            onChange={(e) => updateFeedback.mutate({ id: f._id, data: { priority: e.target.value } })}>
+                            <option value="low">Basse</option>
+                            <option value="medium">Moyenne</option>
+                            <option value="high">Haute</option>
+                            <option value="critical">Critique</option>
+                          </select>
+                        </td>
+                        <td className="text-sm">{f.rating ? `${f.rating}/5` : "—"}</td>
                         <td className="text-sm text-base-content/40">{new Date(f.createdAt).toLocaleDateString()}</td>
+                        <td className="text-right">
+                          <span className={`badge badge-xs ${
+                            f.status === "done" ? "badge-success" :
+                            f.status === "rejected" ? "badge-error" :
+                            f.status === "in_review" ? "badge-info" :
+                            f.status === "planned" ? "badge-warning" : ""
+                          }`}>{f.status}</span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "logs" && (
+            <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+              <div className="card-body p-0 overflow-x-auto">
+                <div className="p-4 text-sm font-mono max-h-[70vh] overflow-y-auto">
+                  {logsData?.length > 0 ? logsData.map((entry, i) => (
+                    <div key={i} className={`py-1 border-b border-base-content/5 last:border-0 ${
+                      entry.level === "error" ? "text-error" :
+                      entry.level === "warn" ? "text-warning" : "text-base-content/70"
+                    }`}>
+                      <span className="text-[10px] text-base-content/30">{entry.timestamp ? new Date(entry.timestamp).toLocaleString() : ""}</span>{" "}
+                      <span className="font-bold text-[10px] uppercase">{entry.level}</span>{" "}
+                      <span>{entry.message}</span>
+                    </div>
+                  )) : (
+                    <div className="text-center py-8 text-base-content/40">
+                      <FileText size={32} className="mx-auto mb-2 opacity-50" />
+                      <p>Aucun log disponible</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

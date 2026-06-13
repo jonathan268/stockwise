@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Package, Search, Edit3, Trash2, AlertCircle,
-  ChevronLeft, ChevronRight, X, Save, BarChart3,
+  ChevronLeft, ChevronRight, X, Save, BarChart3, Download,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import { useDebounce } from "use-debounce";
+import { useAuthStore } from "../store/authStore";
 
 const StockBadge = ({ current, min }) => {
   if (current === 0) return <span className="badge badge-error badge-sm font-bold">Rupture</span>;

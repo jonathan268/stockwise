@@ -22,6 +22,8 @@ import billingRoutes from "./routes/billing.routes.js";
 import recommendationRoutes from "./routes/recommendation.routes.js";
 import feedbackRoutes from "./routes/feedback.routes.js";
 import consoleRoutes from "./routes/console.routes.js";
+import exportRoutes from "./routes/export.routes.js";
+import invoiceRoutes from "./routes/invoice.routes.js";
 import { initSocket } from "./utils/socket.js";
 import { startAICronJob } from "./jobs/ai.cron.js";
 
@@ -110,6 +112,12 @@ app.use("/api/v1/recommendations", recommendationRoutes);
 
 // Routes Feedback
 app.use("/api/v1/feedback", feedbackRoutes);
+
+// Routes Export & Rapports
+app.use("/api/v1/exports", exportRoutes);
+
+// Routes Factures
+app.use("/api/v1/invoices", invoiceRoutes);
 
 // ─── Super admin route ──────────────────────────────────────
 app.use("/api/v1/console", consoleRoutes);

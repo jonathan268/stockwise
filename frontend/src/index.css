@@ -7,6 +7,12 @@
   --font-display: "Poppins", sans-serif;
   --font-body: "Poppins", sans-serif;
   --font-sans: "Poppins", sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes heroFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @layer base {

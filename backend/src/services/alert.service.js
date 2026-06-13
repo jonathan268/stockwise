@@ -1,6 +1,9 @@
 import Alert from "../models/Alert.js";
 import Product from "../models/Product.js";
+import Organization from "../models/Organization.js";
+import User from "../models/User.js";
 import { AppError } from "../utils/appError.js";
+import { sendLowStockAlertEmail } from "./email.service.js";
 
 /**
  * Récupère tous les alertes non lues de l'organisation
@@ -152,6 +155,20 @@ export const createLowStockAlert = async (organizationId, productId) => {
     type: "low_stock",
     message: `Le stock pour ${product.name} est bas (${product.currentStock} restant(s)).`,
     isRead: false,
+  });
+
+  setImmediate(async () => {
+    try {
+      const org = await Organization.findById(organizationId);
+      if (org?.settings?.lowStockAlertEmail) {
+        const admins = await User.find({ organizationId, role: { $in: ["owner", "admin"] } });
+        for (const admin of admins) {
+          await sendLowStockAlertEmail(admin, org, product);
+        }
+      }
+    } catch (e) {
+      console.error("Erreur envoi email alerte stock:", e.message);
+    }
   });
 
   return alert;

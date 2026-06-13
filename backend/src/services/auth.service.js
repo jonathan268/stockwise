@@ -6,7 +6,8 @@ import { AppError } from "../utils/appError.js";
 import bcrypt from "bcryptjs";
 import { generateTokens, verifyRefreshToken } from "../utils/jwt.js";
 import { OAuth2Client } from "google-auth-library";
-import { sendWelcomeEmail } from "./email.service.js";
+import { sendWelcomeEmail, sendPasswordResetEmail } from "./email.service.js";
+import crypto from "crypto";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -157,6 +158,43 @@ export const updatePasswordService = async (userId, { currentPassword, newPasswo
   user.password = newPassword;
   await user.save(); // L'événement pre-save va hasher le mot de passe
   return true;
+};
+
+export const forgotPasswordService = async (email) => {
+  const user = await User.findOne({ email }).select("+resetPasswordToken +resetPasswordExpires");
+  if (!user) return { message: "Si cet email existe, un lien de réinitialisation a été envoyé." };
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  user.resetPasswordToken = await bcrypt.hash(resetToken, 10);
+  user.resetPasswordExpires = Date.now() + 3600000;
+  await user.save();
+
+  setImmediate(() => sendPasswordResetEmail(user, resetToken));
+  return { message: "Si cet email existe, un lien de réinitialisation a été envoyé." };
+};
+
+export const resetPasswordService = async (token, newPassword) => {
+  const users = await User.find({
+    resetPasswordExpires: { $gt: Date.now() },
+  }).select("+resetPasswordToken +resetPasswordExpires");
+
+  let matchedUser = null;
+  for (const user of users) {
+    if (user.resetPasswordToken) {
+      const isMatch = await bcrypt.compare(token, user.resetPasswordToken);
+      if (isMatch) { matchedUser = user; break; }
+    }
+  }
+
+  if (!matchedUser) throw new AppError("Token invalide ou expiré", 400);
+
+  matchedUser.password = newPassword;
+  matchedUser.resetPasswordToken = undefined;
+  matchedUser.resetPasswordExpires = undefined;
+  matchedUser.refreshToken = null;
+  await matchedUser.save();
+
+  return { message: "Mot de passe réinitialisé avec succès" };
 };
 
 export const updateOrganizationService = async (orgId, updateData) => {

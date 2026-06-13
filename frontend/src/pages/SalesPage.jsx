@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ShoppingCart, Plus, Search, DollarSign, TrendingUp, Hash,
-  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye,
+  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye, Download,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import SaleForm from "../components/SaleForm";
@@ -76,10 +76,16 @@ export default function SalesPage() {
           </h1>
           <p className="text-base-content/60 text-sm mt-1">Historique et création de ventes</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn btn-primary gap-2">
-          {showForm ? <XIcon size={18} /> : <Plus size={18} />}
-          {showForm ? "Fermer" : "Nouvelle vente"}
-        </button>
+        <div className="flex gap-2">
+          <a href={`${import.meta.env.VITE_API_URL}/exports/sales/csv`}
+            className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
+            <Download size={16} /> CSV
+          </a>
+          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary gap-2">
+            {showForm ? <XIcon size={18} /> : <Plus size={18} />}
+            {showForm ? "Fermer" : "Nouvelle vente"}
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ArrowLeftRight, ArrowUpRight, ArrowDownRight, RotateCcw, SlidersHorizontal,
-  Plus, ChevronLeft, ChevronRight, Package, X, Save,
+  Plus, ChevronLeft, ChevronRight, Package, X, Save, Download,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 
@@ -88,6 +88,10 @@ export default function MovementsPage() {
             <option value="return">Retours</option>
             <option value="adjustment">Ajustements</option>
           </select>
+          <a href={`${import.meta.env.VITE_API_URL}/exports/movements/csv`}
+            className="btn btn-ghost btn-sm gap-2" target="_blank" rel="noopener">
+            <Download size={16} /> CSV
+          </a>
           <button onClick={() => setModalOpen(true)} className="btn btn-primary btn-sm gap-2">
             <Plus size={16} /> Mouvement
           </button>
