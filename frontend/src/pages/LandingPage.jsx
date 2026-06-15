@@ -127,6 +127,7 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [faqOpen, setFaqOpen] = useState(null);
   const [currentBg, setCurrentBg] = useState(0);
   const [nextBg, setNextBg] = useState(null);
   const { theme, toggleTheme } = useThemeStore();
@@ -139,6 +140,9 @@ export default function LandingPage() {
   const pricingRef = useRef(null);
   const ctaRef = useRef(null);
   const testimonialRef = useRef(null);
+  const onboardingRef = useRef(null);
+  const onboardingCardsRef = useRef([]);
+  const onboardingLineRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -196,6 +200,47 @@ export default function LandingPage() {
                   overwrite: 'auto',
                 });
               }
+            });
+          },
+        });
+      }
+
+      const onboardingCards = onboardingCardsRef.current;
+      if (onboardingCards.length) {
+        onboardingCards.forEach((card, i) => {
+          gsap.set(card, { opacity: 0, y: 80, scale: 0.9 });
+          ScrollTrigger.create({
+            trigger: card,
+            start: 'top 85%',
+            end: 'top 35%',
+            scrub: 1.2,
+            onUpdate: (self) => {
+              const p = self.progress;
+              gsap.to(card, {
+                opacity: 0.15 + p * 0.85,
+                y: 80 - p * 80,
+                scale: 0.9 + p * 0.1,
+                duration: 0.1,
+                overwrite: 'auto',
+              });
+            },
+          });
+        });
+      }
+
+      const line = onboardingLineRef.current;
+      if (line) {
+        gsap.set(line, { scaleX: 0, transformOrigin: 'left center' });
+        ScrollTrigger.create({
+          trigger: onboardingRef.current,
+          start: 'top 60%',
+          end: 'bottom 40%',
+          scrub: 1,
+          onUpdate: (self) => {
+            gsap.to(line, {
+              scaleX: self.progress,
+              duration: 0.1,
+              overwrite: 'auto',
             });
           },
         });
@@ -283,7 +328,9 @@ export default function LandingPage() {
             {[
               { label: 'Fonctionnalités', href: '#features' },
               { label: 'Intelligence IA', href: '#ia' },
+              { label: 'Onboarding', href: '#onboarding' },
               { label: 'Tarification', href: '#pricing' },
+              { label: 'FAQ', href: '#faq' },
             ].map((item, i) => (
               <a
                 key={i}
@@ -360,7 +407,9 @@ export default function LandingPage() {
           {[
             { label: 'Fonctionnalités', href: '#features' },
             { label: 'Intelligence IA', href: '#ia' },
+            { label: 'Onboarding', href: '#onboarding' },
             { label: 'Tarification', href: '#pricing' },
+            { label: 'FAQ', href: '#faq' },
           ].map((item, i) => (
             <a
               key={i}
@@ -877,6 +926,143 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ONBOARDING */}
+      <section
+        id="onboarding"
+        ref={onboardingRef}
+        className="relative z-10 py-32 md:py-48 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,rgba(var(--color-primary-rgb),0.04),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(var(--color-primary-rgb),0.03),transparent_50%)] pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 sm:px-10">
+          <div className="mb-20 text-center">
+            <div className="flex items-center justify-center gap-2 mb-4 text-primary/60">
+              <div className="w-8 h-px bg-primary/50" />
+              <span className="text-[0.625rem] font-medium tracking-[0.18em] uppercase">
+                Prise en main
+              </span>
+              <div className="w-8 h-px bg-primary/50" />
+            </div>
+            <h2 className="font-display font-extrabold text-[clamp(2rem,4vw,3.25rem)] leading-[1.08] tracking-tighter text-base-content max-w-2xl mx-auto">
+              Trois étapes. Votre stock piloté.
+            </h2>
+            <p className="text-base text-base-content/60 leading-relaxed mt-4 max-w-xl mx-auto">
+              Inscrivez-vous, connectez-vous, et laissez StockWise transformer votre gestion de stock.
+            </p>
+          </div>
+
+          <div className="relative max-w-5xl mx-auto">
+            <div
+              ref={onboardingLineRef}
+              className="absolute top-20 left-[2.125rem] md:left-1/2 md:-translate-x-1/2 w-0.5 md:w-[calc(100%-6rem)] h-[calc(100%-6rem)] md:h-0.5 bg-gradient-to-b md:bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10 origin-left"
+            />
+
+            <div className="relative space-y-16 md:space-y-0 md:grid md:grid-cols-3 md:gap-8 lg:gap-12">
+              {[
+                {
+                  step: '01',
+                  label: 'Inscription',
+                  desc: 'Créez votre compte en quelques clics. Aucune carte bancaire requise. Choix du plan Starter ou Professionnel selon vos besoins.',
+                  stat: '< 2 min',
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  ),
+                },
+                {
+                  step: '02',
+                  label: 'Connexion',
+                  desc: 'Accédez à votre tableau de bord depuis n\'importe quel appareil. Vue d\'ensemble de vos stocks, ventes et alertes en temps réel.',
+                  stat: 'Sécurisé',
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  ),
+                },
+                {
+                  step: '03',
+                  label: 'Gestion de stock',
+                  desc: 'Ajoutez vos produits, suivez les mouvements, et recevez chaque matin les recommandations IA pour optimiser vos réapprovisionnements.',
+                  stat: 'Automatisé',
+                  icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                  ),
+                },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  ref={(el) => (onboardingCardsRef.current[i] = el)}
+                  className="group relative md:text-center"
+                >
+                  <div className="relative z-10 rounded-2xl border border-base-content/10 bg-base-200/40 p-8 md:p-10 backdrop-blur-sm hover:border-primary/20 transition-all duration-500">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                    <div className="relative z-10 flex md:flex-col items-center md:items-center gap-5 md:gap-0">
+                      <div className="w-14 h-14 flex-shrink-0 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/10 transition-all duration-500 md:mx-auto md:mb-6">
+                        {item.icon}
+                      </div>
+
+                      <div className="flex-1 min-w-0 md:text-center">
+                        <span className="text-[0.625rem] font-mono font-bold tracking-[0.2em] text-primary/50 mb-2 md:mb-3 block">
+                          Étape {item.step}
+                        </span>
+                        <h3 className="font-display font-bold text-lg text-base-content mb-2">
+                          {item.label}
+                        </h3>
+                        <p className="text-sm text-base-content/60 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 mt-6 pt-5 border-t border-base-content/10 flex items-center md:justify-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                      <span className="text-[10px] font-mono font-bold tracking-wider text-base-content/40 uppercase">
+                        {item.stat}
+                      </span>
+                    </div>
+                  </div>
+
+                  {i < 2 && (
+                    <div className="hidden md:flex absolute top-1/2 -right-6 lg:-right-7 z-20 -translate-y-1/2">
+                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-base-100 border-2 border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-primary/60"
+                        >
+                          <path d="M5 12h14" />
+                          <path d="m12 5 7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative mt-20 max-w-3xl mx-auto">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-base-content/5" />
+            </div>
+            <div className="relative flex justify-center">
+              <div className="bg-base-100 px-8 py-4 rounded-full border border-base-content/10 shadow-sm">
+                <span className="text-xs font-medium text-base-content/50">
+                  De l'inscription à la gestion —{' '}
+                  <span className="text-primary font-bold">moins de 5 minutes</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section
         id="pricing"
@@ -1111,6 +1297,89 @@ export default function LandingPage() {
                 }`}
                 aria-label={`Témoignage ${i + 1}`}
               />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="relative z-10 py-32 md:py-48">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(var(--color-primary-rgb),0.03),transparent_50%)] pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 sm:px-10">
+          <div className="mb-16 text-center">
+            <div className="flex items-center justify-center gap-2 mb-4 text-primary/60">
+              <div className="w-8 h-px bg-primary/50" />
+              <span className="text-[0.625rem] font-medium tracking-[0.18em] uppercase">
+                Foire aux questions
+              </span>
+              <div className="w-8 h-px bg-primary/50" />
+            </div>
+            <h2 className="font-display font-extrabold text-[clamp(2rem,4vw,3.25rem)] leading-[1.08] tracking-tighter text-base-content max-w-2xl mx-auto">
+              Des questions ? Des réponses.
+            </h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-3">
+            {[
+              {
+                q: 'StockWise est-il adapté aux petites entreprises ?',
+                a: 'Absolument. Nos formules Starter et Professionnel sont conçues pour les PME et commerces de proximité. Vous pouvez démarrer avec jusqu\'à 100 produits et 3 utilisateurs gratuitement.',
+              },
+              {
+                q: 'Comment fonctionne l\'IA Gemini ?',
+                a: 'Chaque nuit, notre agent IA analyse vos données de vente, l\'historique des commandes et les tendances saisonnières. Le matin, vous recevez des recommandations prioritaires : sur-stockage à écouler, risques de rupture, et suggestions de réapprovisionnement.',
+              },
+              {
+                q: 'Puis-je importer mes produits depuis un autre logiciel ?',
+                a: 'Oui. Vous pouvez importer votre catalogue via fichier CSV ou Excel. Notre équipe peut également vous accompagner pour une migration personnalisée si vous avez un volume important de données.',
+              },
+              {
+                q: 'Mes données sont-elles sécurisées ?',
+                a: 'La sécurité est notre priorité. Vos données sont chiffrées de bout en bout, hébergées sur des serveurs sécurisés en Europe. Nous effectuons des sauvegardes quotidiennes et respectons les normes RGPD.',
+              },
+              {
+                q: 'Puis-je annuler à tout moment ?',
+                a: 'Oui, sans engagement. Vous pouvez résilier votre abonnement à tout moment depuis vos paramètres. Vous conservez l\'accès à vos données jusqu\'à la fin de la période en cours.',
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-base-content/10 bg-base-200/30 overflow-hidden transition-all duration-300 hover:border-primary/20"
+              >
+                <button
+                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                  className="w-full flex items-center justify-between p-5 md:p-6 text-left"
+                >
+                  <span className="font-display font-bold text-sm md:text-base text-base-content pr-4">
+                    {item.q}
+                  </span>
+                  <div
+                    className={`w-8 h-8 flex-shrink-0 rounded-lg border border-base-content/10 flex items-center justify-center transition-all duration-300 ${
+                      faqOpen === i
+                        ? 'bg-primary/10 border-primary/20 text-primary rotate-180'
+                        : 'text-base-content/40'
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                </button>
+                <div
+                  className={`grid transition-all duration-300 ease-out-expo ${
+                    faqOpen === i
+                      ? 'grid-rows-[1fr] opacity-100'
+                      : 'grid-rows-[0fr] opacity-0'
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-5 md:px-6 pb-5 md:pb-6">
+                      <div className="w-full h-px bg-base-content/5 mb-4" />
+                      <p className="text-sm text-base-content/60 leading-relaxed">
+                        {item.a}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
