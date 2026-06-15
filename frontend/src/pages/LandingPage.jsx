@@ -103,21 +103,21 @@ const testimonials = [
     role: 'Gerante Quincaillerie, Douala',
     text: "Depuis StockWise, fini les ruptures de ciment. L'IA anticipe mes commandes a la perfection. Je ne consulte meme plus mes stocks manuellement.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face',
+    img: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Marie&backgroundColor=b6e3f4',
   },
   {
     name: 'Paul K.',
     role: 'Grossiste Alimentaire, Yaounde',
     text: "L'interface est d'une fluidite incroyable. Le suivi temps reel entre depots a sauve notre tresorerie. On a reduit les pertes de 35%.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face',
+    img: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Paul&backgroundColor=c0aede',
   },
   {
     name: 'Sonia B.',
     role: 'CEO Boutique Mode, Douala',
     text: "Le meilleur investissement de l'annee. Les insights nocturnes me font gagner 2h de gestion chaque matin. Le ROI a ete immediat.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face',
+    img: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sonia&backgroundColor=ffd5dc',
   },
 ];
 
