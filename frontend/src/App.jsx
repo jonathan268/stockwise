@@ -20,10 +20,14 @@ import AlertsPage from "./pages/AlertsPage";
 import InsightsPage from "./pages/InsightsPage";
 import SettingsPage from "./pages/SettingsPage";
 import ConsolePage from "./pages/ConsolePage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import CookiesPage from "./pages/CookiesPage";
 
 // Components
 import PrivateRoute from "./routes/PrivateRoute";
 import PageTransition from "./components/PageTransition";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 export default function App() {
   const location = useLocation();
@@ -130,9 +134,15 @@ export default function App() {
           }
         />
 
+        {/* Legal Pages */}
+        <Route path="/legal/terms" element={<PageTransition><TermsPage /></PageTransition>} />
+        <Route path="/legal/privacy" element={<PageTransition><PrivacyPage /></PageTransition>} />
+        <Route path="/legal/cookies" element={<PageTransition><CookiesPage /></PageTransition>} />
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <CookieConsentBanner />
     </AnimatePresence>
   );
 }

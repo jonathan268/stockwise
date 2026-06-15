@@ -1243,18 +1243,20 @@ export default function LandingPage() {
                 Légal
               </h4>
               <ul className="space-y-3">
-                {["Conditions d'utilisation", 'Confidentialité', 'Cookies'].map(
-                  (l, i) => (
-                    <li key={i}>
-                      <a
-                        href="#"
-                        className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300"
-                      >
-                        {l}
-                      </a>
-                    </li>
-                  )
-                )}
+                {[
+                  { label: "Conditions d'utilisation", to: "/legal/terms" },
+                  { label: "Confidentialité", to: "/legal/privacy" },
+                  { label: "Cookies", to: "/legal/cookies" },
+                ].map((l, i) => (
+                  <li key={i}>
+                    <Link
+                      to={l.to}
+                      className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300 no-underline"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
