@@ -289,8 +289,8 @@ export default function LandingPage() {
         <div
           className={`flex items-center justify-between px-5 transition-all duration-300 rounded-2xl border border-base-content/10 bg-base-100/70 backdrop-blur-2xl shadow-lg ${
             scrolled
-              ? 'py-2 bg-base-100/85 shadow-xl shadow-base-900/5'
-              : 'py-2.5'
+              ? 'py-3 bg-base-100/85 shadow-xl shadow-base-900/5'
+              : 'py-4'
           }`}
         >
           <Link
