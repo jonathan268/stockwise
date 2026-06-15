@@ -61,7 +61,6 @@ export default function ProductsPage() {
   const products = data?.data || [];
   const meta = data?.meta || { total: 0, totalPages: 1 };
   const categories = categoriesData || [];
-  const suppliers = suppliersData || [];
   const { data: suppliersData } = useQuery({
     queryKey: ["suppliers-list"],
     queryFn: async () => {
@@ -70,6 +69,8 @@ export default function ProductsPage() {
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  const suppliers = suppliersData || [];
 
   // Create / Update mutation
   const saveMutation = useMutation({

@@ -13,17 +13,21 @@ export default function PlanGate({ children, requiredPlan = "pro" }) {
   if (hasAccess) return children;
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none select-none blur-sm opacity-30">
+    <>
+      <div className="pointer-events-none select-none blur-sm">
         {children}
       </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="absolute inset-0 flex items-center justify-center z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
       >
-        <div className="bg-base-100 border border-base-content/10 rounded-2xl shadow-2xl p-8 max-w-sm mx-4 text-center space-y-5">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="bg-base-100 border border-base-content/10 rounded-2xl shadow-2xl p-8 max-w-sm mx-4 text-center space-y-5"
+        >
           <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto">
             <Lock size={28} />
           </div>
@@ -51,13 +55,13 @@ export default function PlanGate({ children, requiredPlan = "pro" }) {
               Mon abonnement actuel
             </button>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       <SubscriptionModal
         isOpen={isSubsModalOpen}
         onClose={() => setIsSubsModalOpen(false)}
       />
-    </div>
+    </>
   );
 }

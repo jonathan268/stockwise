@@ -12,6 +12,7 @@ import {
   PieChart,
   Bell,
   Clock,
+  RefreshCw,
 } from "lucide-react";
 import AnimatedNumber from "../components/AnimatedNumber";
 import { DashboardSkeleton } from "../components/Skeleton";
@@ -65,13 +66,14 @@ const ChangeBadge = ({ value }) => {
 };
 
 export default function DashboardPage() {
-  const { data: summary, isLoading } = useQuery({
+  const { data: summary, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["dashboard-aggregate"],
     queryFn: async () => {
       const res = await axiosInstance.get("/dashboard/summary");
       return res.data.data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60,
+    refetchInterval: 1000 * 60 * 2,
   });
 
   const fmt = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(n);
@@ -84,9 +86,19 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black font-display">Tableau de bord</h1>
-        <p className="text-base-content/60 mt-1">Vue d'ensemble de votre activité.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black font-display">Tableau de bord</h1>
+          <p className="text-base-content/60 mt-1">Vue d'ensemble de votre activité.</p>
+        </div>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="btn btn-ghost btn-sm btn-circle"
+          title="Rafraîchir"
+        >
+          <RefreshCw size={18} className={isFetching ? "animate-spin" : ""} />
+        </button>
       </div>
 
       {/* KPI Grid */}
@@ -146,8 +158,8 @@ export default function DashboardPage() {
             {s?.paymentBreakdown?.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
                 <RePieChart>
-                  <Pie data={s.paymentBreakdown} dataKey="amount" nameKey="_id" cx="50%" cy="50%" outerRadius={80}
-                    label={({ _id, percent }) => `${_id} ${(percent * 100).toFixed(0)}%`}>
+                    <Pie data={s.paymentBreakdown} dataKey="amount" nameKey="_id" cx="50%" cy="50%" outerRadius={80}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                     {s.paymentBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
                   <Tooltip />

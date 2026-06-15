@@ -65,6 +65,7 @@ export default function Layout({ children }) {
   };
   
   const daysLeft = getDaysRemaining();
+  const isTrialActive = organization?.trialEndsAt && new Date(organization.trialEndsAt) > new Date() && organization?.plan === "starter";
 
   // Fermer le drawer mobile quand on navigue
   useEffect(() => {
@@ -257,7 +258,7 @@ export default function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {organization?.isTrialActive && (
+            {isTrialActive && (
               <button 
                 onClick={() => setIsSubsModalOpen(true)}
                 className="btn btn-warning btn-xs gap-1 font-bold rounded-lg shadow-sm hover:shadow-md transition-all animate-pulse"
@@ -265,7 +266,7 @@ export default function Layout({ children }) {
                 <Zap size={14} /> Essai 
               </button>
             )}
-            {!organization?.isTrialActive && organization?.plan === "starter" && (
+            {!isTrialActive && organization?.plan === "starter" && (
                 <button 
                   onClick={() => setIsSubsModalOpen(true)}
                   className="btn btn-primary btn-xs gap-1 font-bold rounded-lg"

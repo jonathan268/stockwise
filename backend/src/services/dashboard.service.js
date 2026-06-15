@@ -4,7 +4,7 @@ import Alert from "../models/Alert.js";
 import mongoose from "mongoose";
 import NodeCache from "node-cache";
 
-const cache = new NodeCache({ stdTTL: 300, useClones: true });
+const cache = new NodeCache({ stdTTL: 60, useClones: true });
 
 const getDateRanges = () => {
   const now = new Date();

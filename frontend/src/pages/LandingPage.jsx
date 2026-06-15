@@ -103,21 +103,21 @@ const testimonials = [
     role: 'Gerante Quincaillerie, Douala',
     text: "Depuis StockWise, fini les ruptures de ciment. L'IA anticipe mes commandes a la perfection. Je ne consulte meme plus mes stocks manuellement.",
     rating: 5,
-    img: 'https://picsum.photos/seed/marie/200/200',
+    img: 'https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?w=200&h=200&fit=crop&crop=face',
   },
   {
     name: 'Paul K.',
     role: 'Grossiste Alimentaire, Yaounde',
     text: "L'interface est d'une fluidite incroyable. Le suivi temps reel entre depots a sauve notre tresorerie. On a reduit les pertes de 35%.",
     rating: 5,
-    img: 'https://picsum.photos/seed/paul/200/200',
+    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
   },
   {
     name: 'Sonia B.',
     role: 'CEO Boutique Mode, Douala',
     text: "Le meilleur investissement de l'annee. Les insights nocturnes me font gagner 2h de gestion chaque matin. Le ROI a ete immediat.",
     rating: 5,
-    img: 'https://picsum.photos/seed/sonia/200/200',
+    img: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=200&h=200&fit=crop&crop=face',
   },
 ];
 
@@ -151,7 +151,9 @@ export default function LandingPage() {
     if (heroImages.length < 2) return;
     const interval = setInterval(() => {
       let next;
-      do { next = Math.floor(Math.random() * heroImages.length); } while (next === currentBg);
+      do {
+        next = Math.floor(Math.random() * heroImages.length);
+      } while (next === currentBg);
       setNextBg(next);
       setTimeout(() => {
         setCurrentBg(next);
@@ -489,7 +491,22 @@ export default function LandingPage() {
         className="relative z-10 py-32 md:py-48"
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(var(--color-primary-rgb),0.04),transparent_50%)] pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1\' fill=\'%23ffffff\'/%3E%3C/svg%3E")' }} />
+        <div
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='1' fill='%23ffffff'/%3E%3C/svg%3E\")",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.06] bg-cover bg-center bg-fixed pointer-events-none"
+          style={{
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1586528116311-0dff8c221dce?w=1920&q=80)',
+            backgroundPosition: '50% 30%',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-base-100 via-base-100/80 to-base-100 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="mb-20">
             <div className="flex items-center gap-2 mb-4 text-primary/60">
@@ -540,10 +557,10 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <div
-                  className="absolute bottom-0 right-0 w-48 h-48 opacity-[0.04] bg-cover bg-center pointer-events-none"
+                  className="absolute bottom-0 right-0 w-64 h-48 opacity-[0.05] bg-cover bg-center pointer-events-none"
                   style={{
                     backgroundImage:
-                      'url(https://picsum.photos/seed/products/400/400)',
+                      'url(https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=80)',
                   }}
                 />
               </div>
@@ -551,6 +568,13 @@ export default function LandingPage() {
 
             {/* Card 2 - Real-time */}
             <div className="stack-card col-span-1 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-violet-500/5 to-transparent hover:from-violet-500/10 transition-all duration-500">
+              <div
+                className="absolute bottom-0 right-0 w-40 h-40 opacity-[0.06] bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'url(https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80)',
+                }}
+              />
               <div className="relative z-10 p-7 md:p-8 h-full flex flex-col">
                 <div className="w-10 h-10 bg-violet-500/10 text-violet-500 border border-violet-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
                   <Radio size={20} strokeWidth={1.75} />
@@ -572,6 +596,13 @@ export default function LandingPage() {
 
             {/* Card 3 - Alerts */}
             <div className="stack-card col-span-1 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-rose-500/5 to-transparent hover:from-rose-500/10 transition-all duration-500">
+              <div
+                className="absolute bottom-0 right-0 w-40 h-40 opacity-[0.06] bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'url(https://images.unsplash.com/photo-1517292987719-0369a794ec0f?w=400&q=80)',
+                }}
+              />
               <div className="relative z-10 p-7 md:p-8 h-full flex flex-col">
                 <div className="w-10 h-10 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
                   <Bell size={20} strokeWidth={1.75} />
@@ -592,6 +623,13 @@ export default function LandingPage() {
 
             {/* Card 4 - AI Agent (col-span-2) */}
             <div className="stack-card col-span-1 md:col-span-2 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-amber-500/5 to-transparent hover:from-amber-500/10 transition-all duration-500">
+              <div
+                className="absolute bottom-0 right-0 w-64 h-48 opacity-[0.06] bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'url(https://images.unsplash.com/photo-1677756119517-756a188d2d94?w=600&q=80)',
+                }}
+              />
               <div className="relative z-10 p-7 md:p-8 h-full flex flex-col md:flex-row md:items-center gap-6">
                 <div className="flex-shrink-0">
                   <div className="w-11 h-11 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl flex items-center justify-center mb-4 md:mb-0 group-hover:scale-110 transition-transform duration-500">
@@ -618,6 +656,13 @@ export default function LandingPage() {
 
             {/* Card 5 - Dashboard */}
             <div className="stack-card col-span-1 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-blue-500/5 to-transparent hover:from-blue-500/10 transition-all duration-500">
+              <div
+                className="absolute bottom-0 right-0 w-40 h-40 opacity-[0.06] bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80)',
+                }}
+              />
               <div className="relative z-10 p-7 md:p-8 h-full flex flex-col">
                 <div className="w-10 h-10 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
                   <LayoutDashboard size={20} strokeWidth={1.75} />
@@ -634,6 +679,13 @@ export default function LandingPage() {
 
             {/* Card 6 - NotchPay */}
             <div className="stack-card col-span-1 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-cyan-500/5 to-transparent hover:from-cyan-500/10 transition-all duration-500">
+              <div
+                className="absolute bottom-0 right-0 w-40 h-40 opacity-[0.06] bg-cover bg-center pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'url(https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80)',
+                }}
+              />
               <div className="relative z-10 p-7 md:p-8 h-full flex flex-col">
                 <div className="w-10 h-10 bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
                   <Bitcoin size={20} strokeWidth={1.75} />
@@ -653,7 +705,22 @@ export default function LandingPage() {
       {/* AI SECTION - GSAP Scrubbing Text Reveals */}
       <section id="ia" ref={aiRef} className="relative z-10 py-32 md:py-48">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_50%,rgba(var(--color-primary-rgb),0.05),transparent_50%)] pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\'%3E%3Ccircle cx=\'30\' cy=\'30\' r=\'1\' fill=\'%23ffffff\'/%3E%3C/svg%3E")' }} />
+        <div
+          className="absolute inset-0 opacity-[0.02] pointer-events-none"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff'/%3E%3C/svg%3E\")",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.05] bg-cover bg-center bg-fixed pointer-events-none"
+          style={{
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1920&q=80)',
+            backgroundPosition: '50% 50%',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-base-100/60 to-base-100 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20">
             <div className="lg:col-span-2">
@@ -816,6 +883,15 @@ export default function LandingPage() {
         ref={pricingRef}
         className="relative z-10 py-32 md:py-48 bg-base-200/20 border-y border-base-content/5"
       >
+        <div
+          className="absolute inset-0 opacity-[0.04] bg-cover bg-center pointer-events-none"
+          style={{
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1553729459-afe8f2e2e810?w=1920&q=80)',
+            backgroundPosition: '50% 50%',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-base-200/60 via-transparent to-base-200/60 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="mb-20 text-center">
             <div className="flex items-center justify-center gap-2 mb-4 text-primary/60">
@@ -1042,6 +1118,15 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section ref={ctaRef} className="relative z-10 py-32 md:py-40">
+        <div
+          className="absolute inset-0 opacity-[0.03] bg-cover bg-center bg-fixed pointer-events-none"
+          style={{
+            backgroundImage:
+              'url(https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80)',
+            backgroundPosition: '50% 30%',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-base-100 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="relative overflow-hidden rounded-3xl bg-base-200/40 border border-base-content/10 p-10 md:p-20 text-center">
             <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
@@ -1198,7 +1283,7 @@ export default function LandingPage() {
             <p>
               Conçu et développé au Cameroun par{' '}
               <a
-                href="https://www.johnfullstack.vercel.app"
+                href="https://johnfullstack.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-primary/80 transition-colors duration-300"

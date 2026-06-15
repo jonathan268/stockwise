@@ -54,6 +54,7 @@ export default function SettingsPage() {
     return remaining > 0 ? remaining : 0;
   };
   const daysLeft = getDaysRemaining();
+  const isTrialActive = organization?.trialEndsAt && new Date(organization.trialEndsAt) > new Date() && organization?.plan === "starter";
 
   const showSaved = () => {
     useToastStore.getState().success("Modifications sauvegardées");
@@ -205,7 +206,7 @@ export default function SettingsPage() {
                           <div>
                             <p className="font-bold flex items-center gap-2">
                               Plan {organization?.plan || "Starter"}
-                              {organization?.isTrialActive && <span className="badge badge-warning badge-xs">ESSAI</span>}
+                              {isTrialActive && <span className="badge badge-warning badge-xs">ESSAI</span>}
                             </p>
                             {daysLeft !== null && (
                               <p className="text-xs text-base-content/50">{daysLeft} jours restants avant expiration</p>
