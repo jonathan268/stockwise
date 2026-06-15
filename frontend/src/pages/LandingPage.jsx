@@ -128,6 +128,7 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [faqOpen, setFaqOpen] = useState(null);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const [currentBg, setCurrentBg] = useState(0);
   const [nextBg, setNextBg] = useState(null);
   const { theme, toggleTheme } = useThemeStore();
@@ -141,8 +142,8 @@ export default function LandingPage() {
   const ctaRef = useRef(null);
   const testimonialRef = useRef(null);
   const onboardingRef = useRef(null);
-  const onboardingCardsRef = useRef([]);
-  const onboardingLineRef = useRef(null);
+  const onboardingScreenRef = useRef(null);
+  const onboardingStepsRef = useRef([]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -205,47 +206,6 @@ export default function LandingPage() {
         });
       }
 
-      const onboardingCards = onboardingCardsRef.current;
-      if (onboardingCards.length) {
-        onboardingCards.forEach((card, i) => {
-          gsap.set(card, { opacity: 0, y: 80, scale: 0.9 });
-          ScrollTrigger.create({
-            trigger: card,
-            start: 'top 85%',
-            end: 'top 35%',
-            scrub: 1.2,
-            onUpdate: (self) => {
-              const p = self.progress;
-              gsap.to(card, {
-                opacity: 0.15 + p * 0.85,
-                y: 80 - p * 80,
-                scale: 0.9 + p * 0.1,
-                duration: 0.1,
-                overwrite: 'auto',
-              });
-            },
-          });
-        });
-      }
-
-      const line = onboardingLineRef.current;
-      if (line) {
-        gsap.set(line, { scaleX: 0, transformOrigin: 'left center' });
-        ScrollTrigger.create({
-          trigger: onboardingRef.current,
-          start: 'top 60%',
-          end: 'bottom 40%',
-          scrub: 1,
-          onUpdate: (self) => {
-            gsap.to(line, {
-              scaleX: self.progress,
-              duration: 0.1,
-              overwrite: 'auto',
-            });
-          },
-        });
-      }
-
       const aiWords = aiTextRef.current;
       if (aiWords) {
         const words = aiWords.querySelectorAll('.word');
@@ -291,6 +251,27 @@ export default function LandingPage() {
     timer = setInterval(tick, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setOnboardingStep((p) => (p + 1) % 3);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const steps = onboardingStepsRef.current;
+    if (!steps.length) return;
+    steps.forEach((el, i) => {
+      gsap.to(el, {
+        opacity: i === onboardingStep ? 1 : 0,
+        scale: i === onboardingStep ? 1 : 0.95,
+        duration: 0.5,
+        ease: 'power2.inOut',
+        overwrite: 'auto',
+      });
+    });
+  }, [onboardingStep]);
 
   return (
     <main className="relative min-h-screen bg-base-100 text-base-content font-body overflow-x-hidden w-full max-w-full selection:bg-primary/30">
@@ -690,8 +671,8 @@ export default function LandingPage() {
                     Agent IA Nocturne
                   </h3>
                   <p className="text-sm text-base-content/60 leading-relaxed">
-                    L'IA StockWise analyse vos données chaque nuit et génère
-                    des recommandations stratégiques. Sur-stockage, ruptures
+                    L'IA StockWise analyse vos données chaque nuit et génère des
+                    recommandations stratégiques. Sur-stockage, ruptures
                     anticipées, ajustements de prix.
                   </p>
                 </div>
@@ -781,8 +762,8 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <h2 className="font-display font-extrabold text-[clamp(2rem,4vw,3.5rem)] leading-[1.08] tracking-tighter text-base-content max-w-xl mb-6">
-Votre stock analysé par
-                   <span className="text-primary"> notre IA.</span>
+                  Votre stock analysé par
+                  <span className="text-primary"> notre IA.</span>
                 </h2>
                 <p className="text-base text-base-content/60 leading-relaxed mb-10">
                   Chaque nuit, pendant que vous dormez, notre agent IA analyse
@@ -932,10 +913,9 @@ Votre stock analysé par
         ref={onboardingRef}
         className="relative z-10 py-32 md:py-48 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,rgba(var(--color-primary-rgb),0.04),transparent_50%)] pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(var(--color-primary-rgb),0.03),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(var(--color-primary-rgb),0.04),transparent_50%)] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
-          <div className="mb-20 text-center">
+          <div className="mb-16 md:mb-24 text-center">
             <div className="flex items-center justify-center gap-2 mb-4 text-primary/60">
               <div className="w-8 h-px bg-primary/50" />
               <span className="text-[0.625rem] font-medium tracking-[0.18em] uppercase">
@@ -947,115 +927,315 @@ Votre stock analysé par
               Trois étapes. Votre stock piloté.
             </h2>
             <p className="text-base text-base-content/60 leading-relaxed mt-4 max-w-xl mx-auto">
-              Inscrivez-vous, connectez-vous, et laissez StockWise transformer votre gestion de stock.
+              Inscrivez-vous, connectez-vous, et laissez StockWise transformer
+              votre gestion de stock.
             </p>
           </div>
 
-          <div className="relative max-w-5xl mx-auto">
-            <div
-              ref={onboardingLineRef}
-              className="absolute top-20 left-[2.125rem] md:left-1/2 md:-translate-x-1/2 w-0.5 md:w-[calc(100%-6rem)] h-[calc(100%-6rem)] md:h-0.5 bg-gradient-to-b md:bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10 origin-left"
-            />
-
-            <div className="relative space-y-16 md:space-y-0 md:grid md:grid-cols-3 md:gap-8 lg:gap-12">
-              {[
-                {
-                  step: '01',
-                  label: 'Inscription',
-                  desc: 'Créez votre compte en quelques clics. Aucune carte bancaire requise. Choix du plan Starter ou Professionnel selon vos besoins.',
-                  stat: '< 2 min',
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  ),
-                },
-                {
-                  step: '02',
-                  label: 'Connexion',
-                  desc: 'Accédez à votre tableau de bord depuis n\'importe quel appareil. Vue d\'ensemble de vos stocks, ventes et alertes en temps réel.',
-                  stat: 'Sécurisé',
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  ),
-                },
-                {
-                  step: '03',
-                  label: 'Gestion de stock',
-                  desc: 'Ajoutez vos produits, suivez les mouvements, et recevez chaque matin les recommandations IA pour optimiser vos réapprovisionnements.',
-                  stat: 'Automatisé',
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                  ),
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  ref={(el) => (onboardingCardsRef.current[i] = el)}
-                  className="group relative md:text-center"
-                >
-                  <div className="relative z-10 rounded-2xl border border-base-content/10 bg-base-200/40 p-8 md:p-10 backdrop-blur-sm hover:border-primary/20 transition-all duration-500">
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                    <div className="relative z-10 flex md:flex-col items-center md:items-center gap-5 md:gap-0">
-                      <div className="w-14 h-14 flex-shrink-0 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/10 transition-all duration-500 md:mx-auto md:mb-6">
-                        {item.icon}
-                      </div>
-
-                      <div className="flex-1 min-w-0 md:text-center">
-                        <span className="text-[0.625rem] font-mono font-bold tracking-[0.2em] text-primary/50 mb-2 md:mb-3 block">
-                          Étape {item.step}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-5xl mx-auto">
+            <div className="order-2 lg:order-1">
+              <div className="space-y-2 mb-8">
+                {[
+                  {
+                    step: '01',
+                    label: 'Inscription',
+                    desc: 'Créez votre compte en quelques clics. Aucune carte bancaire requise.',
+                    color: 'text-primary',
+                    badge: '< 2 min',
+                  },
+                  {
+                    step: '02',
+                    label: 'Connexion',
+                    desc: "Accédez à votre tableau de bord depuis n'importe quel appareil, en toute sécurité.",
+                    color: 'text-primary',
+                    badge: 'Sécurisé',
+                  },
+                  {
+                    step: '03',
+                    label: 'Gestion de stock',
+                    desc: "Suivez vos produits, ventes et stocks en temps réel. L'IA veille chaque nuit.",
+                    color: 'text-primary',
+                    badge: 'Automatisé',
+                  },
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setOnboardingStep(i)}
+                    className={`w-full text-left p-5 rounded-xl border transition-all duration-500 cursor-pointer ${
+                      onboardingStep === i
+                        ? 'border-primary/30 bg-primary/5 shadow-sm shadow-primary/5'
+                        : 'border-transparent hover:bg-base-200/30 hover:border-base-content/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ${
+                          onboardingStep === i
+                            ? 'bg-primary text-primary-content shadow-md shadow-primary/20'
+                            : 'bg-base-200/50 text-base-content/40 border border-base-content/10'
+                        }`}
+                      >
+                        <span className="text-xs font-black font-mono tracking-tight">
+                          {item.step}
                         </span>
-                        <h3 className="font-display font-bold text-lg text-base-content mb-2">
-                          {item.label}
-                        </h3>
-                        <p className="text-sm text-base-content/60 leading-relaxed">
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3
+                            className={`font-display font-bold text-base transition-colors duration-500 ${
+                              onboardingStep === i
+                                ? 'text-base-content'
+                                : 'text-base-content/50'
+                            }`}
+                          >
+                            {item.label}
+                          </h3>
+                          <span className="text-[9px] font-mono font-bold tracking-wider text-primary/50 uppercase flex-shrink-0">
+                            {item.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs text-base-content/50 leading-relaxed pr-4">
                           {item.desc}
                         </p>
                       </div>
                     </div>
+                  </button>
+                ))}
+              </div>
 
-                    <div className="relative z-10 mt-6 pt-5 border-t border-base-content/10 flex items-center md:justify-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      <span className="text-[10px] font-mono font-bold tracking-wider text-base-content/40 uppercase">
-                        {item.stat}
+              <div className="hidden lg:flex items-center gap-3 pl-5">
+                {[0, 1, 2].map((i) => (
+                  <button
+                    key={i}
+                    onClick={() => setOnboardingStep(i)}
+                    className={`transition-all duration-500 rounded-full ${
+                      i === onboardingStep
+                        ? 'bg-primary h-2 w-8'
+                        : 'bg-base-content/20 h-2 w-2 hover:bg-base-content/40'
+                    }`}
+                    aria-label={`Étape ${i + 1}`}
+                  />
+                ))}
+                <span className="text-[10px] font-mono font-bold tracking-wider text-base-content/30 ml-2 uppercase">
+                  01 / 03
+                </span>
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2" ref={onboardingScreenRef}>
+              <div className="relative mx-auto max-w-md">
+                <div className="absolute -inset-4 bg-gradient-to-b from-primary/5 via-transparent to-transparent rounded-3xl blur-2xl opacity-60" />
+                <div className="relative rounded-2xl border border-base-content/10 bg-base-200/40 backdrop-blur-sm overflow-hidden shadow-2xl">
+                  <div className="px-5 py-3 border-b border-base-content/10 flex items-center justify-between bg-base-300/10">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-rose-500/40" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500/40" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/40" />
+                      </div>
+                      <span className="text-[8px] font-mono uppercase tracking-[0.15em] text-base-content/20 ml-1">
+                        stockwise.app
                       </span>
                     </div>
-                  </div>
-
-                  {i < 2 && (
-                    <div className="hidden md:flex absolute top-1/2 -right-6 lg:-right-7 z-20 -translate-y-1/2">
-                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-base-100 border-2 border-primary/20 flex items-center justify-center shadow-lg shadow-primary/5">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 rounded bg-primary/20 flex items-center justify-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
+                          width="8"
+                          height="8"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="text-primary/60"
+                          className="text-primary"
                         >
-                          <path d="M5 12h14" />
-                          <path d="m12 5 7 7-7 7" />
+                          <path d="m6 9 6 6 6-6" />
                         </svg>
                       </div>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="relative h-[340px] md:h-[400px]">
+                    {[
+                      {
+                        icon: (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                        ),
+                        title: 'Créez votre compte',
+                        subtitle: 'Commencez gratuitement',
+                        fields: [
+                          { label: 'Nom complet', value: 'Jean Dupont' },
+                          { label: 'Email', value: 'jean@exemple.com' },
+                          { label: 'Mot de passe', value: '••••••••' },
+                        ],
+                        cta: 'Créer mon compte',
+                        badge: 'Étape 01',
+                      },
+                      {
+                        icon: (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect
+                              x="3"
+                              y="11"
+                              width="18"
+                              height="11"
+                              rx="2"
+                              ry="2"
+                            />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        ),
+                        title: 'Connectez-vous',
+                        subtitle: 'Votre espace sécurisé',
+                        fields: [
+                          { label: 'Email', value: 'jean@exemple.com' },
+                          { label: 'Mot de passe', value: '••••••••' },
+                        ],
+                        cta: 'Se connecter',
+                        badge: 'Étape 02',
+                      },
+                      {
+                        icon: (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
+                          </svg>
+                        ),
+                        title: 'Gérez votre stock',
+                        subtitle: 'Tableau de bord en direct',
+                        fields: [
+                          { label: 'Produits', value: '1 284' },
+                          { label: 'Alertes', value: '3 en attente' },
+                          { label: 'Recommandations', value: "2 aujourd'hui" },
+                        ],
+                        cta: 'Voir le dashboard',
+                        badge: 'Étape 03',
+                      },
+                    ].map((screen, i) => (
+                      <div
+                        key={i}
+                        ref={(el) => (onboardingStepsRef.current[i] = el)}
+                        className="absolute inset-0 p-8 md:p-10 flex flex-col"
+                        style={{ opacity: i === 0 ? 1 : 0 }}
+                      >
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center text-primary">
+                            {screen.icon}
+                          </div>
+                          <div>
+                            <p className="font-display font-bold text-base text-base-content">
+                              {screen.title}
+                            </p>
+                            <p className="text-xs text-base-content/40">
+                              {screen.subtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5 flex-1">
+                          {screen.fields.map((f, j) => (
+                            <div
+                              key={j}
+                              className="flex items-center justify-between px-4 py-3 rounded-lg bg-base-100/40 border border-base-content/5"
+                            >
+                              <span className="text-[10px] font-mono tracking-wider text-base-content/30 uppercase">
+                                {f.label}
+                              </span>
+                              <span className="text-xs font-medium text-base-content/70 font-mono">
+                                {f.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <span className="text-[9px] font-mono font-bold tracking-wider text-primary/40 uppercase">
+                            {screen.badge}
+                          </span>
+                          <div className="px-5 py-2.5 bg-primary/10 border border-primary/20 rounded-lg text-primary text-xs font-bold">
+                            {screen.cta}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-base-200/40 to-transparent pointer-events-none" />
+                  </div>
                 </div>
-              ))}
+
+                <div className="flex lg:hidden items-center justify-center gap-3 mt-8">
+                  {[0, 1, 2].map((i) => (
+                    <button
+                      key={i}
+                      onClick={() => setOnboardingStep(i)}
+                      className={`transition-all duration-500 rounded-full ${
+                        i === onboardingStep
+                          ? 'bg-primary h-2 w-8'
+                          : 'bg-base-content/20 h-2 w-2 hover:bg-base-content/40'
+                      }`}
+                      aria-label={`Étape ${i + 1}`}
+                    />
+                  ))}
+                  <span className="text-[10px] font-mono font-bold tracking-wider text-base-content/30 ml-2 uppercase">
+                    01 / 03
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="relative mt-20 max-w-3xl mx-auto">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div
+              className="absolute inset-0 flex items-center"
+              aria-hidden="true"
+            >
               <div className="w-full border-t border-base-content/5" />
             </div>
             <div className="relative flex justify-center">
               <div className="bg-base-100 px-8 py-4 rounded-full border border-base-content/10 shadow-sm">
                 <span className="text-xs font-medium text-base-content/50">
                   De l'inscription à la gestion —{' '}
-                  <span className="text-primary font-bold">moins de 5 minutes</span>
+                  <span className="text-primary font-bold">
+                    moins de 5 minutes
+                  </span>
                 </span>
               </div>
             </div>
@@ -1091,7 +1271,7 @@ Votre stock analysé par
               Un plan pour chaque étape.
             </h2>
             <p className="text-base sm:text-lg text-base-content/60 max-w-xl mx-auto leading-relaxed">
-              Démarrez gratuitement, évoluez au rythme de votre croissance.
+              Démarrez sereinement, évoluez au rythme de votre croissance.
               Aucune surprise sur votre facture.
             </p>
           </div>
@@ -1323,11 +1503,11 @@ Votre stock analysé par
             {[
               {
                 q: 'StockWise est-il adapté aux petites entreprises ?',
-                a: 'Absolument. Nos formules Starter et Professionnel sont conçues pour les PME et commerces de proximité. Vous pouvez démarrer avec jusqu\'à 100 produits et 3 utilisateurs gratuitement.',
+                a: "Absolument. Nos formules Starter et Professionnel sont conçues pour les PME et commerces de proximité. Vous pouvez démarrer avec jusqu'à 100 produits et 3 utilisateurs gratuitement.",
               },
               {
-                q: 'Comment fonctionne l\'IA StockWise ?',
-                a: 'Chaque nuit, notre agent IA analyse vos données de vente, l\'historique des commandes et les tendances saisonnières. Le matin, vous recevez des recommandations prioritaires : sur-stockage à écouler, risques de rupture, et suggestions de réapprovisionnement.',
+                q: "Comment fonctionne l'IA StockWise ?",
+                a: "Chaque nuit, notre agent IA analyse vos données de vente, l'historique des commandes et les tendances saisonnières. Le matin, vous recevez des recommandations prioritaires : sur-stockage à écouler, risques de rupture, et suggestions de réapprovisionnement.",
               },
               {
                 q: 'Puis-je importer mes produits depuis un autre logiciel ?',
@@ -1336,10 +1516,6 @@ Votre stock analysé par
               {
                 q: 'Mes données sont-elles sécurisées ?',
                 a: 'La sécurité est notre priorité. Vos données sont chiffrées de bout en bout, hébergées sur des serveurs sécurisés en Europe. Nous effectuons des sauvegardes quotidiennes et respectons les normes RGPD.',
-              },
-              {
-                q: 'Puis-je annuler à tout moment ?',
-                a: 'Oui, sans engagement. Vous pouvez résilier votre abonnement à tout moment depuis vos paramètres. Vous conservez l\'accès à vos données jusqu\'à la fin de la période en cours.',
               },
             ].map((item, i) => (
               <div
@@ -1360,7 +1536,19 @@ Votre stock analysé par
                         : 'text-base-content/40'
                     }`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
                   </div>
                 </button>
                 <div
@@ -1513,9 +1701,9 @@ Votre stock analysé par
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: "Conditions d'utilisation", to: "/legal/terms" },
-                  { label: "Confidentialité", to: "/legal/privacy" },
-                  { label: "Cookies", to: "/legal/cookies" },
+                  { label: "Conditions d'utilisation", to: '/legal/terms' },
+                  { label: 'Confidentialité', to: '/legal/privacy' },
+                  { label: 'Cookies', to: '/legal/cookies' },
                 ].map((l, i) => (
                   <li key={i}>
                     <Link
