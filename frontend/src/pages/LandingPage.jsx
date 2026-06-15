@@ -103,21 +103,21 @@ const testimonials = [
     role: 'Gerante Quincaillerie, Douala',
     text: "Depuis StockWise, fini les ruptures de ciment. L'IA anticipe mes commandes a la perfection. Je ne consulte meme plus mes stocks manuellement.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?w=200&h=200&fit=crop&crop=face',
+    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face',
   },
   {
     name: 'Paul K.',
     role: 'Grossiste Alimentaire, Yaounde',
     text: "L'interface est d'une fluidite incroyable. Le suivi temps reel entre depots a sauve notre tresorerie. On a reduit les pertes de 35%.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+    img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face',
   },
   {
     name: 'Sonia B.',
     role: 'CEO Boutique Mode, Douala',
     text: "Le meilleur investissement de l'annee. Les insights nocturnes me font gagner 2h de gestion chaque matin. Le ROI a ete immediat.",
     rating: 5,
-    img: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=200&h=200&fit=crop&crop=face',
+    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face',
   },
 ];
 
@@ -499,14 +499,14 @@ export default function LandingPage() {
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.06] bg-cover bg-center bg-fixed pointer-events-none"
+          className="absolute inset-0 opacity-[0.22] mix-blend-overlay bg-cover bg-center bg-scroll pointer-events-none"
           style={{
             backgroundImage:
               'url(https://images.unsplash.com/photo-1586528116311-0dff8c221dce?w=1920&q=80)',
             backgroundPosition: '50% 30%',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-base-100 via-base-100/80 to-base-100 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-base-100/10 via-base-100/40 to-base-100/80 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="mb-20">
             <div className="flex items-center gap-2 mb-4 text-primary/60">
@@ -519,7 +519,7 @@ export default function LandingPage() {
               Tout ce dont vous avez besoin pour
               <span className="text-primary"> maîtriser</span> votre inventaire.
             </h2>
-            <p className="text-base sm:text-lg text-base-content/60 max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-base-content/80 max-w-2xl leading-relaxed">
               Chaque fonctionnalité a été conçue pour éliminer la complexité
               opérationnelle, pas l'ajouter. De la prédiction IA à la
               facturation mobile.
@@ -713,14 +713,14 @@ export default function LandingPage() {
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.05] bg-cover bg-center bg-fixed pointer-events-none"
+          className="absolute inset-0 opacity-[0.22] mix-blend-overlay bg-cover bg-center bg-fixed pointer-events-none"
           style={{
             backgroundImage:
               'url(https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1920&q=80)',
             backgroundPosition: '50% 50%',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-base-100/60 to-base-100 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-base-100/30 to-base-100/70 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20">
             <div className="lg:col-span-2">
@@ -884,14 +884,14 @@ export default function LandingPage() {
         className="relative z-10 py-32 md:py-48 bg-base-200/20 border-y border-base-content/5"
       >
         <div
-          className="absolute inset-0 opacity-[0.04] bg-cover bg-center pointer-events-none"
+          className="absolute inset-0 opacity-[0.20] mix-blend-overlay bg-cover bg-center pointer-events-none"
           style={{
             backgroundImage:
               'url(https://images.unsplash.com/photo-1553729459-afe8f2e2e810?w=1920&q=80)',
             backgroundPosition: '50% 50%',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-base-200/60 via-transparent to-base-200/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-base-200/30 via-transparent to-base-200/40 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="mb-20 text-center">
             <div className="flex items-center justify-center gap-2 mb-4 text-primary/60">
@@ -1119,14 +1119,14 @@ export default function LandingPage() {
       {/* CTA */}
       <section ref={ctaRef} className="relative z-10 py-32 md:py-40">
         <div
-          className="absolute inset-0 opacity-[0.03] bg-cover bg-center bg-fixed pointer-events-none"
+          className="absolute inset-0 opacity-[0.20] mix-blend-overlay bg-cover bg-center bg-fixed pointer-events-none"
           style={{
             backgroundImage:
               'url(https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80)',
             backgroundPosition: '50% 30%',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-base-100 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-base-100/60 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
           <div className="relative overflow-hidden rounded-3xl bg-base-200/40 border border-base-content/10 p-10 md:p-20 text-center">
             <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
