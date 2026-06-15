@@ -47,7 +47,7 @@ const plans = [
       'Support par email',
     ],
     notIncluded: [
-      'IA Gemini Copilot',
+      'IA StockWise Copilot',
       'Export CSV avancé',
       'Rapports de rentabilité',
       'Utilisateurs illimités',
@@ -489,7 +489,7 @@ export default function LandingPage() {
             <p className="text-[clamp(1rem,1.5vw,1.2rem)] text-base-content/60 leading-relaxed max-w-xl mb-10 font-normal">
               Une plateforme qui anticipe vos ruptures, orchestre vos ventes et
               protège votre trésorerie avec une précision chirurgicale.
-              Propulsée par Google Gemini.
+              Propulsée par notre IA.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -690,7 +690,7 @@ export default function LandingPage() {
                     Agent IA Nocturne
                   </h3>
                   <p className="text-sm text-base-content/60 leading-relaxed">
-                    Gemini 2.5 Flash analyse vos données chaque nuit et génère
+                    L'IA StockWise analyse vos données chaque nuit et génère
                     des recommandations stratégiques. Sur-stockage, ruptures
                     anticipées, ajustements de prix.
                   </p>
@@ -781,8 +781,8 @@ export default function LandingPage() {
                   </span>
                 </div>
                 <h2 className="font-display font-extrabold text-[clamp(2rem,4vw,3.5rem)] leading-[1.08] tracking-tighter text-base-content max-w-xl mb-6">
-                  Votre stock analysé par
-                  <span className="text-primary"> Gemini.</span>
+Votre stock analysé par
+                   <span className="text-primary"> notre IA.</span>
                 </h2>
                 <p className="text-base text-base-content/60 leading-relaxed mb-10">
                   Chaque nuit, pendant que vous dormez, notre agent IA analyse
@@ -835,7 +835,7 @@ export default function LandingPage() {
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/50" />
                     </div>
                     <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-base-content/30 ml-3">
-                      gemini.insight &mdash; analyse nocturne
+                      stockwise.ia &mdash; analyse nocturne
                     </span>
                   </div>
                   <span className="text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider">
@@ -1326,7 +1326,7 @@ export default function LandingPage() {
                 a: 'Absolument. Nos formules Starter et Professionnel sont conçues pour les PME et commerces de proximité. Vous pouvez démarrer avec jusqu\'à 100 produits et 3 utilisateurs gratuitement.',
               },
               {
-                q: 'Comment fonctionne l\'IA Gemini ?',
+                q: 'Comment fonctionne l\'IA StockWise ?',
                 a: 'Chaque nuit, notre agent IA analyse vos données de vente, l\'historique des commandes et les tendances saisonnières. Le matin, vous recevez des recommandations prioritaires : sur-stockage à écouler, risques de rupture, et suggestions de réapprovisionnement.',
               },
               {
