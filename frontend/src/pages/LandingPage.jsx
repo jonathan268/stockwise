@@ -125,6 +125,7 @@ const heroImages = ['/11047.jpg', '/8924.jpg', '/126208.jpg'];
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [faqOpen, setFaqOpen] = useState(null);
@@ -136,6 +137,7 @@ export default function LandingPage() {
 
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
+  const featuresGridRef = useRef(null);
   const aiRef = useRef(null);
   const aiTextRef = useRef(null);
   const pricingRef = useRef(null);
@@ -147,7 +149,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    const fn = () => setScrolled(window.scrollY > 40);
+    const fn = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrolled(window.scrollY > 40);
+      setScrollProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0);
+    };
     window.addEventListener('scroll', fn);
     return () => window.removeEventListener('scroll', fn);
   }, [theme]);
@@ -174,6 +180,17 @@ export default function LandingPage() {
     mm.add('(min-width: 768px)', () => {
       const cards = gsap.utils.toArray('.stack-card');
       if (cards.length) {
+        gsap.to('.hero-content', {
+          y: 60,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        });
+
         cards.forEach((card, i) => {
           if (i === 0) return;
           gsap.set(card, { y: 60, opacity: 0.6, scale: 0.95 });
@@ -206,6 +223,24 @@ export default function LandingPage() {
         });
       }
 
+      const features = document.querySelectorAll('.pricing-feature');
+      if (features.length) {
+        features.forEach((feature, i) => {
+          gsap.from(feature, {
+            opacity: 0,
+            x: -20,
+            duration: 0.4,
+            delay: i * 0.05,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: pricingRef.current,
+              start: 'top 70%',
+              toggleActions: 'play none none reverse',
+            },
+          });
+        });
+      }
+
       const aiWords = aiTextRef.current;
       if (aiWords) {
         const words = aiWords.querySelectorAll('.word');
@@ -233,6 +268,31 @@ export default function LandingPage() {
     });
 
     return () => mm.revert();
+  }, []);
+
+  useEffect(() => {
+    const grid = featuresGridRef.current;
+    if (!grid) return;
+    const cards = grid.querySelectorAll('.stack-card');
+    const handleMove = (e) => {
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transform = `perspective(800px) rotateY(${x * 4}deg) rotateX(${y * -4}deg)`;
+      });
+    };
+    const handleLeave = () => {
+      cards.forEach((card) => {
+        card.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg)';
+      });
+    };
+    grid.addEventListener('mousemove', handleMove);
+    grid.addEventListener('mouseleave', handleLeave);
+    return () => {
+      grid.removeEventListener('mousemove', handleMove);
+      grid.removeEventListener('mouseleave', handleLeave);
+    };
   }, []);
 
   useEffect(() => {
@@ -280,10 +340,17 @@ export default function LandingPage() {
       <div className="fixed top-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none z-0 bg-radial-[circle_at_center,var(--color-primary)/0.06,transparent_70%]" />
       <div className="fixed bottom-[5%] left-[-8%] w-[500px] h-[500px] rounded-full pointer-events-none z-0 bg-radial-[circle_at_center,var(--color-secondary)/0.04,transparent_70%]" />
 
+      <div className="fixed top-0 left-0 right-0 z-[200] h-0.5 bg-base-content/5">
+        <div
+          className="h-full bg-primary transition-transform duration-150 ease-linear origin-left"
+          style={{ transform: `scaleX(${scrollProgress})` }}
+        />
+      </div>
+
       {/* NAV */}
       <nav
-        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl z-[100] transition-all duration-500 ease-out-expo ${
-          scrolled ? 'top-2' : ''
+        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl z-[100] transition-all duration-700 ease-out-expo ${
+          scrolled ? 'top-3 scale-[0.97]' : ''
         }`}
       >
         <div
@@ -356,12 +423,15 @@ export default function LandingPage() {
 
       {/* MOBILE DRAWER */}
       <div
-        className={`fixed inset-0 z-[99] bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[99] bg-black/60 backdrop-blur-xl transition-opacity duration-300 ${
           menuOpen
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setMenuOpen(false)}
+        onTouchEnd={(e) => {
+          if (e.changedTouches[0].clientX < window.innerWidth * 0.75) setMenuOpen(false);
+        }}
       />
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-xs z-[100] bg-base-100 shadow-2xl transition-transform duration-500 ease-out-expo ${
@@ -451,9 +521,10 @@ export default function LandingPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-base-100 via-base-100/85 to-base-100/30" />
           <div className="absolute inset-0 bg-gradient-to-t from-base-100/20 to-transparent" />
+          <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJmIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjcwIiBudW1PY3RhdmVzPSI0IiAvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2YpIiAvPjwvc3ZnPg==')]" />
         </div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 py-32 md:py-40">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 py-32 md:py-40 hero-content">
           <div className="max-w-2xl 2xl:max-w-3xl">
             <div className="flex items-center gap-2 mb-6 text-primary/70">
               <div className="w-8 h-px bg-primary/50" />
@@ -491,10 +562,10 @@ export default function LandingPage() {
             <div className="flex items-center gap-6 mt-14 pt-8 border-t border-base-content/10">
               <div className="flex -space-x-2.5">
                 {[
-                  'https://picsum.photos/seed/user1/200/200',
-                  'https://picsum.photos/seed/user2/200/200',
-                  'https://picsum.photos/seed/user3/200/200',
-                  'https://picsum.photos/seed/user4/200/200',
+                  'https://i.pravatar.cc/200?img=1',
+                  'https://i.pravatar.cc/200?img=2',
+                  'https://i.pravatar.cc/200?img=3',
+                  'https://i.pravatar.cc/200?img=4',
                 ].map((src, i) => (
                   <div
                     key={i}
@@ -556,9 +627,9 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 grid-flow-dense">
+          <div ref={featuresGridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 grid-flow-dense">
             {/* Card 1 - Product Management (col-span-2, row-span-2) */}
-            <div className="stack-card col-span-1 md:col-span-2 row-span-1 md:row-span-2 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-200/40 hover:bg-base-200/60 transition-all duration-500">
+            <div className="stack-card col-span-1 md:col-span-2 row-span-1 md:row-span-2 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-200/40 hover:bg-base-200/60 transition-all duration-500" style={{ transition: 'transform 0.2s ease-out, background 0.5s, border 0.5s' }}>
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="relative z-10 h-full p-8 md:p-10 flex flex-col">
                 <div className="w-11 h-11 bg-primary/10 text-primary border border-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
@@ -1287,9 +1358,12 @@ export default function LandingPage() {
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-content text-[0.5625rem] font-bold px-4 py-1 rounded-full uppercase tracking-widest shadow-lg">
-                    Le plus populaire
-                  </div>
+                  <>
+                    <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-primary/20 via-primary/5 to-transparent opacity-60 animate-pulse pointer-events-none" />
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-content text-[0.5625rem] font-bold px-4 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-primary/30 z-10 animate-[pulse_2s_ease-in-out_infinite]">
+                      Le plus populaire
+                    </div>
+                  </>
                 )}
 
                 <div className="p-8">
@@ -1320,7 +1394,7 @@ export default function LandingPage() {
 
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((f, j) => (
-                      <li key={j} className="flex items-start gap-3">
+                      <li key={j} className="flex items-start gap-3 pricing-feature">
                         <div
                           className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 shrink-0 ${
                             plan.popular
@@ -1643,6 +1717,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed bottom-8 right-8 z-50 w-12 h-12 rounded-full bg-primary text-primary-content shadow-xl shadow-primary/25 flex items-center justify-center transition-all duration-500 hover:scale-110 hover:shadow-primary/40 ${
+          scrollProgress > 0.3
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+        aria-label="Retour en haut"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+      </button>
+
       {/* FOOTER */}
       <footer className="border-t border-base-content/10 py-14 md:py-20 bg-base-200/20">
         <div className="max-w-7xl mx-auto px-6 sm:px-10">
@@ -1686,7 +1772,7 @@ export default function LandingPage() {
                   <li key={i}>
                     <a
                       href="#"
-                      className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300"
+                      className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:after:w-full"
                     >
                       {l}
                     </a>
@@ -1708,7 +1794,7 @@ export default function LandingPage() {
                   <li key={i}>
                     <Link
                       to={l.to}
-                      className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300 no-underline"
+                      className="text-sm text-base-content/50 hover:text-base-content transition-colors duration-300 no-underline relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:after:w-full"
                     >
                       {l.label}
                     </Link>

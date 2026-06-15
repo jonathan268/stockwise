@@ -1,33 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore } from "./store/authStore";
 import axios from "./lib/axios";
 
-// Pages
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import DashboardPage from "./pages/DashboardPage";
-import ProductsPage from "./pages/ProductsPage";
-import SuppliersPage from "./pages/SuppliersPage";
-import SalesPage from "./pages/SalesPage";
-import MovementsPage from "./pages/MovementsPage";
-import AlertsPage from "./pages/AlertsPage";
-import InsightsPage from "./pages/InsightsPage";
-import SettingsPage from "./pages/SettingsPage";
-import ConsolePage from "./pages/ConsolePage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import CookiesPage from "./pages/CookiesPage";
+// Pages - lazy loaded
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const SuppliersPage = lazy(() => import("./pages/SuppliersPage"));
+const SalesPage = lazy(() => import("./pages/SalesPage"));
+const MovementsPage = lazy(() => import("./pages/MovementsPage"));
+const AlertsPage = lazy(() => import("./pages/AlertsPage"));
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const ConsolePage = lazy(() => import("./pages/ConsolePage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const CookiesPage = lazy(() => import("./pages/CookiesPage"));
 
 // Components
 import PrivateRoute from "./routes/PrivateRoute";
 import PageTransition from "./components/PageTransition";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import { DashboardSkeleton, CardSkeleton } from "./components/Skeleton";
+
+function PageSkeleton() {
+  return (
+    <div className="min-h-screen bg-base-100 flex items-center justify-center p-8">
+      <div className="w-full max-w-4xl space-y-6">
+        <div className="h-6 w-48 rounded bg-base-content/10 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <CardSkeleton key={i} />)}
+        </div>
+        <div className="h-[300px] rounded-2xl bg-base-content/5 animate-pulse" />
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const location = useLocation();
@@ -53,6 +68,7 @@ export default function App() {
 
   return (
     <AnimatePresence mode="wait">
+      <Suspense fallback={<PageSkeleton />}>
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
@@ -143,6 +159,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CookieConsentBanner />
+      </Suspense>
     </AnimatePresence>
   );
 }
