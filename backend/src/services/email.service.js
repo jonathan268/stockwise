@@ -92,7 +92,7 @@ export const sendLowStockAlertEmail = async (user, org, product) => {
 };
 
 export const sendPasswordResetEmail = async (user, resetToken) => {
-  const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/reset/${resetToken}`;
   await sendMail({
     to: user.email,
     subject: "Réinitialisation de mot de passe StockWise",

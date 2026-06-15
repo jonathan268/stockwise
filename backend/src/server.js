@@ -27,6 +27,7 @@ import invoiceRoutes from "./routes/invoice.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
 import { initSocket } from "./utils/socket.js";
 import { startAICronJob } from "./jobs/ai.cron.js";
+import logger from "./utils/logger.js";
 
 dotenv.config();
 
