@@ -8,9 +8,9 @@ const router = Router();
 
 router.use(protect, tenant);
 
-router.get("/products/csv", planGate("exportReports"), exportController.exportProducts);
-router.get("/sales/csv", planGate("exportReports"), exportController.exportSales);
-router.get("/movements/csv", planGate("exportReports"), exportController.exportMovements);
+router.get("/products/csv", planGate("csvExports"), exportController.exportProducts);
+router.get("/sales/csv", planGate("csvExports"), exportController.exportSales);
+router.get("/movements/csv", planGate("csvExports"), exportController.exportMovements);
 router.get("/profitability", planGate("exportReports"), exportController.getProfitabilityReport);
 router.get("/dead-stock", planGate("exportReports"), exportController.getDeadStockReport);
 

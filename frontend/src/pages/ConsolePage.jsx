@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/authStore";
 import {
-  Users, Building2, BarChart3, MessageSquare,
+  Users, Building2, BarChart3, MessageSquare, LifeBuoy,
   ToggleLeft, ToggleRight, TrendingUp, DollarSign, Activity, FileText,
   CreditCard, UserCheck, CalendarDays, Zap,
 } from "lucide-react";
@@ -21,6 +21,7 @@ const tabs = [
   { id: "users", label: "Utilisateurs", icon: Users },
   { id: "organizations", label: "Organisations", icon: Building2 },
   { id: "feedback", label: "Feedbacks", icon: MessageSquare },
+  { id: "support", label: "Support", icon: LifeBuoy },
   { id: "logs", label: "Logs", icon: FileText },
 ];
 
@@ -87,6 +88,12 @@ export default function ConsolePage() {
     enabled: activeTab === "feedback",
   });
 
+  const { data: supportData, refetch: refetchSupport } = useQuery({
+    queryKey: ["console-support"],
+    queryFn: async () => { const r = await axiosInstance.get("/console/support?limit=50"); return r.data; },
+    enabled: activeTab === "support",
+  });
+
   const { data: logsData } = useQuery({
     queryKey: ["console-logs"],
     queryFn: async () => { const r = await axiosInstance.get("/console/logs"); return r.data.data; },
@@ -107,6 +114,11 @@ export default function ConsolePage() {
   const updateFeedback = useMutation({
     mutationFn: ({ id, data }) => axiosInstance.patch(`/console/feedback/${id}`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["console-feedback"] }),
+  });
+
+  const updateTicket = useMutation({
+    mutationFn: ({ id, data }) => axiosInstance.patch(`/console/support/${id}`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["console-support"] }),
   });
 
   const fmt = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(n);
@@ -479,6 +491,56 @@ export default function ConsolePage() {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════ SUPPORT ═══════════════ */}
+          {activeTab === "support" && (
+            <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+              <div className="card-body p-0 overflow-x-auto">
+                <table className="table">
+                  <thead><tr>
+                    <th>Sujet</th><th>Organisation</th><th>Statut</th><th>Priorité</th><th>Date</th><th className="text-right">Actions</th>
+                  </tr></thead>
+                  <tbody>
+                    {supportData?.data?.map((t) => {
+                      const orgName = t.organizationId?.name || "—";
+                      return (
+                        <tr key={t._id} className={t.isPriority ? "bg-error/5" : ""}>
+                          <td className="font-medium max-w-xs truncate">{t.subject}</td>
+                          <td className="text-sm">{orgName}<br /><span className="text-xs text-base-content/40">{t.userId?.email || ""}</span></td>
+                          <td>
+                            <select className="select select-ghost select-xs"
+                              value={t.status}
+                              onChange={(e) => updateTicket.mutate({ id: t._id, data: { status: e.target.value } })}>
+                              <option value="open">Ouvert</option>
+                              <option value="in_progress">En cours</option>
+                              <option value="resolved">Résolu</option>
+                              <option value="closed">Fermé</option>
+                            </select>
+                          </td>
+                          <td>
+                            <span className={`badge badge-sm ${t.priority === "urgent" ? "badge-error" : t.priority === "high" ? "badge-warning" : "badge-ghost"}`}>
+                              {t.priority === "urgent" ? "Urgente" : t.priority === "high" ? "Haute" : "Normale"}
+                            </span>
+                          </td>
+                          <td className="text-sm text-base-content/40">{new Date(t.createdAt).toLocaleDateString()}</td>
+                          <td className="text-right">
+                            {t.adminNote ? (
+                              <span className="text-xs text-base-content/40">Répondu</span>
+                            ) : (
+                              <button className="btn btn-ghost btn-xs">Répondre</button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {(!supportData?.data || supportData.data.length === 0) && (
+                      <tr><td colSpan={6} className="text-center py-8 text-base-content/40">Aucun ticket</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>

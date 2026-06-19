@@ -26,6 +26,7 @@ import exportRoutes from "./routes/export.routes.js";
 import invoiceRoutes from "./routes/invoice.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
 import memberRoutes from "./routes/member.routes.js";
+import supportRoutes, { adminSupportRoutes } from "./routes/support.routes.js";
 import { initSocket } from "./utils/socket.js";
 import { startAICronJob } from "./jobs/ai.cron.js";
 import logger from "./utils/logger.js";
@@ -147,8 +148,12 @@ app.use("/api/v1/suppliers", supplierRoutes);
 // Routes Membres & Invitations
 app.use("/api/v1/organization/members", memberRoutes);
 
-// ─── Super admin route ──────────────────────────────────────
+// Routes Support
+app.use("/api/v1/support", supportRoutes);
+
+// ─── Super admin routes ─────────────────────────────────────
 app.use("/api/v1/console", consoleRoutes);
+app.use("/api/v1/console/support", adminSupportRoutes);
 
 // ─── Fallback 404 ─────────────────────────────────────────
 app.use((req, res, next) => {

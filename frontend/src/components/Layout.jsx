@@ -27,6 +27,7 @@ import {
   BarChart3,
   FileText,
   DollarSign,
+  LifeBuoy,
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
 import FeedbackModal from "./FeedbackModal";
@@ -42,6 +43,7 @@ const navItems = [
   { label: "Mouvements", path: "/movements", icon: ArrowLeftRight },
   { label: "Alertes", path: "/alerts", icon: Bell },
   { label: "Équipe", path: "/team", icon: Users },
+  { label: "Support", path: "/support", icon: MessageSquare },
   { label: "Paramètres", path: "/settings", icon: Settings },
 ];
 
@@ -51,6 +53,7 @@ const consoleNavItems = [
   { label: "Utilisateurs", path: "/console?tab=users", icon: Users },
   { label: "Organisations", path: "/console?tab=organizations", icon: Building2 },
   { label: "Feedbacks", path: "/console?tab=feedback", icon: MessageSquare },
+  { label: "Support", path: "/console?tab=support", icon: LifeBuoy },
   { label: "Logs", path: "/console?tab=logs", icon: FileText },
 ];
 

@@ -2,6 +2,7 @@ import Alert from "../models/Alert.js";
 import Product from "../models/Product.js";
 import Organization from "../models/Organization.js";
 import User from "../models/User.js";
+import { PLANS } from "../config/plans.js";
 import { AppError } from "../utils/appError.js";
 import { sendLowStockAlertEmail } from "./email.service.js";
 
@@ -11,13 +12,29 @@ import { sendLowStockAlertEmail } from "./email.service.js";
  * @param {Object} filters - {type, page, limit, sortBy}
  * @returns {Object} {alerts, total, page, totalPages}
  */
+const hasAiAlerts = async (organizationId) => {
+  const org = await Organization.findById(organizationId).select("plan isTrialActive trialEndsAt");
+  if (!org) return false;
+  const trialValid = org.isTrialActive && org.trialEndsAt > new Date();
+  return trialValid || org.plan === "pro" || org.plan === "enterprise";
+};
+
 export const getAlerts = async (organizationId, filters = {}) => {
   const { type, page = 1, limit = 20, isRead = false } = filters;
 
   const query = { organizationId };
 
-  if (type) query.type = type;
+  if (!(await hasAiAlerts(organizationId))) {
+    query.type = type || { $ne: "ai_recommendation" };
+  } else if (type) {
+    query.type = type;
+  }
   if (isRead !== undefined) query.isRead = isRead;
+
+  // Si le type est forcé à autre chose que ai_recommendation, ne pas filtrer
+  if (type && type !== "ai_recommendation" && !(await hasAiAlerts(organizationId))) {
+    query.type = { $ne: "ai_recommendation" };
+  }
 
   const [alerts, total] = await Promise.all([
     Alert.find(query)
@@ -306,10 +323,11 @@ export const resolveStockAlerts = async (organizationId) => {
  * @returns {Number} Nombre d'alertes non lues
  */
 export const getUnreadAlertCount = async (organizationId) => {
-  const count = await Alert.countDocuments({
-    organizationId,
-    isRead: false,
-  });
+  const query = { organizationId, isRead: false };
+  if (!(await hasAiAlerts(organizationId))) {
+    query.type = { $ne: "ai_recommendation" };
+  }
+  const count = await Alert.countDocuments(query);
 
   return count;
 };
@@ -320,9 +338,15 @@ export const getUnreadAlertCount = async (organizationId) => {
  * @returns {Object} Statistiques des alertes
  */
 export const getAlertStats = async (organizationId) => {
+  const baseQuery = { organizationId };
+  const baseUnreadQuery = { organizationId, isRead: false };
+  if (!(await hasAiAlerts(organizationId))) {
+    baseUnreadQuery.type = { $ne: "ai_recommendation" };
+  }
+
   const stats = {
-    total: await Alert.countDocuments({ organizationId }),
-    unread: await Alert.countDocuments({ organizationId, isRead: false }),
+    total: await Alert.countDocuments(baseQuery),
+    unread: await Alert.countDocuments(baseUnreadQuery),
     lowStock: await Alert.countDocuments({
       organizationId,
       type: "low_stock",

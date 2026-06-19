@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Product from "../models/Product.js";
 import Sale from "../models/Sale.js";
 import Recommendation from "../models/Recommendation.js";
+import Alert from "../models/Alert.js";
 import Organization from "../models/Organization.js";
 import logger from "../utils/logger.js";
 
@@ -84,6 +85,16 @@ export const generateInsightsForOrg = async (organizationId) => {
         actionLabel: insight.type === "pricing" ? "adjust_price" : insight.type === "dead_stock" ? "clearance" : "reorder",
         relatedProducts: insight.relatedProductIds || [],
       });
+
+      if (insight.priority === "high") {
+        await Alert.create({
+          organizationId,
+          type: "ai_recommendation",
+          severity: "warning",
+          message: `${insight.title} — ${insight.description}`,
+          product: insight.relatedProductIds?.[0] || null,
+        });
+      }
     }
 
     // Analyse dead stock locale (complément IA)

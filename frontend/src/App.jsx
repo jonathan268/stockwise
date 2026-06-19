@@ -22,6 +22,7 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const TeamPage = lazy(() => import("./pages/TeamPage"));
 const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
 const ConsolePage = lazy(() => import("./pages/ConsolePage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const CookiesPage = lazy(() => import("./pages/CookiesPage"));
@@ -156,6 +157,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <PageTransition><AcceptInvitePage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <PrivateRoute>
+              <PageTransition><SupportPage /></PageTransition>
             </PrivateRoute>
           }
         />

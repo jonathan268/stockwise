@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   ShoppingCart, Plus, Search, DollarSign, TrendingUp, Hash,
-  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye, Download, Lock,
+  Calendar, ChevronLeft, ChevronRight, X as XIcon, Eye, Download, Lock, FileText,
 } from "lucide-react";
 import axiosInstance from "../lib/axios";
 import SaleForm from "../components/SaleForm";
@@ -182,7 +182,13 @@ export default function SalesPage() {
                     <td>
                       <div className="flex justify-end gap-1">
                         {sale.status === "completed" && (
-                          <button onClick={() => setCancelModal({ open: true, saleId: sale._id, reason: "" })} className="btn btn-ghost btn-xs text-error">Annuler</button>
+                          <>
+                            <a href={`${import.meta.env.VITE_API_URL}/invoices/${sale._id}/html`}
+                              target="_blank" rel="noopener" className="btn btn-ghost btn-xs gap-1">
+                              <FileText size={14} /> Facture
+                            </a>
+                            <button onClick={() => setCancelModal({ open: true, saleId: sale._id, reason: "" })} className="btn btn-ghost btn-xs text-error">Annuler</button>
+                          </>
                         )}
                         {sale.status === "cancelled" && (
                           <span className="badge badge-error badge-outline badge-sm">Annulée</span>
