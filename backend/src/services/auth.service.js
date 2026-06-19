@@ -258,23 +258,25 @@ export const googleAuthService = async (idToken) => {
       await user.save();
     }
   } else {
-    // Nouvel utilisateur
+    // Nouvel utilisateur — créer d'abord l'utilisateur, puis l'org avec le owner
     const orgName = `Organisation de ${given_name}`;
-    const organization = await Organization.create({
-      name: orgName,
-      slug: `${orgName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
-    });
 
     user = await User.create({
       firstName: given_name,
       lastName: family_name,
       email,
       googleId: sub,
-      organizationId: organization._id,
-      role: "owner"
+      role: "owner",
     });
-    organization.owner = user._id;
-    await organization.save();
+
+    const organization = await Organization.create({
+      name: orgName,
+      slug: `${orgName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+      owner: user._id,
+    });
+
+    user.organizationId = organization._id;
+    await user.save();
   }
 
   // 3. Génération session standard JWT
