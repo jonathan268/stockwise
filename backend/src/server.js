@@ -59,6 +59,7 @@ const authLimiter = rateLimit({
   message: { success: false, error: "Trop de tentatives, réessayez plus tard", code: "RATE_LIMIT_EXCEEDED" },
 });
 
+app.set("trust proxy", 1);
 app.use("/api/", globalLimiter);
 
 // ─── Middlewares globaux ──────────────────────────────────

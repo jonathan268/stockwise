@@ -43,7 +43,6 @@ const inviteSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-inviteSchema.index({ token: 1 });
 inviteSchema.index({ organizationId: 1, email: 1, status: 1 });
 
 export default mongoose.model("Invite", inviteSchema);
