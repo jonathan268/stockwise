@@ -53,4 +53,4 @@ export const PLANS = {
 };
 
 // Features gated — nécessitent plan Pro+ ou trial actif
-export const PRO_FEATURES = ["aiRecommendations", "aiAlerts", "exportReports", "csvExports"];
+export const PRO_FEATURES = ["aiRecommendations", "exportReports"];

@@ -18,13 +18,15 @@ import {
   Moon,
   PackagePlus,
   Menu,
-  X,
   Sparkles,
   CreditCard,
-  Zap,
   Shield,
   MessageSquare,
   Building2,
+  Users,
+  BarChart3,
+  FileText,
+  DollarSign,
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
 import FeedbackModal from "./FeedbackModal";
@@ -39,7 +41,17 @@ const navItems = [
   { label: "Fournisseurs", path: "/suppliers", icon: Building2 },
   { label: "Mouvements", path: "/movements", icon: ArrowLeftRight },
   { label: "Alertes", path: "/alerts", icon: Bell },
+  { label: "Équipe", path: "/team", icon: Users },
   { label: "Paramètres", path: "/settings", icon: Settings },
+];
+
+const consoleNavItems = [
+  { label: "Vue d'ensemble", path: "/console", icon: BarChart3 },
+  { label: "Abonnements", path: "/console?tab=subscriptions", icon: DollarSign },
+  { label: "Utilisateurs", path: "/console?tab=users", icon: Users },
+  { label: "Organisations", path: "/console?tab=organizations", icon: Building2 },
+  { label: "Feedbacks", path: "/console?tab=feedback", icon: MessageSquare },
+  { label: "Logs", path: "/console?tab=logs", icon: FileText },
 ];
 
 export default function Layout({ children }) {
@@ -54,6 +66,7 @@ export default function Layout({ children }) {
   const [isSubsModalOpen, setIsSubsModalOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const isSuperAdmin = user?.role === "super_admin";
+  const isOnConsole = location.pathname === "/console";
 
   // Calcul des jours restants
   const getDaysRemaining = () => {
@@ -90,6 +103,8 @@ export default function Layout({ children }) {
 
   const initials = `${user?.firstName?.charAt(0) || ""}${user?.lastName?.charAt(0) || ""}`;
 
+  const items = isSuperAdmin && isOnConsole ? consoleNavItems : navItems;
+
   /* ── Sidebar Content (shared between desktop & mobile) ── */
   const SidebarContent = ({ isMobile = false }) => (
     <div className="flex flex-col h-full">
@@ -100,22 +115,27 @@ export default function Layout({ children }) {
         </div>
         {(!collapsed || isMobile) && (
           <span className="font-display font-black text-lg tracking-tight text-base-content">
-            StockWise
+            {isSuperAdmin && isOnConsole ? "Console" : "StockWise"}
           </span>
         )}
       </div>
 
       {/* Nav Links */}
       <nav className="flex-1 px-3 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+        {items.map((item) => {
+          const [itemPath, itemQuery] = item.path.split("?");
+          const isActive = itemQuery
+            ? location.pathname === itemPath && location.search === `?${itemQuery}`
+            : location.pathname === item.path;
           return (
             <NavLink
-              key={item.path}
+              key={item.path + (item.label)}
               to={item.path}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative
                 ${isActive
-                  ? "bg-primary text-primary-content shadow-lg shadow-primary/20"
+                  ? isSuperAdmin && isOnConsole
+                    ? "bg-warning text-warning-content shadow-lg shadow-warning/20"
+                    : "bg-primary text-primary-content shadow-lg shadow-primary/20"
                   : "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
                 }
                 ${collapsed && !isMobile ? "justify-center px-3" : ""}
@@ -141,24 +161,24 @@ export default function Layout({ children }) {
           );
         })}
 
-        {/* Console super admin (visible uniquement pour super_admin) */}
-        {isSuperAdmin && (
+        {/* Lien vers le SaaS (depuis la console) */}
+        {isSuperAdmin && isOnConsole && (
           <NavLink
-            to="/console"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative mt-4 border border-warning/20 bg-warning/5
-              ${location.pathname === "/console"
-                ? "bg-warning text-warning-content"
+            to="/dashboard"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group relative mt-4 border border-primary/20 bg-primary/5
+              ${location.pathname === "/dashboard"
+                ? "bg-primary text-primary-content"
                 : "text-base-content/70 hover:bg-base-content/5 hover:text-base-content"
               }
               ${collapsed && !isMobile ? "justify-center px-3" : ""}
             `}
           >
-            <Shield size={20} strokeWidth={2} className="shrink-0" />
-            {(!collapsed || isMobile) && <span>Console Admin</span>}
+            <LayoutDashboard size={20} strokeWidth={2} className="shrink-0" />
+            {(!collapsed || isMobile) && <span>Voir le SaaS</span>}
 
             {collapsed && !isMobile && (
               <div className="absolute left-full ml-3 px-3 py-1.5 bg-base-content text-base-100 text-sm font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
-                Console Admin
+                Voir le SaaS
               </div>
             )}
           </NavLink>
@@ -204,7 +224,9 @@ export default function Layout({ children }) {
           {(!collapsed || isMobile) && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-base-content truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-base-content/50 truncate">{organization?.name}</p>
+              <p className="text-xs text-base-content/50 truncate">
+                {isSuperAdmin ? "Super Admin" : organization?.name}
+              </p>
             </div>
           )}
           {(!collapsed || isMobile) && (
@@ -247,40 +269,52 @@ export default function Layout({ children }) {
               <Menu size={22} />
             </button>
             <div>
-              <h1 className="text-lg font-bold text-base-content leading-tight">{organization?.name || "StockWise"}</h1>
+              <h1 className="text-lg font-bold text-base-content leading-tight">
+                {isSuperAdmin && isOnConsole ? "Console Admin" : (organization?.name || "StockWise")}
+              </h1>
               <div className="flex items-center gap-2">
-                 <p className="text-[10px] uppercase font-black tracking-widest text-primary leading-none">{organization?.plan || "Starter"} Plan</p>
-                 {daysLeft !== null && (
-                   <span className="text-[10px] font-bold text-base-content/40">• {daysLeft} jours</span>
-                 )}
+                {isSuperAdmin && isOnConsole ? (
+                  <p className="text-[10px] uppercase font-black tracking-widest text-warning leading-none">Supervision SaaS</p>
+                ) : (
+                  <>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-primary leading-none">{organization?.plan || "Starter"} Plan</p>
+                    {daysLeft !== null && (
+                      <span className="text-[10px] font-bold text-base-content/40">• {daysLeft} jours</span>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {isTrialActive && (
-              <button 
-                onClick={() => setIsSubsModalOpen(true)}
-                className="btn btn-warning btn-xs gap-1 font-bold rounded-lg shadow-sm hover:shadow-md transition-all animate-pulse"
-              >
-                <Zap size={14} /> Essai 
-              </button>
+            {!isSuperAdmin && (
+              <>
+                {isTrialActive && (
+                  <button 
+                    onClick={() => setIsSubsModalOpen(true)}
+                    className="btn btn-warning btn-xs gap-1 font-bold rounded-lg shadow-sm hover:shadow-md transition-all animate-pulse"
+                  >
+                    <Zap size={14} /> Essai 
+                  </button>
+                )}
+                {!isTrialActive && organization?.plan === "starter" && (
+                    <button 
+                      onClick={() => setIsSubsModalOpen(true)}
+                      className="btn btn-primary btn-xs gap-1 font-bold rounded-lg"
+                    >
+                      <CreditCard size={14} /> Passer Pro
+                    </button>
+                )}
+                
+                <NavLink to="/alerts" className="btn btn-ghost btn-sm btn-circle relative">
+                  <Bell size={20} />
+                  {unreadAlerts > 0 && (
+                    <span className="badge badge-error badge-xs absolute -top-1 -right-1 text-[10px]">{unreadAlerts}</span>
+                  )}
+                </NavLink>
+              </>
             )}
-            {!isTrialActive && organization?.plan === "starter" && (
-                <button 
-                  onClick={() => setIsSubsModalOpen(true)}
-                  className="btn btn-primary btn-xs gap-1 font-bold rounded-lg"
-                >
-                  <CreditCard size={14} /> Passer Pro
-                </button>
-            )}
-            
-            <NavLink to="/alerts" className="btn btn-ghost btn-sm btn-circle relative">
-              <Bell size={20} />
-              {unreadAlerts > 0 && (
-                <span className="badge badge-error badge-xs absolute -top-1 -right-1 text-[10px]">{unreadAlerts}</span>
-              )}
-            </NavLink>
           </div>
         </header>
 

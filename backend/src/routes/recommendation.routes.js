@@ -1,6 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
 import { tenant } from "../middleware/tenant.js";
+import { planGate } from "../middleware/planGate.js";
 import { asyncHandler } from "../utils/appError.js";
 import Recommendation from "../models/Recommendation.js";
 import { generateInsightsForOrg } from "../services/ai.service.js";
@@ -14,7 +15,7 @@ router.use(tenant);
  * @route   GET /api/v1/recommendations
  * @desc    Récupère les recommandations IA de l'organisation
  */
-router.get("/", asyncHandler(async (req, res) => {
+router.get("/", planGate("aiRecommendations"), asyncHandler(async (req, res) => {
   const { page = 1, limit = 20 } = req.query;
   const query = { organizationId: req.organizationId, isDismissed: false };
 

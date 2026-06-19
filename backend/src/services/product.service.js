@@ -1,5 +1,7 @@
 import Product from "../models/Product.js";
 import StockMovement from "../models/StockMovement.js";
+import Organization from "../models/Organization.js";
+import { PLANS } from "../config/plans.js";
 import { AppError } from "../utils/appError.js";
 import { runInTransaction } from "../utils/transactionHelper.js";
 import { checkStockAlerts } from "./alert.service.js";
@@ -35,6 +37,24 @@ export const createProduct = async (organizationId, productData) => {
     });
     if (existing)
       throw new AppError("SKU déjà utilisé dans votre organisation", 400);
+  }
+
+  const org = await Organization.findById(organizationId);
+  if (!org) throw new AppError("Organisation introuvable", 404);
+
+  const planName = org.plan || "starter";
+  const plan = PLANS[planName];
+  const maxProducts = plan?.features?.maxProducts ?? 100;
+
+  if (maxProducts !== Infinity) {
+    const currentCount = await Product.countDocuments({ organizationId, isDeleted: false });
+    if (currentCount >= maxProducts) {
+      throw new AppError(
+        `Limite de ${maxProducts} produits atteinte pour votre plan. Passez à Pro pour des produits illimités.`,
+        403,
+        "PLAN_LIMIT_REACHED",
+      );
+    }
   }
 
   const product = await Product.create({ organizationId, ...productData });

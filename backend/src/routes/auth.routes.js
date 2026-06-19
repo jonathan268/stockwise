@@ -17,6 +17,8 @@ router.put("/password", protect, authController.updatePassword);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 
+router.post("/accept-invite/:token", protect, authController.acceptInvite);
+
 import { tenant } from "../middleware/tenant.js";
 router.put("/organization", protect, tenant, authController.updateOrganization);
 

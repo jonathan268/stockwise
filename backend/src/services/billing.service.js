@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import axios from "axios";
 import Organization from "../models/Organization.js";
+import Subscription from "../models/Subscription.js";
 import { AppError } from "../utils/appError.js";
 import logger from "../utils/logger.js";
 import { PLANS } from "../config/plans.js";
@@ -95,6 +96,22 @@ export const handleWebhook = async (signature, payloadBody) => {
         org.plan = newPlan;
         org.isTrialActive = false;
         await org.save();
+
+        let subscription = await Subscription.findOne({ organizationId: orgId });
+        if (subscription) {
+          subscription.plan = newPlan;
+          subscription.status = "active";
+          subscription.invoices.push({
+            reference: reference,
+            amount: paidAmount,
+            currency: "XAF",
+            status: "complete",
+            paidAt: new Date(),
+            channel: data.channel || "notchpay",
+          });
+          await subscription.save();
+        }
+
         logger.info(`✅ Webhook Notchpay: Upgrade réussi pour l'Org ${orgId} (Plan: ${newPlan})`);
       }
     }

@@ -3,31 +3,56 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/authStore";
 import {
-  Users, Building2, Package, Bell, BarChart3, MessageSquare,
+  Users, Building2, BarChart3, MessageSquare,
   ToggleLeft, ToggleRight, TrendingUp, DollarSign, Activity, FileText,
+  CreditCard, UserCheck, CalendarDays, Zap,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 
-const COLORS = ["#2563eb", "#16a34a", "#eab308", "#dc2626", "#8b5cf6"];
+const COLORS = ["#2563eb", "#16a34a", "#eab308", "#dc2626", "#8b5cf6", "#ec4899"];
 
 const tabs = [
   { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
+  { id: "subscriptions", label: "Abonnements", icon: CreditCard },
   { id: "users", label: "Utilisateurs", icon: Users },
   { id: "organizations", label: "Organisations", icon: Building2 },
   { id: "feedback", label: "Feedbacks", icon: MessageSquare },
   { id: "logs", label: "Logs", icon: FileText },
 ];
 
+const planLabels = { starter: "Starter", pro: "Pro", enterprise: "Entreprise" };
+const statusLabels = {
+  trial: "Essai", active: "Actif", past_due: "Impayé",
+  cancelled: "Annulé", expired: "Expiré",
+};
+
 export default function ConsolePage() {
   const { isSuperAdmin } = useAuthStore();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(urlTab);
   const [userPage, setUserPage] = useState(1);
   const [orgPage, setOrgPage] = useState(1);
+  const [subPage, setSubPage] = useState(1);
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    if (tab === "overview") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab });
+    }
+  };
+
+  // Sync URL tab -> state on navigation
+  if (urlTab !== activeTab) {
+    setActiveTab(urlTab);
+  }
 
   if (!isSuperAdmin()) return <Navigate to="/dashboard" replace />;
 
@@ -35,6 +60,13 @@ export default function ConsolePage() {
     queryKey: ["console-dashboard"],
     queryFn: async () => { const r = await axiosInstance.get("/console/dashboard"); return r.data.data; },
     enabled: activeTab === "overview",
+    refetchInterval: 30000,
+  });
+
+  const { data: subsData } = useQuery({
+    queryKey: ["console-subscriptions", subPage],
+    queryFn: async () => { const r = await axiosInstance.get(`/console/subscriptions?page=${subPage}&limit=15`); return r.data; },
+    enabled: activeTab === "subscriptions",
   });
 
   const { data: usersData } = useQuery({
@@ -78,12 +110,15 @@ export default function ConsolePage() {
   });
 
   const fmt = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(n);
+  const fmtMoney = (n) => n == null ? "0" : new Intl.NumberFormat("fr-FR").format(Math.round(n));
+
+  const d = dashData || {};
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       <div>
         <h1 className="text-2xl font-black font-display">Console Super Admin</h1>
-        <p className="text-base-content/60 text-sm mt-1">Gestion globale de la plateforme.</p>
+        <p className="text-base-content/60 text-sm mt-1">Supervision globale de la plateforme StockWise.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -91,7 +126,7 @@ export default function ConsolePage() {
           <ul className="menu bg-base-100 rounded-2xl border border-base-content/5 shadow-sm p-2 gap-1">
             {tabs.map((tab) => (
               <li key={tab.id}>
-                <button onClick={() => setActiveTab(tab.id)}
+                <button onClick={() => switchTab(tab.id)}
                   className={`flex items-center gap-3 font-medium ${activeTab === tab.id ? "active" : ""}`}>
                   <tab.icon size={18} /> {tab.label}
                 </button>
@@ -101,42 +136,73 @@ export default function ConsolePage() {
         </div>
 
         <div className="flex-1 space-y-4">
-          {activeTab === "overview" && dashData && (
+          {/* ═══════════════ OVERVIEW ═══════════════ */}
+          {activeTab === "overview" && (
             <>
+              {/* KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
                   <div className="stat-figure text-primary"><Users size={24} /></div>
                   <div className="stat-title text-xs">Utilisateurs</div>
-                  <div className="stat-value text-2xl">{fmt(dashData.totalUsers)}</div>
-                  <div className="stat-desc text-xs">+{fmt(dashData.newUsersThisMonth)} ce mois</div>
+                  <div className="stat-value text-2xl">{fmt(d.totalUsers)}</div>
+                  <div className="stat-desc text-xs">+{fmt(d.newUsersThisMonth)} ce mois</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
                   <div className="stat-figure text-secondary"><Building2 size={24} /></div>
                   <div className="stat-title text-xs">Organisations</div>
-                  <div className="stat-value text-2xl">{fmt(dashData.totalOrgs)}</div>
-                  <div className="stat-desc text-xs">{fmt(dashData.activeOrgs)} actives</div>
+                  <div className="stat-value text-2xl">{fmt(d.totalOrgs)}</div>
+                  <div className="stat-desc text-xs">{fmt(d.activeOrgs)} actives</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-accent"><TrendingUp size={24} /></div>
-                  <div className="stat-title text-xs">Revenu du mois</div>
-                  <div className="stat-value text-xl">{fmt(dashData.revenueThisMonth)} XAF</div>
+                  <div className="stat-figure text-accent"><DollarSign size={24} /></div>
+                  <div className="stat-title text-xs">Revenu abonnements (mois)</div>
+                  <div className="stat-value text-xl">{fmtMoney(d.paidRevenueThisMonth)}</div>
+                  <div className="stat-desc text-xs">XAF</div>
                 </div>
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-info"><Activity size={24} /></div>
-                  <div className="stat-title text-xs">Ventes totales</div>
-                  <div className="stat-value text-2xl">{fmt(dashData.totalSales)}</div>
+                  <div className="stat-figure text-info"><TrendingUp size={24} /></div>
+                  <div className="stat-title text-xs">MRR</div>
+                  <div className="stat-value text-xl">{fmtMoney(d.mrr)}</div>
+                  <div className="stat-desc text-xs">XAF / mois</div>
                 </div>
               </div>
 
+              {/* Secondary KPIs */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
+                  <div className="stat-figure text-warning"><Activity size={20} /></div>
+                  <div className="stat-title text-xs">Produits</div>
+                  <div className="stat-value text-xl">{fmt(d.totalProducts)}</div>
+                </div>
+                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
+                  <div className="stat-figure text-error"><Zap size={20} /></div>
+                  <div className="stat-title text-xs">Alertes</div>
+                  <div className="stat-value text-xl">{fmt(d.totalAlerts)}</div>
+                </div>
+                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
+                  <div className="stat-figure text-success"><UserCheck size={20} /></div>
+                  <div className="stat-title text-xs">Conversion → Payant</div>
+                  <div className="stat-value text-xl">{d.conversionRate ?? "—"}%</div>
+                </div>
+                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
+                  <div className="stat-figure text-primary"><CalendarDays size={20} /></div>
+                  <div className="stat-title text-xs">Délai moyen avant paiement</div>
+                  <div className="stat-value text-xl">{d.avgDaysToPaid ?? "—"}</div>
+                  <div className="stat-desc text-xs">jours</div>
+                </div>
+              </div>
+
+              {/* Charts row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Subscription Revenue Trend */}
                 <div className="card bg-base-100 border border-base-content/5 shadow-sm">
                   <div className="card-body">
                     <h3 className="font-bold text-sm flex items-center gap-2">
-                      <TrendingUp size={16} className="text-primary" /> Évolution des revenus
+                      <TrendingUp size={16} className="text-primary" /> Évolution des revenus abonnements
                     </h3>
-                    {dashData.salesTrend?.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={dashData.salesTrend}>
+                    {d.subscriptionTrend?.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={d.subscriptionTrend}>
                           <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--bc)/0.1)" />
                           <XAxis dataKey="_id" tick={{ fontSize: 10 }} stroke="oklch(var(--bc)/0.4)" />
                           <YAxis tick={{ fontSize: 10 }} stroke="oklch(var(--bc)/0.4)" />
@@ -145,7 +211,52 @@ export default function ConsolePage() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-[200px] flex items-center justify-center text-base-content/40">Pas de données</div>
+                      <div className="h-[220px] flex items-center justify-center text-base-content/40">Pas encore de données</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Plans Breakdown */}
+                <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+                  <div className="card-body">
+                    <h3 className="font-bold text-sm flex items-center gap-2">
+                      <DollarSign size={16} className="text-primary" /> Répartition des plans
+                    </h3>
+                    {d.plansBreakdown?.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie data={d.plansBreakdown} dataKey="count" nameKey="_id" cx="50%" cy="50%" outerRadius={80}
+                            label={({ _id, count }) => `${planLabels[_id] || _id} (${count})`}>
+                            {d.plansBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-[220px] flex items-center justify-center text-base-content/40">Pas de données</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status breakdown + Users by role */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+                  <div className="card-body">
+                    <h3 className="font-bold text-sm flex items-center gap-2">
+                      <Activity size={16} className="text-primary" /> Statuts des abonnements
+                    </h3>
+                    {d.statusBreakdown?.length > 0 ? (
+                      <div className="space-y-2 mt-2">
+                        {d.statusBreakdown.map((s) => (
+                          <div key={s._id} className="flex items-center justify-between p-2 bg-base-200/50 rounded-lg">
+                            <span className="text-sm font-medium">{statusLabels[s._id] || s._id}</span>
+                            <span className="font-bold">{s.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="h-[120px] flex items-center justify-center text-base-content/40">Pas de données</div>
                     )}
                   </div>
                 </div>
@@ -153,27 +264,102 @@ export default function ConsolePage() {
                 <div className="card bg-base-100 border border-base-content/5 shadow-sm">
                   <div className="card-body">
                     <h3 className="font-bold text-sm flex items-center gap-2">
-                      <DollarSign size={16} className="text-primary" /> Répartition des plans
+                      <Users size={16} className="text-primary" /> Répartition des rôles utilisateurs
                     </h3>
-                    {dashData.plansBreakdown?.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                          <Pie data={dashData.plansBreakdown} dataKey="count" nameKey="_id" cx="50%" cy="50%" outerRadius={70}
-                            label={({ _id, count }) => `${_id} (${count})`}>
-                            {dashData.plansBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
+                    {d.usersByRole?.length > 0 ? (
+                      <div className="space-y-2 mt-2">
+                        {d.usersByRole.map((r) => (
+                          <div key={r._id} className="flex items-center justify-between p-2 bg-base-200/50 rounded-lg">
+                            <span className="text-sm font-medium capitalize">{r._id}</span>
+                            <span className="font-bold">{r.count}</span>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="h-[200px] flex items-center justify-center text-base-content/40">Pas de données</div>
+                      <div className="h-[120px] flex items-center justify-center text-base-content/40">Pas de données</div>
                     )}
                   </div>
                 </div>
               </div>
+
+              {/* Recent subscriptions */}
+              {d.recentSubscriptions?.length > 0 && (
+                <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+                  <div className="card-body">
+                    <h3 className="font-bold text-sm flex items-center gap-2 mb-3">
+                      <CreditCard size={16} className="text-primary" /> Derniers abonnements
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Organisation</th>
+                            <th>Propriétaire</th>
+                            <th>Plan</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {d.recentSubscriptions.map((sub) => (
+                            <tr key={sub._id}>
+                              <td className="font-medium">{sub.organizationId?.name || "—"}</td>
+                              <td className="text-sm">{sub.organizationId?.owner?.firstName} {sub.organizationId?.owner?.lastName}</td>
+                              <td><span className="badge badge-sm capitalize">{planLabels[sub.plan] || sub.plan}</span></td>
+                              <td><span className={`badge badge-sm ${sub.status === "active" ? "badge-success" : sub.status === "trial" ? "badge-warning" : "badge-error"}`}>{statusLabels[sub.status] || sub.status}</span></td>
+                              <td className="text-sm text-base-content/50">{new Date(sub.createdAt).toLocaleDateString("fr-FR")}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
+          {/* ═══════════════ SUBSCRIPTIONS ═══════════════ */}
+          {activeTab === "subscriptions" && (
+            <div className="card bg-base-100 border border-base-content/5 shadow-sm">
+              <div className="card-body p-0 overflow-x-auto">
+                <table className="table">
+                  <thead><tr>
+                    <th>Organisation</th><th>Propriétaire</th><th>Plan</th><th>Statut</th><th>Factures</th><th>Total payé</th><th>Date</th>
+                  </tr></thead>
+                  <tbody>
+                    {subsData?.data?.map((sub) => {
+                      const paidInvoices = sub.invoices?.filter((inv) => inv.status === "complete") || [];
+                      const totalPaid = paidInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+                      return (
+                        <tr key={sub._id}>
+                          <td className="font-medium">{sub.organization?.name || "—"}</td>
+                          <td className="text-sm">{sub.organization?.owner?.firstName} {sub.organization?.owner?.lastName}<br /><span className="text-xs text-base-content/40">{sub.organization?.owner?.email}</span></td>
+                          <td><span className="badge badge-sm capitalize">{planLabels[sub.plan] || sub.plan}</span></td>
+                          <td><span className={`badge badge-sm ${sub.status === "active" ? "badge-success" : sub.status === "trial" ? "badge-warning" : "badge-error"}`}>{statusLabels[sub.status] || sub.status}</span></td>
+                          <td className="text-sm">{paidInvoices.length}</td>
+                          <td className="text-sm font-medium">{fmtMoney(totalPaid)} XAF</td>
+                          <td className="text-sm text-base-content/50">{new Date(sub.createdAt).toLocaleDateString("fr-FR")}</td>
+                        </tr>
+                      );
+                    })}
+                    {(!subsData?.data || subsData.data.length === 0) && (
+                      <tr><td colSpan={7} className="text-center py-8 text-base-content/40">Aucun abonnement</td></tr>
+                    )}
+                  </tbody>
+                </table>
+                {subsData?.meta && (
+                  <div className="flex justify-center p-4 gap-2">
+                    <button disabled={subPage <= 1} onClick={() => setSubPage(p => p - 1)} className="btn btn-ghost btn-sm">Précédent</button>
+                    <span className="btn btn-ghost btn-sm disabled">Page {subsData.meta.page}/{subsData.meta.totalPages}</span>
+                    <button disabled={subPage >= subsData.meta.totalPages} onClick={() => setSubPage(p => p + 1)} className="btn btn-ghost btn-sm">Suivant</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════ USERS ═══════════════ */}
           {activeTab === "users" && (
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
@@ -210,6 +396,7 @@ export default function ConsolePage() {
             </div>
           )}
 
+          {/* ═══════════════ ORGANIZATIONS ═══════════════ */}
           {activeTab === "organizations" && (
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
@@ -246,6 +433,7 @@ export default function ConsolePage() {
             </div>
           )}
 
+          {/* ═══════════════ FEEDBACK ═══════════════ */}
           {activeTab === "feedback" && (
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">
@@ -297,6 +485,7 @@ export default function ConsolePage() {
             </div>
           )}
 
+          {/* ═══════════════ LOGS ═══════════════ */}
           {activeTab === "logs" && (
             <div className="card bg-base-100 border border-base-content/5 shadow-sm">
               <div className="card-body p-0 overflow-x-auto">

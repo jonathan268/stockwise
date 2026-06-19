@@ -12,6 +12,6 @@ router.get("/products/csv", planGate("exportReports"), exportController.exportPr
 router.get("/sales/csv", planGate("exportReports"), exportController.exportSales);
 router.get("/movements/csv", planGate("exportReports"), exportController.exportMovements);
 router.get("/profitability", planGate("exportReports"), exportController.getProfitabilityReport);
-router.get("/dead-stock", exportController.getDeadStockReport);
+router.get("/dead-stock", planGate("exportReports"), exportController.getDeadStockReport);
 
 export default router;

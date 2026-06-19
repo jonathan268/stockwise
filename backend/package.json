@@ -1,6 +1,6 @@
 {
   "name": "stockwise-api",
-  "version": "4.0.0",
+  "version": "1.0.0",
   "description": "StockWise — Gestion de stock intelligente pour PME africaines",
   "type": "module",
   "main": "src/server.js",

@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/appError.js";
 import { validate } from "../utils/validation.js";
 import * as authService from "../services/auth.service.js";
+import { acceptInviteService } from "../services/member.service.js";
 import Joi from "joi";
 
 const registerSchema = Joi.object({
@@ -139,6 +140,18 @@ export const resetPassword = asyncHandler(async (req, res) => {
   const data = validate(resetPasswordSchema, req.body);
   const result = await authService.resetPasswordService(data.token, data.password);
   res.json({ success: true, message: result.message });
+});
+
+export const acceptInvite = asyncHandler(async (req, res) => {
+  const result = await acceptInviteService(req.params.token, req.user);
+  res.json({
+    success: true,
+    data: {
+      organization: result.organization,
+      invite: result.invite,
+    },
+    message: "Invitation acceptée.",
+  });
 });
 
 export const updateOrganization = asyncHandler(async (req, res) => {

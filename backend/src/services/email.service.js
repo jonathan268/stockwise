@@ -109,6 +109,24 @@ export const sendPasswordResetEmail = async (user, resetToken) => {
   });
 };
 
+export const sendInviteEmail = async ({ email, token, organizationName, role }) => {
+  const acceptUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/accept-invite/${token}`;
+  await sendMail({
+    to: email,
+    subject: `Invitation à rejoindre ${organizationName} sur StockWise`,
+    html: baseTemplate(`Invitation à rejoindre ${organizationName}`, `
+      <p style="line-height: 1.7; color: #374151;">Vous avez été invité(e) à rejoindre l'organisation <strong>${organizationName}</strong> sur StockWise avec le rôle <strong>${role === "admin" ? "Administrateur" : "Employé"}</strong>.</p>
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${acceptUrl}"
+           style="background: #2563eb; color: white; padding: 14px 36px; text-decoration: none; border-radius: 10px; font-weight: 600; display: inline-block;">
+          Accepter l'invitation →
+        </a>
+      </div>
+      <p style="color: #9ca3af; font-size: 14px;">Ce lien expire dans 7 jours. Si vous n'attendiez pas cette invitation, ignorez cet email.</p>
+    `),
+  });
+};
+
 export const sendDailyReportEmail = async (user, org, stats) => {
   const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n || 0);
   await sendMail({

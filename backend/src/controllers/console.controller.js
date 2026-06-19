@@ -10,6 +10,7 @@ import logger from "../utils/logger.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { PLANS } from "../config/plans.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,57 +21,165 @@ export const getDashboard = asyncHandler(async (req, res) => {
 
   const [
     totalUsers,
+    newUsersThisMonth,
     totalOrgs,
     activeOrgs,
     totalProducts,
     totalAlerts,
     totalSales,
-    revenueThisMonth,
-    revenueThisYear,
+    usersByRole,
     plansBreakdown,
-    newUsersThisMonth,
-    salesTrend,
+    statusBreakdown,
+    paidRevenueThisMonth,
+    totalPaidRevenue,
+    subscriptionTrend,
+    recentSubscriptions,
   ] = await Promise.all([
     User.countDocuments(),
+    User.countDocuments({ createdAt: { $gte: startOfMonth } }),
     Organization.countDocuments(),
     Organization.countDocuments({ isActive: true }),
     Product.countDocuments({ isDeleted: false }),
     Alert.countDocuments(),
     Sale.countDocuments({ status: "completed" }),
-    Sale.aggregate([
-      { $match: { createdAt: { $gte: startOfMonth }, status: "completed" } },
-      { $group: { _id: null, revenue: { $sum: "$totalAmount" } } },
+
+    User.aggregate([
+      { $group: { _id: "$role", count: { $sum: 1 } } },
     ]),
-    Sale.aggregate([
-      { $match: { createdAt: { $gte: startOfYear }, status: "completed" } },
-      { $group: { _id: null, revenue: { $sum: "$totalAmount" } } },
-    ]),
+
     Subscription.aggregate([
       { $group: { _id: "$plan", count: { $sum: 1 } } },
     ]),
-    User.countDocuments({ createdAt: { $gte: startOfMonth } }),
-    Sale.aggregate([
-      { $match: { createdAt: { $gte: startOfYear }, status: "completed" } },
-      { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } }, revenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } },
+
+    Subscription.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
+
+    Subscription.aggregate([
+      { $match: { "invoices.status": "complete", "invoices.paidAt": { $gte: startOfMonth } } },
+      { $unwind: "$invoices" },
+      { $match: { "invoices.status": "complete", "invoices.paidAt": { $gte: startOfMonth } } },
+      { $group: { _id: null, revenue: { $sum: "$invoices.amount" } } },
+    ]),
+
+    Subscription.aggregate([
+      { $match: { "invoices.status": "complete" } },
+      { $unwind: "$invoices" },
+      { $match: { "invoices.status": "complete" } },
+      { $group: { _id: null, revenue: { $sum: "$invoices.amount" } } },
+    ]),
+
+    Subscription.aggregate([
+      { $unwind: "$invoices" },
+      { $match: { "invoices.status": "complete" } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$invoices.paidAt" } },
+          revenue: { $sum: "$invoices.amount" },
+          count: { $sum: 1 },
+        },
+      },
       { $sort: { _id: 1 } },
     ]),
+
+    Subscription.find()
+      .populate({ path: "organizationId", select: "name owner plan", populate: { path: "owner", select: "firstName lastName email" } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean(),
   ]);
+
+  // MRR : revenu mensuel récurrent (plans actifs)
+  const activeSubs = await Subscription.find({ status: { $in: ["active", "trial"] } }).lean();
+  let mrr = 0;
+  for (const sub of activeSubs) {
+    const planConfig = PLANS[sub.plan];
+    if (planConfig && sub.status === "active") {
+      mrr += planConfig.price;
+    }
+  }
+
+  // Taux de conversion trial → payant
+  const totalTrials = await Subscription.countDocuments({ status: "trial" });
+  const totalPaid = await Subscription.countDocuments({ status: "active" });
+  const conversionRate = totalTrials + totalPaid > 0
+    ? Math.round((totalPaid / (totalTrials + totalPaid)) * 100)
+    : 0;
+
+  // Jours moyens avant paiement
+  const paidSubs = await Subscription.find({
+    status: "active",
+    "invoices.0.paidAt": { $ne: null },
+  }).lean();
+  let avgDaysToPaid = null;
+  if (paidSubs.length > 0) {
+    let totalDays = 0;
+    let count = 0;
+    for (const sub of paidSubs) {
+      const firstInvoice = sub.invoices?.find((inv) => inv.status === "complete");
+      if (firstInvoice?.paidAt && sub.createdAt) {
+        const days = Math.ceil((new Date(firstInvoice.paidAt) - new Date(sub.createdAt)) / (1000 * 60 * 60 * 24));
+        totalDays += days;
+        count++;
+      }
+    }
+    if (count > 0) avgDaysToPaid = Math.round(totalDays / count);
+  }
 
   res.json({
     success: true,
     data: {
       totalUsers,
+      newUsersThisMonth,
       totalOrgs,
       activeOrgs,
       totalProducts,
       totalAlerts,
       totalSales,
-      revenueThisMonth: revenueThisMonth[0]?.revenue || 0,
-      revenueThisYear: revenueThisYear[0]?.revenue || 0,
-      newUsersThisMonth,
+      usersByRole,
       plansBreakdown,
-      salesTrend,
+      statusBreakdown,
+      paidRevenueThisMonth: paidRevenueThisMonth[0]?.revenue || 0,
+      totalPaidRevenue: totalPaidRevenue[0]?.revenue || 0,
+      mrr,
+      conversionRate,
+      avgDaysToPaid,
+      subscriptionTrend: subscriptionTrend || [],
+      recentSubscriptions: recentSubscriptions || [],
     },
+  });
+});
+
+export const getSubscriptions = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20, plan, status } = req.query;
+  const query = {};
+  if (plan) query.plan = plan;
+  if (status) query.status = status;
+
+  const [subscriptions, total] = await Promise.all([
+    Subscription.find(query)
+      .populate({
+        path: "organizationId",
+        select: "name owner isActive createdAt settings",
+        populate: { path: "owner", select: "firstName lastName email" },
+      })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .lean(),
+    Subscription.countDocuments(query),
+  ]);
+
+  const data = subscriptions.map((sub) => ({
+    ...sub,
+    organization: sub.organizationId,
+    organizationId: sub.organizationId?._id,
+  }));
+
+  res.json({
+    success: true,
+    data,
+    meta: { total, page: Number(page), totalPages: Math.ceil(total / limit) },
   });
 });
 
@@ -140,15 +249,16 @@ export const getOrganizationById = asyncHandler(async (req, res) => {
 
   if (!org) return res.status(404).json({ success: false, error: "Organisation introuvable" });
 
-  const [subscription, userCount, productCount] = await Promise.all([
+  const [subscription, userCount, productCount, salesCount] = await Promise.all([
     Subscription.findOne({ organizationId: org._id }),
     User.countDocuments({ organizationId: org._id }),
     Product.countDocuments({ organizationId: org._id, isDeleted: false }),
+    Sale.countDocuments({ organizationId: org._id, status: "completed" }),
   ]);
 
   res.json({
     success: true,
-    data: { ...org.toJSON(), subscription, userCount, productCount },
+    data: { ...org.toJSON(), subscription, userCount, productCount, salesCount },
   });
 });
 

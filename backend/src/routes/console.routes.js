@@ -8,6 +8,7 @@ router.use(protect);
 router.use(authorize("super_admin"));
 
 router.get("/dashboard", consoleController.getDashboard);
+router.get("/subscriptions", consoleController.getSubscriptions);
 router.get("/logs", consoleController.getLogs);
 
 router.get("/users", consoleController.getUsers);

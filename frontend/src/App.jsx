@@ -19,6 +19,8 @@ const MovementsPage = lazy(() => import("./pages/MovementsPage"));
 const AlertsPage = lazy(() => import("./pages/AlertsPage"));
 const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const TeamPage = lazy(() => import("./pages/TeamPage"));
+const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
 const ConsolePage = lazy(() => import("./pages/ConsolePage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
@@ -138,6 +140,22 @@ export default function App() {
           element={
             <PrivateRoute>
               <PageTransition><SettingsPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/team"
+          element={
+            <PrivateRoute>
+              <PageTransition><TeamPage /></PageTransition>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/accept-invite/:token"
+          element={
+            <PrivateRoute>
+              <PageTransition><AcceptInvitePage /></PageTransition>
             </PrivateRoute>
           }
         />

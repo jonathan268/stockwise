@@ -25,6 +25,7 @@ import consoleRoutes from "./routes/console.routes.js";
 import exportRoutes from "./routes/export.routes.js";
 import invoiceRoutes from "./routes/invoice.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
+import memberRoutes from "./routes/member.routes.js";
 import { initSocket } from "./utils/socket.js";
 import { startAICronJob } from "./jobs/ai.cron.js";
 import logger from "./utils/logger.js";
@@ -142,6 +143,9 @@ app.use("/api/v1/invoices", invoiceRoutes);
 
 // Routes Fournisseurs
 app.use("/api/v1/suppliers", supplierRoutes);
+
+// Routes Membres & Invitations
+app.use("/api/v1/organization/members", memberRoutes);
 
 // ─── Super admin route ──────────────────────────────────────
 app.use("/api/v1/console", consoleRoutes);
