@@ -29,7 +29,6 @@
     "node-cache": "^5.1.2",
     "node-cron": "^4.0.1",
     "nodemailer": "^8.0.5",
-    "notchpay.js": "^1.0.0",
     "slugify": "^1.6.6",
     "socket.io": "^4.8.1",
     "winston": "^3.11.0"

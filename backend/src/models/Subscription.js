@@ -23,7 +23,6 @@ const subscriptionSchema = new mongoose.Schema(
     currentPeriodEnd: { type: Date },
     cancelledAt: { type: Date },
     gracePeriodEndsAt: { type: Date },
-    notchpayCustomerId: { type: String },
 
     invoices: [
       {

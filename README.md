@@ -11,7 +11,7 @@
 - **Base de données**: MongoDB Atlas 7
 - **Authentification**: JWT + bcryptjs
 - **API IA**: Google Gemini 2.5 Flash
-- **Paiements**: NotchPay (XAF natif - MTN Mobile Money, Orange Money)
+- **Paiements**: CinetPay (XAF natif - MTN Mobile Money, Orange Money)
 - **WebSocket**: Socket.io 4.8
 - **Tâches planifiées**: node-cron
 - **Monitoring**: Winston
@@ -93,9 +93,10 @@ npm install
 MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/stockwise
 JWT_SECRET=<random_64_chars>
 GEMINI_API_KEY=<google_ai_studio_key>
-NOTCHPAY_PUBLIC_KEY=<pk_live_xxxxx>
-NOTCHPAY_PRIVATE_KEY=<sk_live_xxxxx>
+CINETPAY_API_KEY=<your_cinetpay_api_key>
+CINETPAY_API_PASSWORD=<your_cinetpay_api_password>
 CLIENT_URL=http://localhost:5173
+API_URL=http://localhost:5000
 ```
 
 **Démarrer :**
@@ -197,7 +198,7 @@ Les recommandations ne sont **jamais** calculées en temps réel. Elles sont:
 ### Abonnements & Billing
 
 - Trial 30j gratuit (accès complet)
-- Paiement NotchPay (MTN, Orange Money, carte)
+- Paiement CinetPay (MTN, Orange Money, carte)
 - Gestion des plans (Starter/Pro/Entreprise)
 
 ### PWA & Offline
@@ -255,7 +256,7 @@ La documentation complète est dans `conception.md`:
 - APIs REST complètes
 - Modèles Mongoose
 - Services et middlewares
-- Intégrations (Gemini, NotchPay, etc.)
+- Intégrations (Gemini, CinetPay, etc.)
 - Design system & composants UI
 - PWA & offline-first strategy
 - Déploiement & checklist production
@@ -267,7 +268,7 @@ La documentation complète est dans `conception.md`:
 - ✅ Double auth: `protect` (JWT) + `tenant` (organizationId)
 - ✅ Rate limiting + Helmet.js
 - ✅ Validation Joi sur tous les inputs
-- ✅ Webhooks NotchPay signé HMAC-SHA256
+- ✅ Webhooks CinetPay sécurisés
 - ✅ Super admin créé UNIQUEMENT via seeder CLI
 - ✅ Aucune donnée sensible en logs
 

@@ -1,13 +1,14 @@
 import { asyncHandler } from "../utils/appError.js";
 import * as billingService from "../services/billing.service.js";
+import logger from "../utils/logger.js";
 
 export const initializePayment = asyncHandler(async (req, res) => {
   const { targetPlan } = req.body;
-  
+
   const paymentData = await billingService.initializePayment(
     req.organizationId,
-    req.user.email,
-    targetPlan
+    req.user,
+    targetPlan,
   );
 
   res.status(200).json({
@@ -18,12 +19,12 @@ export const initializePayment = asyncHandler(async (req, res) => {
 
 export const handleWebhook = async (req, res) => {
   try {
-    const signature = req.headers["x-notch-signature"];
-    
-    await billingService.handleWebhook(signature, req.body);
+    await billingService.handleWebhook(req.body);
 
-    res.status(200).json({ success: true, message: "Webhook processed" });
+    // CinetPay attend "OK" en retour pour l'IPN
+    res.status(200).send("OK");
   } catch (error) {
-    res.status(error.statusCode || 500).json({ error: error.message });
+    logger.error("Webhook error:", error.message);
+    res.status(error.statusCode || 500).send("FAIL");
   }
 };

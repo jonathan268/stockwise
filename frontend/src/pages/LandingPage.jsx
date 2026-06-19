@@ -778,7 +778,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Card 6 - NotchPay */}
+            {/* Card 6 - Paiement Mobile */}
             <div className="stack-card col-span-1 group relative overflow-hidden rounded-2xl border border-base-content/10 bg-gradient-to-br from-cyan-500/5 to-transparent hover:from-cyan-500/10 transition-all duration-500">
               <div
                 className="absolute bottom-0 right-0 w-40 h-40 opacity-[0.06] bg-cover bg-center pointer-events-none"
