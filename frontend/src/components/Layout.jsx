@@ -28,6 +28,7 @@ import {
   FileText,
   DollarSign,
   LifeBuoy,
+  Zap,
 } from "lucide-react";
 import SubscriptionModal from "./SubscriptionModal";
 import FeedbackModal from "./FeedbackModal";

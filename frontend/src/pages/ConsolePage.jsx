@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/authStore";
 import {
   Users, Building2, BarChart3, MessageSquare, LifeBuoy,
-  ToggleLeft, ToggleRight, TrendingUp, DollarSign, Activity, FileText,
-  CreditCard, UserCheck, CalendarDays, Zap,
+  ToggleLeft, ToggleRight, TrendingUp, DollarSign, FileText,
+  CreditCard, UserCheck, CalendarDays,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,16 +14,6 @@ import {
 import { Navigate, useSearchParams } from "react-router-dom";
 
 const COLORS = ["#2563eb", "#16a34a", "#eab308", "#dc2626", "#8b5cf6", "#ec4899"];
-
-const tabs = [
-  { id: "overview", label: "Vue d'ensemble", icon: BarChart3 },
-  { id: "subscriptions", label: "Abonnements", icon: CreditCard },
-  { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "organizations", label: "Organisations", icon: Building2 },
-  { id: "feedback", label: "Feedbacks", icon: MessageSquare },
-  { id: "support", label: "Support", icon: LifeBuoy },
-  { id: "logs", label: "Logs", icon: FileText },
-];
 
 const planLabels = { starter: "Starter", pro: "Pro", enterprise: "Entreprise" };
 const statusLabels = {
@@ -34,26 +24,18 @@ const statusLabels = {
 export default function ConsolePage() {
   const { isSuperAdmin } = useAuthStore();
   const queryClient = useQueryClient();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlTab = searchParams.get("tab") || "overview";
-  const [activeTab, setActiveTab] = useState(urlTab);
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "overview";
   const [userPage, setUserPage] = useState(1);
   const [orgPage, setOrgPage] = useState(1);
   const [subPage, setSubPage] = useState(1);
 
-  const switchTab = (tab) => {
-    setActiveTab(tab);
-    if (tab === "overview") {
-      setSearchParams({});
-    } else {
-      setSearchParams({ tab });
-    }
-  };
-
-  // Sync URL tab -> state on navigation
-  if (urlTab !== activeTab) {
-    setActiveTab(urlTab);
-  }
+  // Reset pagination on tab change
+  useEffect(() => {
+    setUserPage(1);
+    setOrgPage(1);
+    setSubPage(1);
+  }, [activeTab]);
 
   if (!isSuperAdmin()) return <Navigate to="/dashboard" replace />;
 
@@ -133,21 +115,7 @@ export default function ConsolePage() {
         <p className="text-base-content/60 text-sm mt-1">Supervision globale de la plateforme StockWise.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-56 shrink-0">
-          <ul className="menu bg-base-100 rounded-2xl border border-base-content/5 shadow-sm p-2 gap-1">
-            {tabs.map((tab) => (
-              <li key={tab.id}>
-                <button onClick={() => switchTab(tab.id)}
-                  className={`flex items-center gap-3 font-medium ${activeTab === tab.id ? "active" : ""}`}>
-                  <tab.icon size={18} /> {tab.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="flex-1 space-y-4">
+      <div className="space-y-4">
           {/* ═══════════════ OVERVIEW ═══════════════ */}
           {activeTab === "overview" && (
             <>
@@ -180,17 +148,7 @@ export default function ConsolePage() {
               </div>
 
               {/* Secondary KPIs */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-warning"><Activity size={20} /></div>
-                  <div className="stat-title text-xs">Produits</div>
-                  <div className="stat-value text-xl">{fmt(d.totalProducts)}</div>
-                </div>
-                <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
-                  <div className="stat-figure text-error"><Zap size={20} /></div>
-                  <div className="stat-title text-xs">Alertes</div>
-                  <div className="stat-value text-xl">{fmt(d.totalAlerts)}</div>
-                </div>
+              <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
                 <div className="stat bg-base-100 rounded-2xl border border-base-content/5 shadow-sm">
                   <div className="stat-figure text-success"><UserCheck size={20} /></div>
                   <div className="stat-title text-xs">Conversion → Payant</div>
@@ -571,7 +529,6 @@ export default function ConsolePage() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );

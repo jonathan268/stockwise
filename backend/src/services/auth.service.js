@@ -9,7 +9,12 @@ import { OAuth2Client } from "google-auth-library";
 import { sendWelcomeEmail, sendPasswordResetEmail } from "./email.service.js";
 import crypto from "crypto";
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+let googleClient;
+try {
+  googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+} catch {
+  googleClient = null;
+}
 
 export const registerService = async ({
   firstName,
@@ -220,11 +225,24 @@ export const updateOrganizationService = async (orgId, updateData) => {
 };
 
 export const googleAuthService = async (idToken) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    throw new AppError("Google OAuth non configuré (GOOGLE_CLIENT_ID manquant)", 500, "GOOGLE_CONFIG_ERROR");
+  }
+
   // 1. Verifier le token via google-auth-library
-  const ticket = await googleClient.verifyIdToken({
-    idToken: idToken,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
+  let ticket;
+  try {
+    ticket = await googleClient.verifyIdToken({ idToken, audience: clientId });
+  } catch (err) {
+    throw new AppError(
+      err.message?.includes("audience") ? "Client ID invalide" :
+      err.message?.includes("expired") ? "Token Google expiré" :
+      err.message?.includes("invalid") ? "Token Google invalide" :
+      "Erreur de vérification du token Google: " + err.message,
+      401, "GOOGLE_AUTH_ERROR"
+    );
+  }
   const payload = ticket.getPayload();
   const { email, given_name, family_name, sub } = payload;
   
